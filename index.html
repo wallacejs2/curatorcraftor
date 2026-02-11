@@ -15,7 +15,7 @@
         <section class="hero">
           <h1 class="text-6xl hero-title">Craftor</h1>
           <p class="text-lg hero-subtitle">
-            Create, customize, and conquer more with HTML-ready designs for you to use.
+            Automotive Email Builder: Create, customize, and conquer.
           </p>
         </section>
 
@@ -37,187 +37,212 @@
 
         <section class="card mb-6">
           <div class="card-header">
-            <h2 class="text-2xl">Customize Your Email Content</h2>
+            <h2 class="text-2xl">Customize Your Email</h2>
             <button type="button" id="merge-fields-toggle" class="btn btn-ghost btn-sm">
               Insert Merge Fields
             </button>
           </div>
           <div class="card-body">
             <form id="email-form">
-              <div class="form-group">
-                <label class="form-label">Hero Image (optional)</label>
-                <!-- Source Toggle -->
-                <div class="toggle-group mb-4" style="width: fit-content; margin-bottom: 12px;">
-                  <button type="button" class="toggle-btn active" id="hero-img-btn-upload" data-target="upload">Upload</button>
-                  <button type="button" class="toggle-btn" id="hero-img-btn-url" data-target="url">URL</button>
-                </div>
-
-                <!-- File Input -->
-                <div id="hero-img-upload-container">
-                  <input type="file" id="photo" name="photo" accept="image/png, image/jpeg" class="form-control" />
-                </div>
-
-                <!-- URL Input -->
-                <div id="hero-img-url-container" class="hidden">
-                  <input type="text" id="hero_image_url" name="hero_image_url" placeholder="https://example.com/image.jpg" class="form-control" />
-                </div>
-
-                <!-- Extra Image Fields -->
-                <div class="grid grid-cols-2" style="margin-top: 12px; gap: 12px;">
-                   <div class="form-group" style="margin-bottom: 0;">
-                      <label for="hero_image_alt" class="form-label">Alt Text</label>
-                      <input type="text" id="hero_image_alt" name="hero_image_alt" placeholder="Description of image" class="form-control" />
-                   </div>
-                   <div class="form-group" style="margin-bottom: 0;">
-                      <label for="hero_image_link" class="form-label">Image Link URL</label>
-                      <input type="text" id="hero_image_link" name="hero_image_link" placeholder="https://..." class="form-control" />
-                   </div>
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label for="hero_message" class="form-label">Hero Message (optional)</label>
-                <textarea id="hero_message" name="hero_message" rows="2" placeholder="e.g., A Special Offer Just For You!" class="form-control"></textarea>
-              </div>
-              <div class="grid grid-cols-3">
-                <div class="form-group">
-                  <label for="hero_message_bg_color" class="form-label">Message BG</label>
-                  <div class="color-input-container">
-                    <input type="color" id="hero_message_bg_color" name="hero_message_bg_color" value="#ffffff" class="color-input-hidden">
-                    <div class="color-swatch-display" style="background-color: #ffffff;"></div>
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="hero_message_color" class="form-label">Message Text</label>
-                  <div class="color-input-container">
-                    <input type="color" id="hero_message_color" name="hero_message_color" value="#1d1d1f" class="color-input-hidden">
-                    <div class="color-swatch-display" style="background-color: #1d1d1f;"></div>
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="hero_message_font_size" class="form-label">Font Size (px)</label>
-                  <input type="number" id="hero_message_font_size" name="hero_message_font_size" value="24" min="12" max="72" class="form-control">
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label for="email-body" class="form-label">Email Body</label>
-                <textarea
-                  id="email-body"
-                  name="email-body"
-                  rows="6"
-                  placeholder="e.g., Hi {{recipient.first_name}}, we have some exciting news about your {{customer.last_transaction.vehicle.make}}..."
-                  required
-                  class="form-control"
-                ></textarea>
-              </div>
-
-              <div class="form-group">
-                <label for="body_bg_color" class="form-label">Body Background</label>
-                <div class="color-input-container" style="margin: 0;">
-                  <input type="color" id="body_bg_color" name="body_bg_color" value="#ffffff" class="color-input-hidden">
-                  <div class="color-swatch-display" style="background-color: #ffffff;"></div>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-2">
-                <div class="form-group">
-                  <label for="cta" class="form-label">Main Call to Action Button Text</label>
-                  <input
-                    type="text"
-                    id="cta"
-                    name="cta"
-                    placeholder="e.g., See Our Specials"
-                    class="form-control"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="cta_link" class="form-label">Main Call to Action Button Link</label>
-                  <input
-                    type="text"
-                    id="cta_link"
-                    name="cta_link"
-                    placeholder="e.g., https://example.com/specials"
-                    class="form-control"
-                  />
-                </div>
-              </div>
               
-              <div class="form-group form-group-inline">
-                <div class="form-group">
-                  <label for="cta_color" class="form-label">Main CTA BG</label>
-                  <div class="color-input-container">
-                    <input type="color" id="cta_color" name="cta_color" value="#4f46e5" class="color-input-hidden">
-                    <div class="color-swatch-display" style="background-color: #4f46e5;"></div>
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="cta_text_color" class="form-label">Main CTA Text</label>
-                  <div class="color-input-container">
-                    <input type="color" id="cta_text_color" name="cta_text_color" value="#ffffff" class="color-input-hidden">
-                    <div class="color-swatch-display" style="background-color: #ffffff;"></div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Offers Section -->
-              <div style="margin-top: var(--spacing-2xl); padding-top: var(--spacing-xl); border-top: 1px solid var(--separator-secondary);">
-                <h3 class="text-2xl mb-4">Promotional Offers (optional, max 5)</h3>
-                <div id="offers-container">
-                  <!-- Offer blocks will be dynamically inserted here -->
-                </div>
-                <button type="button" id="add-offer-btn" class="btn btn-secondary">
-                  Add Another Offer
-                </button>
-              </div>
-
-              <!-- Footer CTAs Section -->
-              <div style="margin-top: var(--spacing-2xl); padding-top: var(--spacing-xl); border-top: 1px solid var(--separator-secondary);">
-                <h3 class="text-2xl mb-4">Footer Call to Actions (optional, max 3)</h3>
-                <p class="text-lg" style="color: var(--label-secondary); margin-bottom: var(--spacing-lg);">
-                  These links will appear at the bottom of the email, useful for secondary actions.
-                </p>
-                <div class="grid grid-cols-2 mb-6">
+              <!-- Accordion 1: Hero Section -->
+              <details class="form-section" open>
+                <summary>Hero Section</summary>
+                <div class="form-section-content">
                   <div class="form-group">
-                    <label for="footer_bg_color" class="form-label">Section BG</label>
-                    <div class="color-input-container">
-                      <input type="color" id="footer_bg_color" name="footer_bg_color" value="#ffffff" class="color-input-hidden">
+                    <label class="form-label">Hero Image (optional)</label>
+                    <div class="toggle-group mb-4" style="width: fit-content; margin-bottom: 12px;">
+                      <button type="button" class="toggle-btn" id="hero-img-btn-upload" data-target="upload">Upload</button>
+                      <button type="button" class="toggle-btn active" id="hero-img-btn-url" data-target="url">URL</button>
+                    </div>
+                    <div id="hero-img-upload-container" class="hidden">
+                      <input type="file" id="photo" name="photo" accept="image/png, image/jpeg" class="form-control" />
+                    </div>
+                    <div id="hero-img-url-container">
+                      <input type="text" id="hero_image_url" name="hero_image_url" placeholder="https://example.com/image.jpg" class="form-control" />
+                    </div>
+                    <div class="grid grid-cols-2" style="margin-top: 12px; gap: 12px;">
+                       <div class="form-group" style="margin-bottom: 0;">
+                          <label for="hero_image_alt" class="form-label">Alt Text</label>
+                          <input type="text" id="hero_image_alt" name="hero_image_alt" placeholder="Description of image" class="form-control" />
+                       </div>
+                       <div class="form-group" style="margin-bottom: 0;">
+                          <label for="hero_image_link" class="form-label">Image Link URL</label>
+                          <input type="text" id="hero_image_link" name="hero_image_link" placeholder="https://..." class="form-control" />
+                       </div>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="hero_message" class="form-label">Hero Message (optional)</label>
+                    <textarea id="hero_message" name="hero_message" rows="2" placeholder="e.g., A Special Offer Just For You!" class="form-control"></textarea>
+                  </div>
+                  <div class="grid grid-cols-3">
+                    <div class="form-group">
+                      <label for="hero_message_bg_color" class="form-label">Message BG</label>
+                      <div class="color-input-container">
+                        <input type="color" id="hero_message_bg_color" name="hero_message_bg_color" value="#ffffff" class="color-input-hidden">
+                        <div class="color-swatch-display" style="background-color: #ffffff;"></div>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label for="hero_message_color" class="form-label">Message Text</label>
+                      <div class="color-input-container">
+                        <input type="color" id="hero_message_color" name="hero_message_color" value="#1d1d1f" class="color-input-hidden">
+                        <div class="color-swatch-display" style="background-color: #1d1d1f;"></div>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label for="hero_message_font_size" class="form-label">Font Size (px)</label>
+                      <input type="number" id="hero_message_font_size" name="hero_message_font_size" value="24" min="12" max="72" class="form-control">
+                    </div>
+                  </div>
+                </div>
+              </details>
+
+              <!-- Accordion 2: Body Content -->
+              <details class="form-section">
+                <summary>Body Content</summary>
+                <div class="form-section-content">
+                  <div class="form-group">
+                    <label for="email-body" class="form-label">Email Body</label>
+                    <textarea
+                      id="email-body"
+                      name="email-body"
+                      rows="6"
+                      placeholder="e.g., Hi {{recipient.first_name}}, we have some exciting news about your {{customer.last_transaction.vehicle.make}}..."
+                      required
+                      class="form-control"
+                    ></textarea>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="body_bg_color" class="form-label">Body Background</label>
+                    <div class="color-input-container" style="margin: 0;">
+                      <input type="color" id="body_bg_color" name="body_bg_color" value="#ffffff" class="color-input-hidden">
                       <div class="color-swatch-display" style="background-color: #ffffff;"></div>
                     </div>
                   </div>
-                  <div class="form-group-inline">
+
+                  <div class="grid grid-cols-2">
                     <div class="form-group">
-                      <label for="footer_cta_bg_color" class="form-label">Button BG</label>
+                      <label for="cta" class="form-label">Main Call to Action Text</label>
+                      <input type="text" id="cta" name="cta" placeholder="e.g., See Our Specials" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                      <label for="cta_link" class="form-label">Main CTA Link</label>
+                      <input type="text" id="cta_link" name="cta_link" placeholder="https://example.com/specials" class="form-control" />
+                    </div>
+                  </div>
+                  
+                  <div class="form-group form-group-inline">
+                    <div class="form-group">
+                      <label for="cta_color" class="form-label">Main CTA BG</label>
                       <div class="color-input-container">
-                        <input type="color" id="footer_cta_bg_color" name="footer_cta_bg_color" value="#4f46e5" class="color-input-hidden">
+                        <input type="color" id="cta_color" name="cta_color" value="#4f46e5" class="color-input-hidden">
                         <div class="color-swatch-display" style="background-color: #4f46e5;"></div>
                       </div>
                     </div>
                     <div class="form-group">
-                      <label for="footer_cta_text_color" class="form-label">Button Text</label>
+                      <label for="cta_text_color" class="form-label">Main CTA Text</label>
                       <div class="color-input-container">
-                        <input type="color" id="footer_cta_text_color" name="footer_cta_text_color" value="#ffffff" class="color-input-hidden">
+                        <input type="color" id="cta_text_color" name="cta_text_color" value="#ffffff" class="color-input-hidden">
                         <div class="color-swatch-display" style="background-color: #ffffff;"></div>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div id="footer-ctas-container">
-                  <!-- Footer CTA blocks will be dynamically inserted here -->
-                </div>
-                <button type="button" id="add-footer-cta-btn" class="btn btn-secondary">Add Another Link</button>
-              </div>
+              </details>
 
-              <div class="form-group" style="margin-top: var(--spacing-2xl);">
-                <label for="disclaimer" class="form-label">Footer Disclaimer (optional)</label>
-                <textarea
-                  id="disclaimer"
-                  name="disclaimer"
-                  rows="4"
-                  placeholder="e.g., This is a promotional email. Prices and offers subject to change."
-                  class="form-control"
-                ></textarea>
-              </div>
+              <!-- Accordion 3: Offers -->
+              <details class="form-section">
+                <summary>Inventory & Offers</summary>
+                <div class="form-section-content">
+                  <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl">Promotional Offers</h3>
+                    <div class="toggle-group">
+                      <button type="button" class="toggle-btn active" id="offer-layout-list">List View</button>
+                      <button type="button" class="toggle-btn" id="offer-layout-grid">Grid View</button>
+                    </div>
+                  </div>
+                  
+                  <div id="offers-container">
+                    <!-- Offer blocks inserted dynamically -->
+                  </div>
+                  <button type="button" id="add-offer-btn" class="btn btn-secondary w-full" style="margin-top: 16px;">
+                    Add Another Offer
+                  </button>
+                </div>
+              </details>
+
+              <!-- Accordion 4: Footer -->
+              <details class="form-section">
+                <summary>Footer & Disclaimer</summary>
+                <div class="form-section-content">
+                  
+                  <!-- Footer CTAs -->
+                  <h4 class="text-lg mb-4" style="font-weight:600;">Footer Links</h4>
+                  <div class="grid grid-cols-2 mb-6">
+                    <div class="form-group">
+                      <label for="footer_bg_color" class="form-label">Section BG</label>
+                      <div class="color-input-container">
+                        <input type="color" id="footer_bg_color" name="footer_bg_color" value="#ffffff" class="color-input-hidden">
+                        <div class="color-swatch-display" style="background-color: #ffffff;"></div>
+                      </div>
+                    </div>
+                    <div class="form-group-inline">
+                      <div class="form-group">
+                        <label for="footer_cta_bg_color" class="form-label">Button BG</label>
+                        <div class="color-input-container">
+                          <input type="color" id="footer_cta_bg_color" name="footer_cta_bg_color" value="#4f46e5" class="color-input-hidden">
+                          <div class="color-swatch-display" style="background-color: #4f46e5;"></div>
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label for="footer_cta_text_color" class="form-label">Button Text</label>
+                        <div class="color-input-container">
+                          <input type="color" id="footer_cta_text_color" name="footer_cta_text_color" value="#ffffff" class="color-input-hidden">
+                          <div class="color-swatch-display" style="background-color: #ffffff;"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div id="footer-ctas-container">
+                    <!-- Footer CTA blocks inserted dynamically -->
+                  </div>
+                  <button type="button" id="add-footer-cta-btn" class="btn btn-secondary mb-6">Add Another Link</button>
+
+                  <!-- Social Media -->
+                  <div style="border-top: 1px solid var(--separator-secondary); padding-top: 20px; margin-bottom: 20px;">
+                    <h4 class="text-lg mb-4" style="font-weight:600;">Social Media Links</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                      <input type="text" name="social_fb" placeholder="Facebook URL" class="form-control">
+                      <input type="text" name="social_ig" placeholder="Instagram URL" class="form-control">
+                      <input type="text" name="social_x" placeholder="X (Twitter) URL" class="form-control">
+                      <input type="text" name="social_yt" placeholder="YouTube URL" class="form-control">
+                      <input type="text" name="social_tiktok" placeholder="TikTok URL" class="form-control">
+                    </div>
+                  </div>
+
+                  <!-- Disclaimer -->
+                  <div class="form-group" style="border-top: 1px solid var(--separator-secondary); padding-top: 20px;">
+                    <div class="flex justify-between items-center mb-2">
+                        <label for="disclaimer" class="form-label" style="margin-bottom:0;">Disclaimer</label>
+                        <div class="flex gap-2">
+                            <button type="button" id="save-disclaimer-btn" class="btn btn-ghost btn-sm" style="font-size:12px; padding: 4px 8px;">Save to Library</button>
+                            <button type="button" id="load-disclaimer-btn" class="btn btn-ghost btn-sm" style="font-size:12px; padding: 4px 8px;">Load from Library</button>
+                        </div>
+                    </div>
+                    <textarea
+                      id="disclaimer"
+                      name="disclaimer"
+                      rows="4"
+                      placeholder="e.g., This is a promotional email. Prices and offers subject to change."
+                      class="form-control"
+                    ></textarea>
+                  </div>
+                </div>
+              </details>
 
               <button type="submit" id="generate-btn" class="btn btn-primary w-full" style="margin-top: var(--spacing-xl);">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="checkmark hidden"><path d="M20 6 9 17l-5-5"></path></svg>
@@ -291,98 +316,6 @@
           </select>
         </div>
 
-        <!-- Color Schemes -->
-        <div class="design-option-group">
-          <h4>Color Schemes</h4>
-          <div class="color-scheme-grid">
-            <div class="color-scheme-option selected" data-scheme="modern">
-              <div class="color-scheme-preview">
-                <div class="color-dot" style="background: #007aff;"></div>
-                <div class="color-dot" style="background: #ffffff;"></div>
-                <div class="color-dot" style="background: #f5f5f7;"></div>
-                <div class="color-dot" style="background: #1d1d1f;"></div>
-              </div>
-              <div class="text-sm" style="font-weight: 590;">Modern Blue</div>
-            </div>
-            
-            <div class="color-scheme-option" data-scheme="warm">
-              <div class="color-scheme-preview">
-                <div class="color-dot" style="background: #ff6b35;"></div>
-                <div class="color-dot" style="background: #fff8f5;"></div>
-                <div class="color-dot" style="background: #ffeee6;"></div>
-                <div class="color-dot" style="background: #2d1810;"></div>
-              </div>
-              <div class="text-sm" style="font-weight: 590;">Warm Orange</div>
-            </div>
-            
-            <div class="color-scheme-option" data-scheme="elegant">
-              <div class="color-scheme-preview">
-                <div class="color-dot" style="background: #6366f1;"></div>
-                <div class="color-dot" style="background: #fafafa;"></div>
-                <div class="color-dot" style="background: #f8fafc;"></div>
-                <div class="color-dot" style="background: #1e293b;"></div>
-              </div>
-              <div class="text-sm" style="font-weight: 590;">Elegant Purple</div>
-            </div>
-            
-            <div class="color-scheme-option" data-scheme="nature">
-              <div class="color-scheme-preview">
-                <div class="color-dot" style="background: #10b981;"></div>
-                <div class="color-dot" style="background: #f0fdf4;"></div>
-                <div class="color-dot" style="background: #ecfdf5;"></div>
-                <div class="color-dot" style="background: #14532d;"></div>
-              </div>
-              <div class="text-sm" style="font-weight: 590;">Nature Green</div>
-            </div>
-            
-            <div class="color-scheme-option" data-scheme="corporate">
-              <div class="color-scheme-preview">
-                <div class="color-dot" style="background: #374151;"></div>
-                <div class="color-dot" style="background: #ffffff;"></div>
-                <div class="color-dot" style="background: #f9fafb;"></div>
-                <div class="color-dot" style="background: #111827;"></div>
-              </div>
-              <div class="text-sm" style="font-weight: 590;">Corporate Gray</div>
-            </div>
-            
-            <div class="color-scheme-option" data-scheme="vibrant">
-              <div class="color-scheme-preview">
-                <div class="color-dot" style="background: #ec4899;"></div>
-                <div class="color-dot" style="background: #fdf2f8;"></div>
-                <div class="color-dot" style="background: #fce7f3;"></div>
-                <div class="color-dot" style="background: #831843;"></div>
-              </div>
-              <div class="text-sm" style="font-weight: 590;">Vibrant Pink</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Layout Styles -->
-        <div class="design-option-group">
-          <h4>Layout Styles</h4>
-          <div class="layout-style-grid">
-            <div class="layout-option selected" data-layout="centered">
-              <div class="text-sm" style="font-weight: 590; margin-bottom: 4px;">Centered Layout</div>
-              <div class="text-xs" style="color: var(--label-secondary);">Traditional centered content with equal margins</div>
-            </div>
-            
-            <div class="layout-option" data-layout="full-width">
-              <div class="text-sm" style="font-weight: 590; margin-bottom: 4px;">Full Width Layout</div>
-              <div class="text-xs" style="color: var(--label-secondary);">Content spans the full width with edge-to-edge design</div>
-            </div>
-            
-            <div class="layout-option" data-layout="card-style">
-              <div class="text-sm" style="font-weight: 590; margin-bottom: 4px;">Card Style Layout</div>
-              <div class="text-xs" style="color: var(--label-secondary);">Modern card-based layout with rounded corners</div>
-            </div>
-            
-            <div class="layout-option" data-layout="minimal">
-              <div class="text-sm" style="font-weight: 590; margin-bottom: 4px;">Minimal Layout</div>
-              <div class="text-xs" style="color: var(--label-secondary);">Clean and spacious with lots of white space</div>
-            </div>
-          </div>
-        </div>
-
         <!-- Button Styles -->
         <div class="design-option-group">
           <h4>Button Styles</h4>
@@ -418,82 +351,30 @@
         <button type="button" id="close-sidebar" class="btn btn-secondary btn-sm" style="width: 32px; height: 32px; padding: 0; border-radius: 50%;">&times;</button>
       </div>
       <div class="sidebar-content">
-        <div class="accordion-item">
-          <button type="button" class="accordion-header">
-            Recipient & Dealer
-            <span style="transform: rotate(0deg); transition: transform var(--transition-base);">▼</span>
-          </button>
-          <div class="accordion-content">
-            <div class="accordion-body">
-              <div class="merge-field-item" data-value="{{recipient.first_name}}">
-                <span>Recipient First Name</span>
-                <code class="merge-field-code">{{recipient.first_name}}</code>
-              </div>
-              <div class="merge-field-item" data-value="{{dealership.name}}">
-                <span>Dealership Name</span>
-                <code class="merge-field-code">{{dealership.name}}</code>
-              </div>
-              <div class="merge-field-item" data-value="{{dealership.phone_number}}">
-                <span>Dealership Phone</span>
-                <code class="merge-field-code">{{dealership.phone_number}}</code>
-              </div>
-              <div class="merge-field-item" data-value="{{dealership.address}}">
-                <span>Dealership Address</span>
-                <code class="merge-field-code">{{dealership.address}}</code>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="accordion-item">
-          <button type="button" class="accordion-header">
-            Customer Vehicle & Transaction
-            <span style="transform: rotate(0deg); transition: transform var(--transition-base);">▼</span>
-          </button>
-          <div class="accordion-content">
-            <div class="accordion-body">
-              <div class="merge-field-item" data-value="{{customer.last_transaction.vehicle.year}}">
-                <span>Vehicle Year</span>
-                <code class="merge-field-code">{{customer.last_transaction.vehicle.year}}</code>
-              </div>
-              <div class="merge-field-item" data-value="{{customer.last_transaction.vehicle.make}}">
-                <span>Vehicle Make</span>
-                <code class="merge-field-code">{{customer.last_transaction.vehicle.make}}</code>
-              </div>
-              <div class="merge-field-item" data-value="{{customer.last_transaction.vehicle.model}}">
-                <span>Vehicle Model</span>
-                <code class="merge-field-code">{{customer.last_transaction.vehicle.model}}</code>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="accordion-item">
-          <button type="button" class="accordion-header">
-            Website Links
-            <span style="transform: rotate(0deg); transition: transform var(--transition-base);">▼</span>
-          </button>
-          <div class="accordion-content">
-            <div class="accordion-body">
-              <div class="merge-field-item" data-value="{{dealership.tracked_website_homepage_no_lp_url}}">
-                <span>Tracked Homepage (No LP)</span>
-                <code class="merge-field-code">{{dealership.tracked_website_homepage_no_lp_url}}</code>
-              </div>
-              <div class="merge-field-item" data-value="{{dealership.tracked_website_service_no_lp_url}}">
-                <span>Tracked Service (No LP)</span>
-                <code class="merge-field-code">{{dealership.tracked_website_service_no_lp_url}}</code>
-              </div>
-              <div class="merge-field-item" data-value="{{dealership.website_homepage_url}}">
-                <span>Homepage URL</span>
-                <code class="merge-field-code">{{dealership.website_homepage_url}}</code>
-              </div>
-            </div>
-          </div>
-        </div>
+        <!-- Content generated by JS -->
       </div>
     </div>
     
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <!-- Quick Picker Modal Container -->
+    <div id="quick-picker-overlay" class="quick-picker-overlay">
+      <div class="quick-picker-modal">
+        <div class="quick-picker-header">
+          <h3 class="text-xl">Select Merge Field</h3>
+          <button type="button" id="close-quick-picker" class="btn btn-secondary btn-sm" style="width: 32px; height: 32px; padding: 0; border-radius: 50%;">&times;</button>
+        </div>
+        <div class="quick-picker-content" id="quick-picker-content">
+           <!-- Content generated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container">
+        <svg id="toast-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span id="toast-message">Operation successful</span>
+    </div>
     
     <!-- Floating Action Buttons -->
     <button type="button" id="floating-design-btn" class="fab fab-design" title="Design Customization">
