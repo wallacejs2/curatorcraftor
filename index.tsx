@@ -279,17 +279,40 @@ const insertMergeField = (value: string) => {
         const text = lastFocusedInput.value;
         const before = text.substring(0, start);
         const after = text.substring(end, text.length);
-        
+
         lastFocusedInput.value = before + value + after;
         lastFocusedInput.selectionStart = lastFocusedInput.selectionEnd = start + value.length;
         lastFocusedInput.focus();
-        
+
         // Dispatch input event so any listeners (e.g., live preview) pick up the change
         lastFocusedInput.dispatchEvent(new Event('input', { bubbles: true }));
         showToast(`Inserted: ${value}`);
     } else {
         showToast('Please click a text field first to insert the merge field.');
     }
+};
+
+// Character Counter Setup
+const setupCharacterCounters = () => {
+    const fields = ['email-body', 'hero_message'];
+    fields.forEach(fieldId => {
+        const field = document.getElementById(fieldId) as HTMLTextAreaElement;
+        const counter = document.getElementById(`${fieldId}-count`);
+        if (field && counter) {
+            const updateCounter = () => {
+                const count = field.value.length;
+                const max = parseInt(field.getAttribute('maxlength') || '0');
+                counter.textContent = count.toString();
+                if (count >= max * 0.9) {
+                    counter.parentElement?.classList.add('warning');
+                } else {
+                    counter.parentElement?.classList.remove('warning');
+                }
+            };
+            field.addEventListener('input', updateCounter);
+            updateCounter();
+        }
+    });
 };
 
 const renderMergeFieldsSidebar = () => {
@@ -356,6 +379,9 @@ const renderMergeFieldsSidebar = () => {
 
 // Initialize Sidebar Content
 renderMergeFieldsSidebar();
+
+// Initialize Character Counters
+setupCharacterCounters();
 
 const readFileAsDataURL = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -934,28 +960,52 @@ const renderSavedTemplatesList = () => {
     if (!savedTemplatesList) return;
     const templates = getSavedTemplates();
     savedTemplatesList.innerHTML = '';
-    
+
     if (templates.length === 0) {
-        savedTemplatesList.innerHTML = '<p class="text-gray-500 text-sm">No saved templates.</p>';
+        savedTemplatesList.innerHTML = '<p style="color: var(--label-secondary); text-align: center; padding: var(--spacing-xl);">No saved templates yet. Create your first template!</p>';
         return;
     }
 
     templates.forEach(t => {
         const div = document.createElement('div');
-        div.className = 'saved-template-item p-2 border-b flex justify-between items-center';
+        div.className = 'template-card';
+        const formattedDate = new Date(t.createdAt).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
         div.innerHTML = `
-            <div>
-                <div class="font-bold">${t.name}</div>
-                <div class="text-xs text-gray-500">${new Date(t.createdAt).toLocaleDateString()}</div>
+            <div class="template-thumbnail">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
             </div>
-            <div class="flex gap-2">
-                <button class="btn btn-xs btn-outline load-btn">Load</button>
-                <button class="btn btn-xs btn-error delete-btn">Del</button>
+            <div class="template-info">
+                <div class="template-name">${t.name}</div>
+                <div class="template-meta">${formattedDate}</div>
+                <div class="template-actions">
+                    <button class="btn btn-primary btn-sm load-btn" style="font-size: 13px;">Load Template</button>
+                    <button class="btn btn-ghost btn-sm delete-btn" style="font-size: 13px; color: var(--destructive);">Delete</button>
+                </div>
             </div>
         `;
-        
-        div.querySelector('.load-btn')?.addEventListener('click', () => loadTemplate(t.id));
-        div.querySelector('.delete-btn')?.addEventListener('click', () => deleteTemplate(t.id));
+
+        div.querySelector('.load-btn')?.addEventListener('click', () => {
+            loadTemplate(t.id);
+            showToast(`Loaded: ${t.name}`);
+        });
+        div.querySelector('.delete-btn')?.addEventListener('click', () => {
+            if (confirm(`Delete template "${t.name}"?`)) {
+                deleteTemplate(t.id);
+            }
+        });
         savedTemplatesList.appendChild(div);
     });
 };
@@ -1373,6 +1423,131 @@ const generateEmailHtml = (data: EmailData): string => {
   </body>
   </html>`;
 };
+
+// Debounce utility for live preview
+function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+  return function(...args: Parameters<T>) {
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+}
+
+// Live Preview Update Function
+const updateLivePreview = debounce(async () => {
+  try {
+    const formData = new FormData(emailForm);
+
+    // Socials
+    const socials: SocialLinks = {
+        fb: formData.get('social_fb') as string,
+        ig: formData.get('social_ig') as string,
+        x: formData.get('social_x') as string,
+        yt: formData.get('social_yt') as string,
+        tiktok: formData.get('social_tiktok') as string,
+    };
+
+    // Hero Image Logic
+    const heroPhotoFile = formData.get('photo') as File;
+    const heroImageUrl = formData.get('hero_image_url') as string;
+    let heroImageDataUrl = heroImageUrl;
+    const heroUploadBtn = document.getElementById('hero-img-btn-upload');
+    if (heroUploadBtn?.classList.contains('active') && heroPhotoFile?.size > 0) {
+        heroImageDataUrl = await readFileAsDataURL(heroPhotoFile);
+    }
+
+    // Offers Loop
+    const offersData: OfferData[] = [];
+    document.querySelectorAll<HTMLElement>('#offers-container .offer-block').forEach((block) => {
+        const i = block.id.split('-')[2];
+        const offerPhotoFile = formData.get(`offer_image_${i}`) as File;
+        const offerImgUrl = formData.get(`offer_image_url_${i}`) as string;
+        let offerImgData = offerImgUrl;
+        const upBtn = document.getElementById(`offer-img-btn-upload-${i}`);
+        if(upBtn?.classList.contains('active') && offerPhotoFile?.size > 0) {
+            const preview = document.getElementById(`offer_image_preview_${i}`) as HTMLImageElement;
+            if (preview && preview.src.startsWith('data:')) offerImgData = preview.src;
+        }
+
+        const type = (formData.get(`offer_type_${i}`) as 'new-inventory' | 'used-inventory' | 'service-coupon') || 'new-inventory';
+
+        offersData.push({
+            type,
+            vehicle: formData.get(`offer_vehicle_${i}`) as string,
+            title: formData.get(`offer_title_${i}`) as string,
+            details: formData.get(`offer_details_${i}`) as string,
+            ctaText: formData.get(`offer_cta_text_${i}`) as string,
+            ctaLink: formData.get(`offer_cta_link_${i}`) as string,
+            ctaColor: formData.get(`offer_cta_color_${i}`) as string,
+            ctaTextColor: formData.get(`offer_cta_text_color_${i}`) as string,
+            disclaimer: formData.get(`offer_disclaimer_${i}`) as string,
+            imageDataUrl: offerImgData,
+            imageAlt: formData.get(`offer_image_alt_${i}`) as string,
+            imageLink: formData.get(`offer_image_link_${i}`) as string,
+            imagePosition: formData.get(`offer_image_position_${i}`) as string,
+            stockType: formData.get(`offer_stock_type_${i}`) as 'stock' | 'vin',
+            stockValue: formData.get(`offer_stock_value_${i}`) as string,
+            mileage: formData.get(`offer_mileage_${i}`) as string,
+            couponCode: formData.get(`offer_coupon_code_${i}`) as string,
+            couponExpiry: formData.get(`offer_coupon_expiry_${i}`) as string,
+        });
+    });
+
+    const footerCtasData: FooterCta[] = [];
+    document.querySelectorAll<HTMLElement>('#footer-ctas-container .card').forEach((block) => {
+        const i = block.id.split('-')[3];
+        const text = formData.get(`footer_cta_text_${i}`) as string;
+        const link = formData.get(`footer_cta_link_${i}`) as string;
+        if(text) footerCtasData.push({text, link});
+    });
+
+    const emailData: EmailData = {
+        emailStyle: formData.get('email-style') as string,
+        bodyContent: formData.get('email-body') as string,
+        bodyBackgroundColor: formData.get('body_bg_color') as string,
+        heroMessage: formData.get('hero_message') as string,
+        heroMessageBgColor: formData.get('hero_message_bg_color') as string,
+        heroMessageColor: formData.get('hero_message_color') as string,
+        heroMessageFontSize: formData.get('hero_message_font_size') as string,
+        heroImage: heroImageDataUrl,
+        heroImageAlt: formData.get('hero_image_alt') as string,
+        heroImageLink: formData.get('hero_image_link') as string,
+        ctaText: formData.get('cta') as string,
+        ctaLink: formData.get('cta_link') as string,
+        ctaColor: formData.get('cta_color') as string,
+        ctaTextColor: formData.get('cta_text_color') as string,
+        disclaimer: formData.get('disclaimer') as string,
+        footerBackgroundColor: formData.get('footer_bg_color') as string,
+        footerCtaBgColor: formData.get('footer_cta_bg_color') as string,
+        footerCtaTextColor: formData.get('footer_cta_text_color') as string,
+        fontFamily: designSettings.fontFamily,
+        buttonStyle: designSettings.buttonStyle,
+        offersLayout: designSettings.offersLayout,
+        offers: offersData,
+        footerCtas: footerCtasData,
+        socials
+    };
+
+    // Generate and update preview
+    const html = generateEmailHtml(emailData);
+    const codeBlock = document.getElementById('code-block') as HTMLElement;
+    codeBlock.textContent = html;
+
+    // Show preview, hide placeholder
+    if (outputPlaceholder) outputPlaceholder.style.display = 'none';
+    if (previewPane) {
+      previewPane.style.display = 'block';
+      previewPane.srcdoc = html;
+    }
+  } catch (error) {
+    console.error('Preview update error:', error);
+  }
+}, 500);
+
+// Add live preview listeners to form inputs
+emailForm.addEventListener('input', () => {
+  updateLivePreview();
+});
 
 // ... (Rest of file same as before) ...
 /* ... (Form Submission) ... */

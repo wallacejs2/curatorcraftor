@@ -10,16 +10,18 @@
     <link rel="stylesheet" href="./index.css">
   </head>
   <body>
-    <div class="container">
-      <main>
-        <section class="hero">
-          <h1 class="text-6xl hero-title">Craftor</h1>
-          <p class="text-lg hero-subtitle">
-            Automotive Email Builder: Create, customize, and conquer.
-          </p>
-        </section>
+    <div class="app-container">
+      <!-- Editor Panel (Left Side) -->
+      <div class="editor-panel">
+        <div class="container" style="padding: var(--spacing-2xl);">
+          <section class="hero" style="margin-bottom: var(--spacing-2xl);">
+            <h1 class="text-6xl hero-title">Craftor</h1>
+            <p class="text-lg hero-subtitle">
+              Automotive Email Builder: Create, customize, and conquer.
+            </p>
+          </section>
 
-        <!-- Saved Templates Section -->
+          <!-- Saved Templates Section -->
         <section class="card mb-6">
           <div class="card-header">
             <h2 class="text-2xl">Saved Templates</h2>
@@ -75,7 +77,8 @@
 
                   <div class="form-group">
                     <label for="hero_message" class="form-label">Hero Message (optional)</label>
-                    <textarea id="hero_message" name="hero_message" rows="2" placeholder="e.g., A Special Offer Just For You!" class="form-control"></textarea>
+                    <textarea id="hero_message" name="hero_message" rows="2" placeholder="e.g., A Special Offer Just For You!" class="form-control" maxlength="100"></textarea>
+                    <div class="char-counter"><span id="hero_message-count">0</span> / 100 characters</div>
                   </div>
                   <div class="grid grid-cols-3">
                     <div class="form-group">
@@ -113,7 +116,9 @@
                       placeholder="e.g., Hi {{recipient.first_name}}, we have some exciting news about your {{customer.last_transaction.vehicle.make}}..."
                       required
                       class="form-control"
+                      maxlength="500"
                     ></textarea>
+                    <div class="char-counter"><span id="email-body-count">0</span> / 500 characters</div>
                   </div>
 
                   <div class="form-group">
@@ -253,44 +258,39 @@
           </div>
         </section>
 
-        <section class="grid grid-cols-2" id="output-container" style="display: none;">
-          <div class="card">
-            <div class="card-header">
-              <h3 class="text-xl">Preview</h3>
-              <div class="toggle-group">
-                <button id="desktop-view-btn" class="toggle-btn active" data-view="desktop">Desktop</button>
-                <button id="mobile-view-btn" class="toggle-btn" data-view="mobile">Mobile</button>
-              </div>
-            </div>
-            <div class="preview-container">
-              <iframe id="preview-pane" title="Email Preview" class="preview-frame desktop"></iframe>
-            </div>
-          </div>
-          
-          <div class="card">
-            <div class="card-header">
-              <h3 class="text-xl">HTML Code</h3>
-              <div class="flex gap-2">
-                <button id="download-btn" class="btn btn-secondary btn-sm">Download HTML</button>
-                <button id="copy-btn" class="btn btn-primary btn-sm">Copy HTML</button>
-              </div>
-            </div>
-            <div class="code-container">
-              <pre><code id="code-block" class="code-block"></code></pre>
-            </div>
-          </div>
-        </section>
+          <footer style="text-align: center; margin-top: var(--spacing-3xl); color: var(--label-secondary);">
+            <p class="text-sm">Created by Jayden Wallace © 2025</p>
+          </footer>
+        </div>
+      </div>
 
-        <section class="card" id="output-placeholder">
-          <div class="card-body" style="text-align: center; padding: var(--spacing-3xl);">
-            <p class="text-lg" style="color: var(--label-secondary);">Your generated email will appear here.</p>
+      <!-- Preview Panel (Right Side) -->
+      <div class="preview-panel">
+        <div class="preview-header">
+          <h3 class="text-xl">Live Preview</h3>
+          <div class="toggle-group">
+            <button id="desktop-view-btn" class="toggle-btn active" data-view="desktop">Desktop</button>
+            <button id="mobile-view-btn" class="toggle-btn" data-view="mobile">Mobile</button>
           </div>
-        </section>
-
-        <footer style="text-align: center; margin-top: var(--spacing-3xl); color: var(--label-secondary);">
-          <p class="text-sm">Created by Jayden Wallace © 2025</p>
-        </footer>
-      </main>
+        </div>
+        <div class="preview-content">
+          <div id="output-placeholder" style="text-align: center;">
+            <p class="text-lg" style="color: var(--label-secondary);">Your email preview will appear here</p>
+            <p class="text-sm" style="color: var(--label-tertiary); margin-top: 8px;">Fill out the form to see a live preview</p>
+          </div>
+          <iframe id="preview-pane" title="Email Preview" class="preview-frame desktop" style="display: none; background: white; border: 1px solid var(--separator-secondary); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); width: 100%; max-width: 600px; min-height: 400px;"></iframe>
+        </div>
+        <div class="preview-header" style="border-top: 1px solid var(--separator-secondary); border-bottom: none;">
+          <h3 class="text-xl">HTML Code</h3>
+          <div class="flex gap-2">
+            <button id="download-btn" class="btn btn-secondary btn-sm">Download</button>
+            <button id="copy-btn" class="btn btn-primary btn-sm">Copy</button>
+          </div>
+        </div>
+        <div style="flex: 0 0 200px; overflow: auto; padding: var(--spacing-lg); background: var(--background-secondary);">
+          <pre><code id="code-block" class="code-block" style="font-size: 11px;"></code></pre>
+        </div>
+      </div>
     </div>
     
     <!-- Design Customization Sidebar (Left) -->
