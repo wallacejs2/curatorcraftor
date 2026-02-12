@@ -10,7 +10,6 @@ interface DesignSettings {
   offersLayout: 'list' | 'grid';
 }
 
-// Interface for LocalStorage data
 interface SavedTemplate {
     id: string;
     name: string;
@@ -25,7 +24,6 @@ interface EmailComponent {
     data: Record<string, string>;
 }
 
-/* ... (Merge Fields Data) ... */
 interface MergeFieldItem {
   label: string;
   value: string;
@@ -136,7 +134,7 @@ const MERGE_FIELDS: MergeFieldGroup[] = [
 ];
 
 // Application State
-const designSettings: DesignSettings = {
+let designSettings: DesignSettings = {
   fontFamily: "'Arial', sans-serif",
   buttonStyle: 'rounded',
   offersLayout: 'list'
@@ -151,6 +149,7 @@ const outputContainer = document.getElementById('output-container') as HTMLEleme
 const outputPlaceholder = document.getElementById('output-placeholder') as HTMLElement;
 const previewPane = document.getElementById('preview-pane') as HTMLIFrameElement;
 const copyBtn = document.getElementById('copy-btn') as HTMLButtonElement;
+const downloadBtn = document.getElementById('download-btn') as HTMLButtonElement;
 const componentsContainer = document.getElementById('form-components-container') as HTMLElement;
 const addComponentBtn = document.getElementById('add-component-btn') as HTMLButtonElement;
 
@@ -196,9 +195,14 @@ const showToast = (message: string) => {
     }
 }
 
+// Local Storage Keys
+const LS_TEMPLATES_KEY = 'craftor_saved_templates';
+const LS_DRAFT_KEY = 'craftor_current_draft';
+
 // Design Customization Logic
 fontSelect?.addEventListener('change', () => {
     designSettings.fontFamily = fontSelect.value;
+    saveDraft();
     showToast('Font updated');
 });
 
@@ -207,6 +211,7 @@ buttonStyleOptions.forEach(opt => {
         buttonStyleOptions.forEach(o => o.classList.remove('selected'));
         opt.classList.add('selected');
         designSettings.buttonStyle = opt.getAttribute('data-button') || 'rounded';
+        saveDraft();
         showToast('Button style updated');
     });
 });
@@ -224,7 +229,6 @@ mobileViewBtn?.addEventListener('click', () => {
     previewPane.className = 'preview-frame mobile';
 });
 
-/* ... (Merge Field Functions) ... */
 let lastFocusedInput: HTMLInputElement | HTMLTextAreaElement | null = null;
 
 document.addEventListener('focusin', (e) => {
@@ -294,9 +298,7 @@ const renderMergeFieldsSidebar = () => {
         contentContainer.appendChild(details);
     });
 };
-renderMergeFieldsSidebar();
 
-// Sidebar/Modal Management
 const closeSidebarFunc = () => {
   designSidebar?.classList.remove('open');
   mergeFieldsSidebar?.classList.remove('open');
@@ -317,7 +319,6 @@ componentPickerOverlay?.addEventListener('click', (e) => {
     if (e.target === componentPickerOverlay) closeComponentPickerFunc();
 });
 
-// Component Picker Logic
 const pickerOptions = document.querySelectorAll('.picker-option');
 pickerOptions.forEach(opt => {
   opt.addEventListener('click', () => {
@@ -351,7 +352,6 @@ floatingMergeBtn?.addEventListener('click', () => {
   document.body.style.overflow = 'hidden';
 });
 
-// Component Management
 const addNewComponent = (type: string) => {
     const id = Date.now().toString();
     let data: Record<string, string> = {};
@@ -396,16 +396,31 @@ const addNewComponent = (type: string) => {
             paddingLeftRight: '0',
             backgroundColor: 'transparent'
         };
+    } else if (type === 'button') {
+        data = {
+            text: 'Click Here',
+            link: 'https://example.com',
+            fontSize: '16',
+            textColor: '#ffffff',
+            backgroundColor: '#007aff',
+            align: 'center',
+            paddingTop: '20',
+            paddingBottom: '20',
+            paddingLeftRight: '20',
+            widthType: 'full' // Default is full width
+        };
     }
 
     activeComponents.push({ id, type, data });
     renderComponents();
+    saveDraft();
     showToast(`${type.replace('_', ' ').charAt(0).toUpperCase() + type.replace('_', ' ').slice(1)} added`);
 };
 
 const removeComponent = (id: string) => {
     activeComponents = activeComponents.filter(c => c.id !== id);
     renderComponents();
+    saveDraft();
     showToast('Section removed');
 };
 
@@ -413,6 +428,7 @@ const updateComponentData = (id: string, key: string, value: string) => {
     const comp = activeComponents.find(c => c.id === id);
     if (comp) {
         comp.data[key] = value;
+        saveDraft();
     }
 };
 
@@ -515,8 +531,8 @@ const renderComponents = () => {
                 </div>
                 <div class="grid grid-cols-2">
                     <div class="form-group">
-                        <label class="form-label">Image Width (e.g. 100% or 300)</label>
-                        <input type="text" class="form-control" data-key="width" value="${comp.data.width}">
+                        <label class="form-label">Width (%)</label>
+                        <input type="text" class="form-control" data-key="width" value="${comp.data.width.includes('%') ? comp.data.width : comp.data.width + '%'}" placeholder="e.g. 100%">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Alignment</label>
@@ -553,6 +569,71 @@ const renderComponents = () => {
                     <img src="${comp.data.src}" alt="Preview" style="max-width: 100%; max-height: 150px; border-radius: 4px;">
                 </div>
             `;
+        } else if (comp.type === 'button') {
+            componentFormHtml = `
+                <div class="form-group">
+                    <label class="form-label">Button Text</label>
+                    <input type="text" class="form-control" data-key="text" value="${comp.data.text}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Button Link</label>
+                    <input type="text" class="form-control" data-key="link" value="${comp.data.link}">
+                </div>
+                <div class="grid grid-cols-2">
+                    <div class="form-group">
+                        <label class="form-label">Font Size</label>
+                        <input type="number" class="form-control" data-key="fontSize" value="${comp.data.fontSize}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Button Width Setting</label>
+                        <select class="form-control" data-key="widthType">
+                            <option value="full" ${comp.data.widthType === 'full' ? 'selected' : ''}>Full Width (100%)</option>
+                            <option value="auto" ${comp.data.widthType === 'auto' ? 'selected' : ''}>Auto-Sized</option>
+                            <option value="small" ${comp.data.widthType === 'small' ? 'selected' : ''}>Fixed: Small (160px)</option>
+                            <option value="medium" ${comp.data.widthType === 'medium' ? 'selected' : ''}>Fixed: Medium (280px)</option>
+                            <option value="large" ${comp.data.widthType === 'large' ? 'selected' : ''}>Fixed: Large (400px)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2">
+                    <div class="form-group">
+                        <label class="form-label">Text Color</label>
+                        <div class="color-input-container">
+                            <input type="color" class="color-input-hidden" data-key="textColor" value="${comp.data.textColor}">
+                            <div class="color-swatch-display" style="background: ${comp.data.textColor}"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Button Color</label>
+                        <div class="color-input-container">
+                            <input type="color" class="color-input-hidden" data-key="backgroundColor" value="${comp.data.backgroundColor}">
+                            <div class="color-swatch-display" style="background: ${comp.data.backgroundColor}"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3">
+                    <div class="form-group">
+                        <label class="form-label">Padding Top</label>
+                        <input type="number" class="form-control" data-key="paddingTop" value="${comp.data.paddingTop}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Padding Bottom</label>
+                        <input type="number" class="form-control" data-key="paddingBottom" value="${comp.data.paddingBottom}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Padding L/R</label>
+                        <input type="number" class="form-control" data-key="paddingLeftRight" value="${comp.data.paddingLeftRight}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Alignment</label>
+                    <select class="form-control" data-key="align">
+                        <option value="left" ${comp.data.align === 'left' ? 'selected' : ''}>Left</option>
+                        <option value="center" ${comp.data.align === 'center' ? 'selected' : ''}>Center</option>
+                        <option value="right" ${comp.data.align === 'right' ? 'selected' : ''}>Right</option>
+                    </select>
+                </div>
+            `;
         }
 
         item.innerHTML = `
@@ -569,13 +650,16 @@ const renderComponents = () => {
             </div>
         `;
 
-        // Event Listeners for inputs
         item.querySelectorAll('input, textarea, select').forEach(input => {
             input.addEventListener('input', (e) => {
                 const target = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
                 const key = target.getAttribute('data-key');
                 if (key) {
-                    updateComponentData(comp.id, key, target.value);
+                    let val = target.value;
+                    if (comp.type === 'image' && key === 'width' && !val.includes('%') && val !== '') {
+                        val = val + '%';
+                    }
+                    updateComponentData(comp.id, key, val);
                     if (target.type === 'color') {
                         const swatch = target.nextElementSibling as HTMLElement;
                         if (swatch) swatch.style.background = target.value;
@@ -588,7 +672,6 @@ const renderComponents = () => {
             });
         });
 
-        // Handle Image Upload
         const fileInput = item.querySelector(`[data-upload-id="${comp.id}"]`) as HTMLInputElement;
         fileInput?.addEventListener('change', (e) => {
             const file = fileInput.files?.[0];
@@ -607,7 +690,6 @@ const renderComponents = () => {
             }
         });
 
-        // Formatting Toggles
         item.querySelectorAll('.format-toggle').forEach(btn => {
             btn.addEventListener('click', () => {
                 const key = btn.getAttribute('data-key') as string;
@@ -621,7 +703,6 @@ const renderComponents = () => {
             });
         });
 
-        // Transparent BG helper
         item.querySelector('.transparent-bg-btn')?.addEventListener('click', () => {
             updateComponentData(comp.id, 'backgroundColor', 'transparent');
             const swatch = item.querySelector('[data-key="backgroundColor"]')?.nextElementSibling as HTMLElement;
@@ -634,15 +715,14 @@ const renderComponents = () => {
     });
 };
 
-renderComponents();
-
-// --- Generate Email Logic ---
 const generateEmailHtml = (): string => {
   let sectionsHtml = '';
   
   activeComponents.forEach(comp => {
+    const d = comp.data;
+    const isTransparent = d.backgroundColor === 'transparent';
+    
     if (comp.type === 'header' || comp.type === 'text_block') {
-      const d = comp.data;
       const styles = [
           `padding: ${d.paddingTop}px ${d.paddingLeftRight}px ${d.paddingBottom}px ${d.paddingLeftRight}px`,
           `background-color: ${d.backgroundColor}`,
@@ -652,7 +732,8 @@ const generateEmailHtml = (): string => {
           `font-weight: ${d.fontWeight}`,
           `font-style: ${d.fontStyle}`,
           `text-decoration: ${d.textDecoration}`,
-          `line-height: 1.5`
+          `line-height: 1.5`,
+          `font-family: ${designSettings.fontFamily}`
       ].join(';');
       
       let htmlContent = '';
@@ -673,10 +754,7 @@ const generateEmailHtml = (): string => {
       };
 
       lines.forEach(line => {
-          const trimmed = line.trim();
-          // Detect Bullet: • , * , -
           const bulletMatch = line.match(/^(\s*)([•\*\-])\s+(.*)/);
-          // Detect Number: 1. , 1)
           const numberMatch = line.match(/^(\s*)(\d+[\.\)])\s+(.*)/);
 
           if (bulletMatch) {
@@ -689,57 +767,199 @@ const generateEmailHtml = (): string => {
               listBuffer.push(numberMatch[3]);
           } else {
               flushList();
-              if (trimmed === '') {
+              if (line.trim() === '') {
                   htmlContent += '<br>';
               } else {
-                  htmlContent += line.replace(/ /g, '&nbsp;') + '<br>';
+                  htmlContent += line + '<br>';
               }
           }
       });
       flushList();
       
       sectionsHtml += `
-        <!-- Section: ${comp.type} -->
-        <div style="${styles}">
-          ${htmlContent}
-        </div>
+        <tr>
+            <td align="${d.textAlign}" bgcolor="${isTransparent ? '' : d.backgroundColor}" style="${styles}">
+                <div style="font-family: ${designSettings.fontFamily}; color: ${d.textColor}; font-size: ${d.fontSize}px; line-height: 1.5;">
+                    ${htmlContent}
+                </div>
+            </td>
+        </tr>
       `;
     } else if (comp.type === 'image') {
-        const d = comp.data;
-        const width = d.width.includes('%') ? d.width : `${d.width}px`;
+        const numericWidth = parseFloat(d.width.replace(/%/g, '')) || 100;
+        
+        // Map percentage to pixels for the width attribute (Outlook compatibility)
+        const htmlWidthAttr = Math.round((numericWidth / 100) * 600).toString();
+        const styleWidth = `${numericWidth}%`;
+        
         const containerStyles = [
             `padding: ${d.paddingTop}px ${d.paddingLeftRight}px ${d.paddingBottom}px ${d.paddingLeftRight}px`,
             `background-color: ${d.backgroundColor}`,
-            `text-align: ${d.align}`
+            `text-align: ${d.align}`,
+            `font-size: 0`, // Remove ghost spacing
+            `line-height: 0` // Remove ghost spacing
         ].join(';');
         
-        let imgHtml = `<img src="${d.src}" alt="${d.alt}" style="display: inline-block; max-width: 100%; width: ${width}; height: auto; border: 0;">`;
-        if (d.link) {
-            imgHtml = `<a href="${d.link}" target="_blank" style="text-decoration: none;">${imgHtml}</a>`;
-        }
+        const imgStyles = [
+            `display: block`,
+            `max-width: 100%`,
+            `width: ${styleWidth}`,
+            `height: auto`,
+            `border: 0`,
+            `margin: ${d.align === 'center' ? '0 auto' : '0'}`
+        ].join(';');
+
+        let imgTag = `<img src="${d.src}" alt="${d.alt.replace(/"/g, '&quot;')}" width="${htmlWidthAttr}" height="auto" style="${imgStyles}" border="0" />`;
+        if (d.link) imgTag = `<a href="${d.link}" target="_blank" style="text-decoration: none; border: 0;">${imgTag}</a>`;
         
         sectionsHtml += `
-            <!-- Section: Image -->
-            <div style="${containerStyles}">
-                ${imgHtml}
-            </div>
+            <tr>
+                <td align="${d.align}" bgcolor="${isTransparent ? '' : d.backgroundColor}" style="${containerStyles}">
+                    <!--[if (gte mso 9)|(IE)]>
+                    <table width="${htmlWidthAttr}" align="${d.align}" border="0" cellspacing="0" cellpadding="0" style="margin: ${d.align === 'center' ? '0 auto' : '0'};">
+                        <tr>
+                            <td>
+                    <![endif]-->
+                    <div style="display: block; width: 100%; max-width: ${styleWidth};">
+                        ${imgTag}
+                    </div>
+                    <!--[if (gte mso 9)|(IE)]>
+                            </td>
+                        </tr>
+                    </table>
+                    <![endif]-->
+                </td>
+            </tr>
+        `;
+    } else if (comp.type === 'button') {
+        const radius = designSettings.buttonStyle === 'pill' ? '50px' : designSettings.buttonStyle === 'square' ? '0px' : '8px';
+        const isOutlined = designSettings.buttonStyle === 'outlined';
+        
+        // Sizing logic
+        let tableWidthAttr = "100%";
+        let maxWidthStyle = "100%";
+        
+        const widthType = d.widthType || 'full';
+        if (widthType === 'auto') {
+            tableWidthAttr = ""; // Allow content to fit
+            maxWidthStyle = "fit-content";
+        } else if (widthType === 'small') {
+            tableWidthAttr = "160";
+            maxWidthStyle = "160px";
+        } else if (widthType === 'medium') {
+            tableWidthAttr = "280";
+            maxWidthStyle = "280px";
+        } else if (widthType === 'large') {
+            tableWidthAttr = "400";
+            maxWidthStyle = "400px";
+        }
+
+        const btnStyles = [
+            `background-color: ${isOutlined ? '#ffffff' : d.backgroundColor}`,
+            `color: ${isOutlined ? d.backgroundColor : d.textColor}`,
+            `padding: 12px 24px`,
+            `text-decoration: none`,
+            `display: block`,
+            `font-weight: bold`,
+            `border-radius: ${radius}`,
+            `font-size: ${d.fontSize}px`,
+            `font-family: ${designSettings.fontFamily}`,
+            `text-align: center`,
+            isOutlined ? `border: 2px solid ${d.backgroundColor}` : 'border: 0'
+        ].join(';');
+        
+        const containerStyles = [
+            `padding: ${d.paddingTop}px ${d.paddingLeftRight}px ${d.paddingBottom}px ${d.paddingLeftRight}px`,
+            `text-align: ${d.align}`
+        ].join(';');
+
+        sectionsHtml += `
+            <tr>
+                <td align="${d.align}" style="${containerStyles}">
+                    <table border="0" cellspacing="0" cellpadding="0" ${tableWidthAttr ? `width="${tableWidthAttr}"` : ""} style="margin: ${d.align === 'center' ? '0 auto' : '0'}; ${maxWidthStyle ? `max-width: ${maxWidthStyle};` : ""} ${widthType === 'full' ? 'width: 100%;' : ""}">
+                        <tr>
+                            <td align="center" bgcolor="${isOutlined ? '#ffffff' : d.backgroundColor}" style="border-radius: ${radius};">
+                                <a href="${d.link}" target="_blank" style="${btnStyles}">
+                                    ${d.text}
+                                </a>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
         `;
     }
   });
 
-  return `<!DOCTYPE html>
-<html>
+  return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
-    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--[if !mso]><!-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!--<![endif]-->
     <title>Email Template</title>
+    <style type="text/css">
+        body {
+            margin: 0 !important;
+            padding: 0 !important;
+            -webkit-text-size-adjust: 100% !important;
+            -ms-text-size-adjust: 100% !important;
+            -webkit-font-smoothing: antialiased !important;
+        }
+        img {
+            border: 0 !important;
+            outline: none !important;
+            text-decoration: none !important;
+            -ms-interpolation-mode: bicubic !important;
+        }
+        table {
+            border-collapse: collapse !important;
+            mso-table-lspace: 0pt !important;
+            mso-table-rspace: 0pt !important;
+        }
+        td {
+            mso-line-height-rule: exactly !important;
+        }
+        .wrapper {
+            width: 100% !important;
+            max-width: 600px !important;
+        }
+        @media screen and (max-width: 600px) {
+            .wrapper {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+        }
+    </style>
 </head>
-<body style="margin: 0; padding: 0; font-family: ${designSettings.fontFamily}; background-color: #f5f5f7;">
-    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-        ${sectionsHtml || '<div style="padding: 40px; text-align: center; color: #86868b;">No content added yet.</div>'}
-    </div>
+<body style="margin: 0; padding: 0; background-color: #f5f5f7;">
+    <center>
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f5f5f7" style="table-layout: fixed;">
+            <tr>
+                <td align="center" style="padding: 20px 0;">
+                    <!--[if (gte mso 9)|(IE)]>
+                    <table width="600" align="center" border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                            <td>
+                    <![endif]-->
+                    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="wrapper" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                        ${sectionsHtml || '<tr><td style="padding: 40px; text-align: center; color: #86868b; font-family: sans-serif;">No content added yet.</td></tr>'}
+                    </table>
+                    <!--[if (gte mso 9)|(IE)]>
+                            </td>
+                        </tr>
+                    </table>
+                    <![endif]-->
+                </td>
+            </tr>
+        </table>
+    </center>
 </body>
-</html>`;
+</html>`.trim();
 };
 
 emailForm.addEventListener('submit', (e: Event) => {
@@ -750,6 +970,7 @@ emailForm.addEventListener('submit', (e: Event) => {
   generateBtn.disabled = true;
   btnText.textContent = 'Generating...';
   spinner.classList.remove('hidden');
+  
   setTimeout(() => {
     outputPlaceholder.style.display = 'none';
     outputContainer.style.display = 'grid';
@@ -766,7 +987,7 @@ emailForm.addEventListener('submit', (e: Event) => {
         checkmark.classList.add('hidden');
         btnText.textContent = 'Generate Template';
     }, 2000);
-  }, 800);
+  }, 600);
 });
 
 copyBtn?.addEventListener('click', async () => {
@@ -776,3 +997,130 @@ copyBtn?.addEventListener('click', async () => {
     showToast('Copied to clipboard');
   } catch (err) { console.error(err); }
 });
+
+downloadBtn?.addEventListener('click', () => {
+    const html = generateEmailHtml();
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `email_template_${Date.now()}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('HTML file downloaded');
+});
+
+// Template Management
+const getSavedTemplates = (): SavedTemplate[] => {
+    const data = localStorage.getItem(LS_TEMPLATES_KEY);
+    return data ? JSON.parse(data) : [];
+};
+
+const saveTemplate = () => {
+    const name = prompt('Enter a name for this template:', `Template ${new Date().toLocaleDateString()}`);
+    if (!name) return;
+
+    const newTemplate: SavedTemplate = {
+        id: Date.now().toString(),
+        name,
+        createdAt: new Date().toISOString(),
+        designSettings: { ...designSettings },
+        components: [...activeComponents]
+    };
+
+    const templates = getSavedTemplates();
+    templates.unshift(newTemplate);
+    localStorage.setItem(LS_TEMPLATES_KEY, JSON.stringify(templates));
+    renderSavedTemplates();
+    showToast('Template saved successfully');
+};
+
+const deleteTemplate = (id: string) => {
+    const templates = getSavedTemplates().filter(t => t.id !== id);
+    localStorage.setItem(LS_TEMPLATES_KEY, JSON.stringify(templates));
+    renderSavedTemplates();
+    showToast('Template deleted');
+};
+
+const loadTemplate = (id: string) => {
+    const templates = getSavedTemplates();
+    const template = templates.find(t => t.id === id);
+    if (template) {
+        designSettings = { ...template.designSettings };
+        activeComponents = [...template.components];
+        
+        // Update font select UI
+        if (fontSelect) fontSelect.value = designSettings.fontFamily;
+        // Update button style UI
+        buttonStyleOptions.forEach(opt => {
+            opt.classList.toggle('selected', opt.getAttribute('data-button') === designSettings.buttonStyle);
+        });
+
+        renderComponents();
+        saveDraft();
+        showToast(`Loaded: ${template.name}`);
+    }
+};
+
+const renderSavedTemplates = () => {
+    const templates = getSavedTemplates();
+    if (!savedTemplatesList) return;
+    
+    if (templates.length === 0) {
+        savedTemplatesList.innerHTML = `<p class="text-sm" style="color: var(--label-secondary); text-align: center;">No saved templates found.</p>`;
+        return;
+    }
+
+    savedTemplatesList.innerHTML = templates.map(t => `
+        <div class="card" style="margin-bottom: 8px; background: var(--background-secondary);">
+            <div class="card-body" style="padding: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h4 class="text-base font-bold">${t.name}</h4>
+                    <p class="text-xs" style="color: var(--label-tertiary);">${new Date(t.createdAt).toLocaleString()}</p>
+                </div>
+                <div class="flex gap-2">
+                    <button class="btn btn-primary btn-sm load-tpl-btn" data-id="${t.id}">Load</button>
+                    <button class="btn btn-ghost btn-sm del-tpl-btn" data-id="${t.id}" style="color: var(--destructive);">Delete</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+    savedTemplatesList.querySelectorAll('.load-tpl-btn').forEach(btn => {
+        btn.addEventListener('click', () => loadTemplate(btn.getAttribute('data-id') || ''));
+    });
+    savedTemplatesList.querySelectorAll('.del-tpl-btn').forEach(btn => {
+        btn.addEventListener('click', () => deleteTemplate(btn.getAttribute('data-id') || ''));
+    });
+};
+
+const saveDraft = () => {
+    const draft = { designSettings, activeComponents };
+    localStorage.setItem(LS_DRAFT_KEY, JSON.stringify(draft));
+};
+
+const loadDraft = () => {
+    const data = localStorage.getItem(LS_DRAFT_KEY);
+    if (data) {
+        const draft = JSON.parse(data);
+        designSettings = draft.designSettings;
+        activeComponents = draft.activeComponents;
+        
+        if (fontSelect) fontSelect.value = designSettings.fontFamily;
+        buttonStyleOptions.forEach(opt => {
+            opt.classList.toggle('selected', opt.getAttribute('data-button') === designSettings.buttonStyle);
+        });
+        
+        renderComponents();
+        showToast('Draft restored');
+    }
+};
+
+// Initialization
+saveTemplateBtn?.addEventListener('click', saveTemplate);
+renderMergeFieldsSidebar();
+loadDraft();
+renderComponents();
+renderSavedTemplates();
