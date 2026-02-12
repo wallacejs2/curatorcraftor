@@ -196,7 +196,7 @@ const showToast = (message: string) => {
     }
 }
 
-// Design Customization Logic - Re-bind to ensure functionality
+// Design Customization Logic
 fontSelect?.addEventListener('change', () => {
     designSettings.fontFamily = fontSelect.value;
     showToast('Font updated');
@@ -227,7 +227,6 @@ mobileViewBtn?.addEventListener('click', () => {
 /* ... (Merge Field Functions) ... */
 let lastFocusedInput: HTMLInputElement | HTMLTextAreaElement | null = null;
 
-// Track last focused input for merge field insertion
 document.addEventListener('focusin', (e) => {
   const target = e.target as HTMLElement;
   if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
@@ -247,7 +246,6 @@ const insertMergeField = (value: string) => {
         lastFocusedInput.selectionStart = lastFocusedInput.selectionEnd = start + value.length;
         lastFocusedInput.focus();
         
-        // Trigger input event manually for listeners
         lastFocusedInput.dispatchEvent(new Event('input', { bubbles: true }));
         showToast(`Inserted: ${value}`);
     } else {
@@ -265,7 +263,6 @@ const renderMergeFieldsSidebar = () => {
     MERGE_FIELDS.forEach(group => {
         const details = document.createElement('details');
         details.className = 'sidebar-group';
-        // Keep them all expanded by default as requested to "show all fields"
         details.setAttribute('open', '');
         
         const summary = document.createElement('summary');
@@ -278,40 +275,25 @@ const renderMergeFieldsSidebar = () => {
         const createItemEl = (item: MergeFieldItem) => {
             const itemEl = document.createElement('div');
             itemEl.className = 'merge-field-item';
-            // Only show the label, code is hidden but stored in data or closure
-            itemEl.innerHTML = `
-                <span style="font-weight: 500;">${item.label}</span>
-            `;
-            itemEl.addEventListener('click', () => {
-                insertMergeField(item.value);
-            });
+            itemEl.innerHTML = `<span style="font-weight: 500;">${item.label}</span>`;
+            itemEl.addEventListener('click', () => insertMergeField(item.value));
             return itemEl;
         };
 
-        if (group.items) {
-            group.items.forEach(item => {
-                content.appendChild(createItemEl(item));
-            });
-        }
-
+        if (group.items) group.items.forEach(item => content.appendChild(createItemEl(item)));
         if (group.subgroups) {
             group.subgroups.forEach(sub => {
                 const subHeader = document.createElement('div');
                 subHeader.style.cssText = 'font-size: 11px; font-weight: 700; color: var(--label-tertiary); margin-top: 12px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em;';
                 subHeader.textContent = sub.title;
                 content.appendChild(subHeader);
-                
-                sub.items.forEach(item => {
-                    content.appendChild(createItemEl(item));
-                });
+                sub.items.forEach(item => content.appendChild(createItemEl(item)));
             });
         }
-
         details.appendChild(content);
         contentContainer.appendChild(details);
     });
 };
-
 renderMergeFieldsSidebar();
 
 // Sidebar/Modal Management
@@ -333,6 +315,18 @@ addComponentBtn?.addEventListener('click', () => {
 closeComponentPicker?.addEventListener('click', closeComponentPickerFunc);
 componentPickerOverlay?.addEventListener('click', (e) => {
     if (e.target === componentPickerOverlay) closeComponentPickerFunc();
+});
+
+// Component Picker Logic
+const pickerOptions = document.querySelectorAll('.picker-option');
+pickerOptions.forEach(opt => {
+  opt.addEventListener('click', () => {
+    const type = opt.getAttribute('data-type');
+    if (type) {
+      addNewComponent(type);
+      closeComponentPickerFunc();
+    }
+  });
 });
 
 closeDesignSidebar?.addEventListener('click', closeSidebarFunc);
@@ -358,10 +352,68 @@ floatingMergeBtn?.addEventListener('click', () => {
 });
 
 // Component Management
+const addNewComponent = (type: string) => {
+    const id = Date.now().toString();
+    let data: Record<string, string> = {};
+    
+    if (type === 'header') {
+        data = {
+            text: 'Your Header Title',
+            fontSize: '24',
+            textColor: '#1d1d1f',
+            backgroundColor: 'transparent',
+            fontWeight: 'bold',
+            fontStyle: 'normal',
+            textDecoration: 'none',
+            textAlign: 'center',
+            paddingTop: '20',
+            paddingBottom: '20',
+            paddingLeftRight: '20'
+        };
+    } else if (type === 'text_block') {
+        data = {
+            text: 'This is a sample text block. You can use merge fields here.',
+            fontSize: '16',
+            textColor: '#3c3c43',
+            backgroundColor: 'transparent',
+            fontWeight: 'normal',
+            fontStyle: 'normal',
+            textDecoration: 'none',
+            textAlign: 'left',
+            paddingTop: '10',
+            paddingBottom: '10',
+            paddingLeftRight: '20'
+        };
+    } else if (type === 'image') {
+        data = {
+            src: 'https://via.placeholder.com/600x300',
+            alt: 'Image description',
+            link: '',
+            width: '100%',
+            align: 'center',
+            paddingTop: '0',
+            paddingBottom: '0',
+            paddingLeftRight: '0',
+            backgroundColor: 'transparent'
+        };
+    }
+
+    activeComponents.push({ id, type, data });
+    renderComponents();
+    showToast(`${type.replace('_', ' ').charAt(0).toUpperCase() + type.replace('_', ' ').slice(1)} added`);
+};
+
 const removeComponent = (id: string) => {
     activeComponents = activeComponents.filter(c => c.id !== id);
     renderComponents();
     showToast('Section removed');
+};
+
+const updateComponentData = (id: string, key: string, value: string) => {
+    const comp = activeComponents.find(c => c.id === id);
+    if (comp) {
+        comp.data[key] = value;
+    }
 };
 
 const renderComponents = () => {
@@ -378,6 +430,131 @@ const renderComponents = () => {
     activeComponents.forEach((comp, index) => {
         const item = document.createElement('div');
         item.className = 'component-item card';
+        
+        let componentFormHtml = '';
+        if (comp.type === 'header' || comp.type === 'text_block') {
+            const isHeader = comp.type === 'header';
+            componentFormHtml = `
+                <div class="form-group">
+                    <label class="form-label">${isHeader ? 'Header' : 'Text'} Content</label>
+                    <textarea class="form-control" data-key="text">${comp.data.text}</textarea>
+                </div>
+                <div class="grid grid-cols-2">
+                    <div class="form-group">
+                        <label class="form-label">Font Size (px)</label>
+                        <input type="number" class="form-control" data-key="fontSize" value="${comp.data.fontSize}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Alignment</label>
+                        <select class="form-control" data-key="textAlign">
+                            <option value="left" ${comp.data.textAlign === 'left' ? 'selected' : ''}>Left</option>
+                            <option value="center" ${comp.data.textAlign === 'center' ? 'selected' : ''}>Center</option>
+                            <option value="right" ${comp.data.textAlign === 'right' ? 'selected' : ''}>Right</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2">
+                    <div class="form-group">
+                        <label class="form-label">Text Color</label>
+                        <div class="color-input-container">
+                            <input type="color" class="color-input-hidden" data-key="textColor" value="${comp.data.textColor.startsWith('#') ? comp.data.textColor : '#1d1d1f'}">
+                            <div class="color-swatch-display" style="background: ${comp.data.textColor}"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Background Color</label>
+                        <div class="color-input-container">
+                            <input type="color" class="color-input-hidden" data-key="backgroundColor" value="${comp.data.backgroundColor === 'transparent' ? '#ffffff' : comp.data.backgroundColor}">
+                            <div class="color-swatch-display" style="background: ${comp.data.backgroundColor === 'transparent' ? '#ffffff' : comp.data.backgroundColor}"></div>
+                        </div>
+                        <button type="button" class="btn btn-ghost btn-xs transparent-bg-btn" style="margin-top: 4px; font-size: 10px; height: 20px;">Transparent</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Formatting</label>
+                    <div class="toggle-group" style="width: fit-content;">
+                        <button type="button" class="toggle-btn format-toggle ${comp.data.fontWeight === 'bold' ? 'active' : ''}" data-key="fontWeight" data-val-on="bold" data-val-off="normal">B</button>
+                        <button type="button" class="toggle-btn format-toggle ${comp.data.fontStyle === 'italic' ? 'active' : ''}" data-key="fontStyle" data-val-on="italic" data-val-off="normal">I</button>
+                        <button type="button" class="toggle-btn format-toggle ${comp.data.textDecoration === 'underline' ? 'active' : ''}" data-key="textDecoration" data-val-on="underline" data-val-off="none">U</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3">
+                    <div class="form-group">
+                        <label class="form-label">Padding Top</label>
+                        <input type="number" class="form-control" data-key="paddingTop" value="${comp.data.paddingTop}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Padding Bottom</label>
+                        <input type="number" class="form-control" data-key="paddingBottom" value="${comp.data.paddingBottom}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Padding L/R</label>
+                        <input type="number" class="form-control" data-key="paddingLeftRight" value="${comp.data.paddingLeftRight}">
+                    </div>
+                </div>
+            `;
+        } else if (comp.type === 'image') {
+            componentFormHtml = `
+                <div class="form-group">
+                    <label class="form-label">Image Source (URL)</label>
+                    <input type="text" class="form-control" data-key="src" value="${comp.data.src}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Or Upload Image</label>
+                    <input type="file" class="form-control" accept="image/*" data-upload-id="${comp.id}">
+                </div>
+                <div class="grid grid-cols-2">
+                    <div class="form-group">
+                        <label class="form-label">Alt Text</label>
+                        <input type="text" class="form-control" data-key="alt" value="${comp.data.alt}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Link URL</label>
+                        <input type="text" class="form-control" data-key="link" value="${comp.data.link}">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2">
+                    <div class="form-group">
+                        <label class="form-label">Image Width (e.g. 100% or 300)</label>
+                        <input type="text" class="form-control" data-key="width" value="${comp.data.width}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Alignment</label>
+                        <select class="form-control" data-key="align">
+                            <option value="left" ${comp.data.align === 'left' ? 'selected' : ''}>Left</option>
+                            <option value="center" ${comp.data.align === 'center' ? 'selected' : ''}>Center</option>
+                            <option value="right" ${comp.data.align === 'right' ? 'selected' : ''}>Right</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3">
+                    <div class="form-group">
+                        <label class="form-label">Padding Top</label>
+                        <input type="number" class="form-control" data-key="paddingTop" value="${comp.data.paddingTop}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Padding Bottom</label>
+                        <input type="number" class="form-control" data-key="paddingBottom" value="${comp.data.paddingBottom}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Padding L/R</label>
+                        <input type="number" class="form-control" data-key="paddingLeftRight" value="${comp.data.paddingLeftRight}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Section Background Color</label>
+                    <div class="color-input-container">
+                        <input type="color" class="color-input-hidden" data-key="backgroundColor" value="${comp.data.backgroundColor === 'transparent' ? '#ffffff' : comp.data.backgroundColor}">
+                        <div class="color-swatch-display" style="background: ${comp.data.backgroundColor === 'transparent' ? '#ffffff' : comp.data.backgroundColor}"></div>
+                    </div>
+                    <button type="button" class="btn btn-ghost btn-xs transparent-bg-btn" style="margin-top: 4px; font-size: 10px; height: 20px;">Transparent</button>
+                </div>
+                <div class="image-preview-container" style="margin-top: 12px; text-align: center; border: 1px solid var(--separator-secondary); border-radius: var(--radius-md); padding: 8px; background: var(--background-secondary);">
+                    <img src="${comp.data.src}" alt="Preview" style="max-width: 100%; max-height: 150px; border-radius: 4px;">
+                </div>
+            `;
+        }
+
         item.innerHTML = `
             <div class="card-header" style="background: var(--background-tertiary); min-height: 40px;">
                 <span class="text-sm font-bold" style="text-transform: uppercase; color: var(--label-secondary);">
@@ -388,9 +565,70 @@ const renderComponents = () => {
                 </button>
             </div>
             <div class="card-body">
-                <p class="text-xs" style="color: var(--label-tertiary);">Section configuration will appear here once defined.</p>
+                ${componentFormHtml}
             </div>
         `;
+
+        // Event Listeners for inputs
+        item.querySelectorAll('input, textarea, select').forEach(input => {
+            input.addEventListener('input', (e) => {
+                const target = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+                const key = target.getAttribute('data-key');
+                if (key) {
+                    updateComponentData(comp.id, key, target.value);
+                    if (target.type === 'color') {
+                        const swatch = target.nextElementSibling as HTMLElement;
+                        if (swatch) swatch.style.background = target.value;
+                    }
+                    if (comp.type === 'image' && key === 'src') {
+                        const previewImg = item.querySelector('.image-preview-container img') as HTMLImageElement;
+                        if (previewImg) previewImg.src = target.value;
+                    }
+                }
+            });
+        });
+
+        // Handle Image Upload
+        const fileInput = item.querySelector(`[data-upload-id="${comp.id}"]`) as HTMLInputElement;
+        fileInput?.addEventListener('change', (e) => {
+            const file = fileInput.files?.[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (re) => {
+                    const base64 = re.target?.result as string;
+                    updateComponentData(comp.id, 'src', base64);
+                    const urlInput = item.querySelector('[data-key="src"]') as HTMLInputElement;
+                    if (urlInput) urlInput.value = base64;
+                    const previewImg = item.querySelector('.image-preview-container img') as HTMLImageElement;
+                    if (previewImg) previewImg.src = base64;
+                    showToast('Image uploaded');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Formatting Toggles
+        item.querySelectorAll('.format-toggle').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const key = btn.getAttribute('data-key') as string;
+                const onVal = btn.getAttribute('data-val-on') as string;
+                const offVal = btn.getAttribute('data-val-off') as string;
+                const currentVal = comp.data[key];
+                const newVal = currentVal === onVal ? offVal : onVal;
+                
+                updateComponentData(comp.id, key, newVal);
+                btn.classList.toggle('active');
+            });
+        });
+
+        // Transparent BG helper
+        item.querySelector('.transparent-bg-btn')?.addEventListener('click', () => {
+            updateComponentData(comp.id, 'backgroundColor', 'transparent');
+            const swatch = item.querySelector('[data-key="backgroundColor"]')?.nextElementSibling as HTMLElement;
+            if (swatch) swatch.style.background = 'transparent';
+            showToast('Background set to transparent');
+        });
+
         item.querySelector('.remove-comp-btn')?.addEventListener('click', () => removeComponent(comp.id));
         componentsContainer.appendChild(item);
     });
@@ -398,69 +636,110 @@ const renderComponents = () => {
 
 renderComponents();
 
-// --- Simple Save/Load Logic ---
-const STORAGE_KEY = 'cc_email_builder_templates';
+// --- Generate Email Logic ---
+const generateEmailHtml = (): string => {
+  let sectionsHtml = '';
+  
+  activeComponents.forEach(comp => {
+    if (comp.type === 'header' || comp.type === 'text_block') {
+      const d = comp.data;
+      const styles = [
+          `padding: ${d.paddingTop}px ${d.paddingLeftRight}px ${d.paddingBottom}px ${d.paddingLeftRight}px`,
+          `background-color: ${d.backgroundColor}`,
+          `color: ${d.textColor}`,
+          `font-size: ${d.fontSize}px`,
+          `text-align: ${d.textAlign}`,
+          `font-weight: ${d.fontWeight}`,
+          `font-style: ${d.fontStyle}`,
+          `text-decoration: ${d.textDecoration}`,
+          `line-height: 1.5`
+      ].join(';');
+      
+      let htmlContent = '';
+      const lines = d.text.split('\n');
+      let currentListType: 'ul' | 'ol' | null = null;
+      let listBuffer: string[] = [];
 
-const getSavedTemplates = (): SavedTemplate[] => {
-    try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        return saved ? JSON.parse(saved) : [];
-    } catch (e) { return []; }
-};
+      const flushList = () => {
+          if (currentListType && listBuffer.length > 0) {
+              const listTag = currentListType;
+              const listStyles = `margin: 0; padding-left: 24px; text-align: ${d.textAlign};`;
+              htmlContent += `<${listTag} style="${listStyles}">` + 
+                            listBuffer.map(item => `<li>${item}</li>`).join('') + 
+                            `</${listTag}>`;
+              listBuffer = [];
+              currentListType = null;
+          }
+      };
 
-const deleteTemplate = (id: string) => {
-    const templates = getSavedTemplates().filter(t => t.id !== id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(templates));
-    renderSavedTemplatesList();
-    showToast('Template deleted');
-};
+      lines.forEach(line => {
+          const trimmed = line.trim();
+          // Detect Bullet: • , * , -
+          const bulletMatch = line.match(/^(\s*)([•\*\-])\s+(.*)/);
+          // Detect Number: 1. , 1)
+          const numberMatch = line.match(/^(\s*)(\d+[\.\)])\s+(.*)/);
 
-const renderSavedTemplatesList = () => {
-    if (!savedTemplatesList) return;
-    const templates = getSavedTemplates();
-    savedTemplatesList.innerHTML = '';
-    if (templates.length === 0) {
-        savedTemplatesList.innerHTML = '<p class="text-gray-500 text-sm" style="text-align: center;">No saved templates.</p>';
-        return;
-    }
-    templates.forEach(t => {
-        const div = document.createElement('div');
-        div.className = 'saved-template-item p-2 border-b flex justify-between items-center';
-        div.innerHTML = `
-            <div>
-                <div class="font-bold">${t.name}</div>
-                <div class="text-xs text-gray-500">${new Date(t.createdAt).toLocaleDateString()}</div>
-            </div>
-            <div class="flex gap-2">
-                <button class="btn btn-xs btn-secondary btn-sm delete-btn" style="color: var(--destructive);">Delete</button>
+          if (bulletMatch) {
+              if (currentListType === 'ol') flushList();
+              currentListType = 'ul';
+              listBuffer.push(bulletMatch[3]);
+          } else if (numberMatch) {
+              if (currentListType === 'ul') flushList();
+              currentListType = 'ol';
+              listBuffer.push(numberMatch[3]);
+          } else {
+              flushList();
+              if (trimmed === '') {
+                  htmlContent += '<br>';
+              } else {
+                  htmlContent += line.replace(/ /g, '&nbsp;') + '<br>';
+              }
+          }
+      });
+      flushList();
+      
+      sectionsHtml += `
+        <!-- Section: ${comp.type} -->
+        <div style="${styles}">
+          ${htmlContent}
+        </div>
+      `;
+    } else if (comp.type === 'image') {
+        const d = comp.data;
+        const width = d.width.includes('%') ? d.width : `${d.width}px`;
+        const containerStyles = [
+            `padding: ${d.paddingTop}px ${d.paddingLeftRight}px ${d.paddingBottom}px ${d.paddingLeftRight}px`,
+            `background-color: ${d.backgroundColor}`,
+            `text-align: ${d.align}`
+        ].join(';');
+        
+        let imgHtml = `<img src="${d.src}" alt="${d.alt}" style="display: inline-block; max-width: 100%; width: ${width}; height: auto; border: 0;">`;
+        if (d.link) {
+            imgHtml = `<a href="${d.link}" target="_blank" style="text-decoration: none;">${imgHtml}</a>`;
+        }
+        
+        sectionsHtml += `
+            <!-- Section: Image -->
+            <div style="${containerStyles}">
+                ${imgHtml}
             </div>
         `;
-        div.querySelector('.delete-btn')?.addEventListener('click', () => deleteTemplate(t.id));
-        savedTemplatesList.appendChild(div);
-    });
-};
+    }
+  });
 
-saveTemplateBtn.addEventListener('click', () => {
-    const name = prompt('Enter template name:');
-    if (!name) return;
-    const newTemplate: SavedTemplate = {
-        id: Date.now().toString(),
-        name,
-        createdAt: new Date().toISOString(),
-        designSettings: { ...designSettings },
-        components: [...activeComponents]
-    };
-    const templates = getSavedTemplates();
-    templates.unshift(newTemplate);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(templates));
-    renderSavedTemplatesList();
-    showToast('Template Saved!');
-});
-renderSavedTemplatesList();
-
-// --- Generate Email Stub ---
-const generateEmailHtml = (): string => {
-  return `<!DOCTYPE html><html><body style="margin: 0; padding: 0; font-family: ${designSettings.fontFamily};"><div style="padding: 40px; text-align: center; background: #f5f5f7;"><h1>Email Shell Ready</h1><p>Active Sections: ${activeComponents.length}</p><p>Button Style: ${designSettings.buttonStyle}</p></div></body></html>`;
+  return `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Template</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: ${designSettings.fontFamily}; background-color: #f5f5f7;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        ${sectionsHtml || '<div style="padding: 40px; text-align: center; color: #86868b;">No content added yet.</div>'}
+    </div>
+</body>
+</html>`;
 };
 
 emailForm.addEventListener('submit', (e: Event) => {
