@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
   <head>
@@ -8,20 +7,60 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="./index.css">
+    <style>
+      .add-component-trigger {
+        width: 100%;
+        padding: var(--spacing-lg);
+        border: 2px dashed var(--separator-primary);
+        border-radius: var(--radius-lg);
+        background: transparent;
+        color: var(--label-secondary);
+        font-family: inherit;
+        font-size: 15px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all var(--transition-base);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-sm);
+        margin-top: var(--spacing-md);
+      }
+
+      .add-component-trigger:hover {
+        background: var(--background-secondary);
+        border-color: var(--system-blue);
+        color: var(--system-blue);
+      }
+
+      .components-container {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md);
+      }
+
+      .component-item {
+        position: relative;
+        animation: slideIn 0.3s ease-out;
+      }
+
+      @keyframes slideIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    </style>
   </head>
   <body>
-    <div class="app-container">
-      <!-- Editor Panel (Left Side) -->
-      <div class="editor-panel">
-        <div class="container" style="padding: var(--spacing-2xl);">
-          <section class="hero" style="margin-bottom: var(--spacing-2xl);">
-            <h1 class="text-6xl hero-title">Craftor</h1>
-            <p class="text-lg hero-subtitle">
-              Automotive Email Builder: Create, customize, and conquer.
-            </p>
-          </section>
+    <div class="container">
+      <main>
+        <section class="hero">
+          <h1 class="text-6xl hero-title">Craftor</h1>
+          <p class="text-lg hero-subtitle">
+            Automotive Email Builder: Create, customize, and conquer.
+          </p>
+        </section>
 
-          <!-- Saved Templates Section -->
+        <!-- Saved Templates Section -->
         <section class="card mb-6">
           <div class="card-header">
             <h2 class="text-2xl">Saved Templates</h2>
@@ -46,210 +85,19 @@
           </div>
           <div class="card-body">
             <form id="email-form">
-              
-              <!-- Accordion 1: Hero Section -->
-              <details class="form-section" open>
-                <summary>Hero Section</summary>
-                <div class="form-section-content">
-                  <div class="form-group">
-                    <label class="form-label">Hero Image (optional)</label>
-                    <div class="toggle-group mb-4" style="width: fit-content; margin-bottom: 12px;">
-                      <button type="button" class="toggle-btn" id="hero-img-btn-upload" data-target="upload">Upload</button>
-                      <button type="button" class="toggle-btn active" id="hero-img-btn-url" data-target="url">URL</button>
-                    </div>
-                    <div id="hero-img-upload-container" class="hidden">
-                      <input type="file" id="photo" name="photo" accept="image/png, image/jpeg" class="form-control" />
-                    </div>
-                    <div id="hero-img-url-container">
-                      <input type="text" id="hero_image_url" name="hero_image_url" placeholder="https://example.com/image.jpg" class="form-control" />
-                    </div>
-                    <div class="grid grid-cols-2" style="margin-top: 12px; gap: 12px;">
-                       <div class="form-group" style="margin-bottom: 0;">
-                          <label for="hero_image_alt" class="form-label">Alt Text</label>
-                          <input type="text" id="hero_image_alt" name="hero_image_alt" placeholder="Description of image" class="form-control" />
-                       </div>
-                       <div class="form-group" style="margin-bottom: 0;">
-                          <label for="hero_image_link" class="form-label">Image Link URL</label>
-                          <input type="text" id="hero_image_link" name="hero_image_link" placeholder="https://..." class="form-control" />
-                       </div>
-                    </div>
-                  </div>
+              <div id="form-components-container" class="components-container">
+                <!-- Dynamic form components will be injected here -->
+              </div>
 
-                  <div class="form-group">
-                    <label for="hero_message" class="form-label">Hero Message (optional)</label>
-                    <textarea id="hero_message" name="hero_message" rows="2" placeholder="e.g., A Special Offer Just For You!" class="form-control" maxlength="100"></textarea>
-                    <div class="char-counter"><span id="hero_message-count">0</span> / 100 characters</div>
-                  </div>
-                  <div class="grid grid-cols-3">
-                    <div class="form-group">
-                      <label for="hero_message_bg_color" class="form-label">Message BG</label>
-                      <div class="color-input-container">
-                        <input type="color" id="hero_message_bg_color" name="hero_message_bg_color" value="#ffffff" class="color-input-hidden">
-                        <div class="color-swatch-display" style="background-color: #ffffff;"></div>
-                      </div>
-                    </div>
-                    <div class="form-group">
-                      <label for="hero_message_color" class="form-label">Message Text</label>
-                      <div class="color-input-container">
-                        <input type="color" id="hero_message_color" name="hero_message_color" value="#1d1d1f" class="color-input-hidden">
-                        <div class="color-swatch-display" style="background-color: #1d1d1f;"></div>
-                      </div>
-                    </div>
-                    <div class="form-group">
-                      <label for="hero_message_font_size" class="form-label">Font Size (px)</label>
-                      <input type="number" id="hero_message_font_size" name="hero_message_font_size" value="24" min="12" max="72" class="form-control">
-                    </div>
-                  </div>
-                </div>
-              </details>
+              <button type="button" id="add-component-btn" class="add-component-trigger">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Add Section
+              </button>
 
-              <!-- Accordion 2: Body Content -->
-              <details class="form-section">
-                <summary>Body Content</summary>
-                <div class="form-section-content">
-                  <div class="form-group">
-                    <label for="email-body" class="form-label">Email Body</label>
-                    <textarea
-                      id="email-body"
-                      name="email-body"
-                      rows="6"
-                      placeholder="e.g., Hi {{recipient.first_name}}, we have some exciting news about your {{customer.last_transaction.vehicle.make}}..."
-                      required
-                      class="form-control"
-                      maxlength="500"
-                    ></textarea>
-                    <div class="char-counter"><span id="email-body-count">0</span> / 500 characters</div>
-                  </div>
-
-                  <div class="form-group">
-                    <label for="body_bg_color" class="form-label">Body Background</label>
-                    <div class="color-input-container" style="margin: 0;">
-                      <input type="color" id="body_bg_color" name="body_bg_color" value="#ffffff" class="color-input-hidden">
-                      <div class="color-swatch-display" style="background-color: #ffffff;"></div>
-                    </div>
-                  </div>
-
-                  <div class="grid grid-cols-2">
-                    <div class="form-group">
-                      <label for="cta" class="form-label">Main Call to Action Text</label>
-                      <input type="text" id="cta" name="cta" placeholder="e.g., See Our Specials" class="form-control" />
-                    </div>
-                    <div class="form-group">
-                      <label for="cta_link" class="form-label">Main CTA Link</label>
-                      <input type="text" id="cta_link" name="cta_link" placeholder="https://example.com/specials" class="form-control" />
-                    </div>
-                  </div>
-                  
-                  <div class="form-group form-group-inline">
-                    <div class="form-group">
-                      <label for="cta_color" class="form-label">Main CTA BG</label>
-                      <div class="color-input-container">
-                        <input type="color" id="cta_color" name="cta_color" value="#4f46e5" class="color-input-hidden">
-                        <div class="color-swatch-display" style="background-color: #4f46e5;"></div>
-                      </div>
-                    </div>
-                    <div class="form-group">
-                      <label for="cta_text_color" class="form-label">Main CTA Text</label>
-                      <div class="color-input-container">
-                        <input type="color" id="cta_text_color" name="cta_text_color" value="#ffffff" class="color-input-hidden">
-                        <div class="color-swatch-display" style="background-color: #ffffff;"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </details>
-
-              <!-- Accordion 3: Offers -->
-              <details class="form-section">
-                <summary>Inventory & Offers</summary>
-                <div class="form-section-content">
-                  <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl">Promotional Offers</h3>
-                    <div class="toggle-group">
-                      <button type="button" class="toggle-btn active" id="offer-layout-list">List View</button>
-                      <button type="button" class="toggle-btn" id="offer-layout-grid">Grid View</button>
-                    </div>
-                  </div>
-                  
-                  <div id="offers-container">
-                    <!-- Offer blocks inserted dynamically -->
-                  </div>
-                  <button type="button" id="add-offer-btn" class="btn btn-secondary w-full" style="margin-top: 16px;">
-                    Add Another Offer
-                  </button>
-                </div>
-              </details>
-
-              <!-- Accordion 4: Footer -->
-              <details class="form-section">
-                <summary>Footer & Disclaimer</summary>
-                <div class="form-section-content">
-                  
-                  <!-- Footer CTAs -->
-                  <h4 class="text-lg mb-4" style="font-weight:600;">Footer Links</h4>
-                  <div class="grid grid-cols-2 mb-6">
-                    <div class="form-group">
-                      <label for="footer_bg_color" class="form-label">Section BG</label>
-                      <div class="color-input-container">
-                        <input type="color" id="footer_bg_color" name="footer_bg_color" value="#ffffff" class="color-input-hidden">
-                        <div class="color-swatch-display" style="background-color: #ffffff;"></div>
-                      </div>
-                    </div>
-                    <div class="form-group-inline">
-                      <div class="form-group">
-                        <label for="footer_cta_bg_color" class="form-label">Button BG</label>
-                        <div class="color-input-container">
-                          <input type="color" id="footer_cta_bg_color" name="footer_cta_bg_color" value="#4f46e5" class="color-input-hidden">
-                          <div class="color-swatch-display" style="background-color: #4f46e5;"></div>
-                        </div>
-                      </div>
-                      <div class="form-group">
-                        <label for="footer_cta_text_color" class="form-label">Button Text</label>
-                        <div class="color-input-container">
-                          <input type="color" id="footer_cta_text_color" name="footer_cta_text_color" value="#ffffff" class="color-input-hidden">
-                          <div class="color-swatch-display" style="background-color: #ffffff;"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div id="footer-ctas-container">
-                    <!-- Footer CTA blocks inserted dynamically -->
-                  </div>
-                  <button type="button" id="add-footer-cta-btn" class="btn btn-secondary mb-6">Add Another Link</button>
-
-                  <!-- Social Media -->
-                  <div style="border-top: 1px solid var(--separator-secondary); padding-top: 20px; margin-bottom: 20px;">
-                    <h4 class="text-lg mb-4" style="font-weight:600;">Social Media Links</h4>
-                    <div class="grid grid-cols-2 gap-4">
-                      <input type="text" name="social_fb" placeholder="Facebook URL" class="form-control">
-                      <input type="text" name="social_ig" placeholder="Instagram URL" class="form-control">
-                      <input type="text" name="social_x" placeholder="X (Twitter) URL" class="form-control">
-                      <input type="text" name="social_yt" placeholder="YouTube URL" class="form-control">
-                      <input type="text" name="social_tiktok" placeholder="TikTok URL" class="form-control">
-                    </div>
-                  </div>
-
-                  <!-- Disclaimer -->
-                  <div class="form-group" style="border-top: 1px solid var(--separator-secondary); padding-top: 20px;">
-                    <div class="flex justify-between items-center mb-2">
-                        <label for="disclaimer" class="form-label" style="margin-bottom:0;">Disclaimer</label>
-                        <div class="flex gap-2">
-                            <button type="button" id="save-disclaimer-btn" class="btn btn-ghost btn-sm" style="font-size:12px; padding: 4px 8px;">Save to Library</button>
-                            <button type="button" id="load-disclaimer-btn" class="btn btn-ghost btn-sm" style="font-size:12px; padding: 4px 8px;">Load from Library</button>
-                        </div>
-                    </div>
-                    <textarea
-                      id="disclaimer"
-                      name="disclaimer"
-                      rows="4"
-                      placeholder="e.g., This is a promotional email. Prices and offers subject to change."
-                      class="form-control"
-                    ></textarea>
-                  </div>
-                </div>
-              </details>
-
-              <button type="submit" id="generate-btn" class="btn btn-primary w-full" style="margin-top: var(--spacing-xl);">
+              <button type="submit" id="generate-btn" class="btn btn-primary w-full" style="margin-top: var(--spacing-2xl);">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="checkmark hidden"><path d="M20 6 9 17l-5-5"></path></svg>
                 <span class="btn-text">Generate Template</span>
                 <div class="spinner hidden"></div>
@@ -258,39 +106,44 @@
           </div>
         </section>
 
-          <footer style="text-align: center; margin-top: var(--spacing-3xl); color: var(--label-secondary);">
-            <p class="text-sm">Created by Jayden Wallace © 2025</p>
-          </footer>
-        </div>
-      </div>
+        <section class="grid grid-cols-2" id="output-container" style="display: none;">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="text-xl">Preview</h3>
+              <div class="toggle-group">
+                <button id="desktop-view-btn" class="toggle-btn active" data-view="desktop">Desktop</button>
+                <button id="mobile-view-btn" class="toggle-btn" data-view="mobile">Mobile</button>
+              </div>
+            </div>
+            <div class="preview-container">
+              <iframe id="preview-pane" title="Email Preview" class="preview-frame desktop"></iframe>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="card-header">
+              <h3 class="text-xl">HTML Code</h3>
+              <div class="flex gap-2">
+                <button id="download-btn" class="btn btn-secondary btn-sm">Download HTML</button>
+                <button id="copy-btn" class="btn btn-primary btn-sm">Copy HTML</button>
+              </div>
+            </div>
+            <div class="code-container">
+              <pre><code id="code-block" class="code-block"></code></pre>
+            </div>
+          </div>
+        </section>
 
-      <!-- Preview Panel (Right Side) -->
-      <div class="preview-panel">
-        <div class="preview-header">
-          <h3 class="text-xl">Live Preview</h3>
-          <div class="toggle-group">
-            <button id="desktop-view-btn" class="toggle-btn active" data-view="desktop">Desktop</button>
-            <button id="mobile-view-btn" class="toggle-btn" data-view="mobile">Mobile</button>
+        <section class="card" id="output-placeholder">
+          <div class="card-body" style="text-align: center; padding: var(--spacing-3xl);">
+            <p class="text-lg" style="color: var(--label-secondary);">Your generated email will appear here.</p>
           </div>
-        </div>
-        <div class="preview-content">
-          <div id="output-placeholder" style="text-align: center;">
-            <p class="text-lg" style="color: var(--label-secondary);">Your email preview will appear here</p>
-            <p class="text-sm" style="color: var(--label-tertiary); margin-top: 8px;">Fill out the form to see a live preview</p>
-          </div>
-          <iframe id="preview-pane" title="Email Preview" class="preview-frame desktop" style="display: none; background: white; border: 1px solid var(--separator-secondary); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); width: 100%; max-width: 600px; min-height: 400px;"></iframe>
-        </div>
-        <div class="preview-header" style="border-top: 1px solid var(--separator-secondary); border-bottom: none;">
-          <h3 class="text-xl">HTML Code</h3>
-          <div class="flex gap-2">
-            <button id="download-btn" class="btn btn-secondary btn-sm">Download</button>
-            <button id="copy-btn" class="btn btn-primary btn-sm">Copy</button>
-          </div>
-        </div>
-        <div style="flex: 0 0 200px; overflow: auto; padding: var(--spacing-lg); background: var(--background-secondary);">
-          <pre><code id="code-block" class="code-block" style="font-size: 11px;"></code></pre>
-        </div>
-      </div>
+        </section>
+
+        <footer style="text-align: center; margin-top: var(--spacing-3xl); color: var(--label-secondary);">
+          <p class="text-sm">Created by Jayden Wallace © 2025</p>
+        </footer>
+      </main>
     </div>
     
     <!-- Design Customization Sidebar (Left) -->
@@ -366,6 +219,19 @@
         </div>
         <div class="quick-picker-content" id="quick-picker-content">
            <!-- Content generated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Component Selection Modal (Empty for now) -->
+    <div id="component-picker-overlay" class="quick-picker-overlay">
+      <div class="quick-picker-modal">
+        <div class="quick-picker-header">
+          <h3 class="text-xl">Select a Component</h3>
+          <button type="button" id="close-component-picker" class="btn btn-secondary btn-sm" style="width: 32px; height: 32px; padding: 0; border-radius: 50%;">&times;</button>
+        </div>
+        <div class="quick-picker-content" style="padding: var(--spacing-xl); text-align: center; color: var(--label-secondary);">
+           <p>No components available to add yet.</p>
         </div>
       </div>
     </div>
