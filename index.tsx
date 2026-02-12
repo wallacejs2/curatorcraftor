@@ -196,7 +196,7 @@ const showToast = (message: string) => {
     }
 }
 
-// Fix Design Customization Logic
+// Design Customization Logic - Re-bind to ensure functionality
 fontSelect?.addEventListener('change', () => {
     designSettings.fontFamily = fontSelect.value;
     showToast('Font updated');
@@ -211,7 +211,7 @@ buttonStyleOptions.forEach(opt => {
     });
 });
 
-// Fix View Toggles
+// View Toggles
 desktopViewBtn?.addEventListener('click', () => {
     desktopViewBtn.classList.add('active');
     mobileViewBtn?.classList.remove('active');
@@ -226,6 +226,8 @@ mobileViewBtn?.addEventListener('click', () => {
 
 /* ... (Merge Field Functions) ... */
 let lastFocusedInput: HTMLInputElement | HTMLTextAreaElement | null = null;
+
+// Track last focused input for merge field insertion
 document.addEventListener('focusin', (e) => {
   const target = e.target as HTMLElement;
   if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
@@ -245,6 +247,7 @@ const insertMergeField = (value: string) => {
         lastFocusedInput.selectionStart = lastFocusedInput.selectionEnd = start + value.length;
         lastFocusedInput.focus();
         
+        // Trigger input event manually for listeners
         lastFocusedInput.dispatchEvent(new Event('input', { bubbles: true }));
         showToast(`Inserted: ${value}`);
     } else {
@@ -256,36 +259,59 @@ const renderMergeFieldsSidebar = () => {
     if (!mergeFieldsSidebar) return;
     const contentContainer = mergeFieldsSidebar.querySelector('.sidebar-content');
     if (!contentContainer) return;
+    
     contentContainer.innerHTML = '';
+
     MERGE_FIELDS.forEach(group => {
         const details = document.createElement('details');
         details.className = 'sidebar-group';
+        // Keep them all expanded by default as requested to "show all fields"
+        details.setAttribute('open', '');
+        
         const summary = document.createElement('summary');
         summary.textContent = group.title;
         details.appendChild(summary);
+
         const content = document.createElement('div');
         content.className = 'sidebar-group-content';
+
         const createItemEl = (item: MergeFieldItem) => {
             const itemEl = document.createElement('div');
             itemEl.className = 'merge-field-item';
-            itemEl.innerHTML = `<span>${item.label}</span><span class="merge-field-code">${item.value}</span>`;
-            itemEl.addEventListener('click', () => insertMergeField(item.value));
+            // Only show the label, code is hidden but stored in data or closure
+            itemEl.innerHTML = `
+                <span style="font-weight: 500;">${item.label}</span>
+            `;
+            itemEl.addEventListener('click', () => {
+                insertMergeField(item.value);
+            });
             return itemEl;
         };
-        if (group.items) group.items.forEach(item => content.appendChild(createItemEl(item)));
+
+        if (group.items) {
+            group.items.forEach(item => {
+                content.appendChild(createItemEl(item));
+            });
+        }
+
         if (group.subgroups) {
             group.subgroups.forEach(sub => {
                 const subHeader = document.createElement('div');
-                subHeader.style.cssText = 'font-size: 12px; font-weight: 600; color: var(--label-secondary); margin-top: 8px; margin-bottom: 4px; text-transform: uppercase;';
+                subHeader.style.cssText = 'font-size: 11px; font-weight: 700; color: var(--label-tertiary); margin-top: 12px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em;';
                 subHeader.textContent = sub.title;
                 content.appendChild(subHeader);
-                sub.items.forEach(item => content.appendChild(createItemEl(item)));
+                
+                sub.items.forEach(item => {
+                    content.appendChild(createItemEl(item));
+                });
             });
         }
+
         details.appendChild(content);
         contentContainer.appendChild(details);
     });
 };
+
 renderMergeFieldsSidebar();
 
 // Sidebar/Modal Management
@@ -370,7 +396,6 @@ const renderComponents = () => {
     });
 };
 
-// Initial render
 renderComponents();
 
 // --- Simple Save/Load Logic ---
@@ -434,7 +459,7 @@ saveTemplateBtn.addEventListener('click', () => {
 renderSavedTemplatesList();
 
 // --- Generate Email Stub ---
-const generateEmailHtml = (data: any): string => {
+const generateEmailHtml = (): string => {
   return `<!DOCTYPE html><html><body style="margin: 0; padding: 0; font-family: ${designSettings.fontFamily};"><div style="padding: 40px; text-align: center; background: #f5f5f7;"><h1>Email Shell Ready</h1><p>Active Sections: ${activeComponents.length}</p><p>Button Style: ${designSettings.buttonStyle}</p></div></body></html>`;
 };
 
@@ -449,7 +474,7 @@ emailForm.addEventListener('submit', (e: Event) => {
   setTimeout(() => {
     outputPlaceholder.style.display = 'none';
     outputContainer.style.display = 'grid';
-    const html = generateEmailHtml({});
+    const html = generateEmailHtml();
     const codeBlock = document.getElementById('code-block') as HTMLElement;
     codeBlock.textContent = html;
     previewPane.srcdoc = html;
