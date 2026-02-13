@@ -199,6 +199,29 @@ const showToast = (message: string) => {
 const LS_TEMPLATES_KEY = 'craftor_saved_templates';
 const LS_DRAFT_KEY = 'craftor_current_draft';
 
+// Debounce helper for preview updates
+let previewTimer: number;
+const triggerPreviewUpdate = () => {
+    window.clearTimeout(previewTimer);
+    previewTimer = window.setTimeout(() => {
+        if (previewPane) {
+            try {
+                previewPane.srcdoc = generateEmailHtml();
+            } catch (e) {
+                console.error("Preview generation failed:", e);
+            }
+        }
+    }, 300);
+};
+
+const saveDraft = () => {
+    localStorage.setItem(LS_DRAFT_KEY, JSON.stringify({
+        designSettings,
+        activeComponents
+    }));
+    triggerPreviewUpdate();
+};
+
 // Design Customization Logic
 fontSelect?.addEventListener('change', () => {
     designSettings.fontFamily = fontSelect.value;
@@ -407,7 +430,55 @@ const addNewComponent = (type: string) => {
             paddingTop: '20',
             paddingBottom: '20',
             paddingLeftRight: '20',
-            widthType: 'full' // Default is full width
+            widthType: 'full'
+        };
+    } else if (type === 'sales_offer') {
+        data = {
+            layout: 'center',
+            imageSrc: 'https://via.placeholder.com/600x300',
+            imageAlt: 'New Sales Offer',
+            imageLink: '',
+            imageWidth: '100%',
+            
+            vehicleText: 'New {{customer.last_transaction.vehicle.year}} {{customer.last_transaction.vehicle.make}} {{customer.last_transaction.vehicle.model}}',
+            vehicleFontSize: '18',
+            vehicleColor: '#1d1d1f',
+            vehicleBgColor: 'transparent',
+            
+            mainOfferText: '$2,500 Trade-In Bonus',
+            mainOfferFontSize: '28',
+            mainOfferColor: '#007aff',
+            mainOfferBgColor: 'transparent',
+            
+            detailsText: 'Upgrade your current ride today with our exclusive seasonal offer.',
+            detailsFontSize: '14',
+            detailsColor: '#6e6e73',
+            detailsBgColor: 'transparent',
+            
+            stockVinText: 'VIN: {{customer.last_transaction.vehicle.vin}}',
+            stockVinFontSize: '11',
+            stockVinColor: '#86868b',
+            stockVinBgColor: 'transparent',
+            
+            disclaimerText: '*Terms and conditions apply. Offer valid through end of month.',
+            disclaimerFontSize: '10',
+            disclaimerColor: '#86868b',
+            disclaimerBgColor: 'transparent',
+            
+            additionalOffers: '[]',
+            
+            btnText: 'View Details',
+            btnLink: '{{dealership.tracked_website_homepage_url}}',
+            btnFontSize: '16',
+            btnColor: '#007aff',
+            btnTextColor: '#ffffff',
+            btnAlign: 'center',
+            btnWidthType: 'full',
+            
+            paddingTop: '20',
+            paddingBottom: '20',
+            paddingLeftRight: '20',
+            backgroundColor: '#ffffff'
         };
     }
 
@@ -436,7 +507,7 @@ const renderComponents = () => {
     componentsContainer.innerHTML = '';
     if (activeComponents.length === 0) {
         componentsContainer.innerHTML = `
-            <div id="empty-state-message" style="text-align: center; padding: 40px 20px; border: 2px dashed var(--separator-secondary); border-radius: var(--radius-lg); color: var(--label-secondary);">
+            <div id="empty-state-message" style="text-align: center; padding: 40px 20px; border: 2px dashed var(--separator-primary); border-radius: var(--radius-lg); color: var(--label-secondary);">
                 <p>No sections added yet. Click "+ Add Section" to begin.</p>
             </div>
         `;
@@ -453,12 +524,12 @@ const renderComponents = () => {
             componentFormHtml = `
                 <div class="form-group">
                     <label class="form-label">${isHeader ? 'Header' : 'Text'} Content</label>
-                    <textarea class="form-control" data-key="text">${comp.data.text}</textarea>
+                    <textarea class="form-control" data-key="text">${comp.data.text || ''}</textarea>
                 </div>
                 <div class="grid grid-cols-2">
                     <div class="form-group">
                         <label class="form-label">Font Size (px)</label>
-                        <input type="number" class="form-control" data-key="fontSize" value="${comp.data.fontSize}">
+                        <input type="number" class="form-control" data-key="fontSize" value="${comp.data.fontSize || 16}">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Alignment</label>
@@ -473,39 +544,37 @@ const renderComponents = () => {
                     <div class="form-group">
                         <label class="form-label">Text Color</label>
                         <div class="color-input-container">
-                            <input type="color" class="color-input-hidden" data-key="textColor" value="${comp.data.textColor.startsWith('#') ? comp.data.textColor : '#1d1d1f'}">
-                            <div class="color-swatch-display" style="background: ${comp.data.textColor}"></div>
+                            <input type="color" class="color-input-hidden" data-key="textColor" value="${(comp.data.textColor && comp.data.textColor.startsWith('#')) ? comp.data.textColor : '#1d1d1f'}">
+                            <div class="color-swatch-display" style="background: ${comp.data.textColor || '#1d1d1f'}"></div>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Background Color</label>
                         <div class="color-input-container">
-                            <input type="color" class="color-input-hidden" data-key="backgroundColor" value="${comp.data.backgroundColor === 'transparent' ? '#ffffff' : comp.data.backgroundColor}">
-                            <div class="color-swatch-display" style="background: ${comp.data.backgroundColor === 'transparent' ? '#ffffff' : comp.data.backgroundColor}"></div>
+                            <input type="color" class="color-input-hidden" data-key="backgroundColor" value="${comp.data.backgroundColor === 'transparent' ? '#ffffff' : comp.data.backgroundColor || '#ffffff'}">
+                            <div class="color-swatch-display" style="background: ${comp.data.backgroundColor === 'transparent' ? '#ffffff' : comp.data.backgroundColor || '#ffffff'}"></div>
                         </div>
-                        <button type="button" class="btn btn-ghost btn-xs transparent-bg-btn" style="margin-top: 4px; font-size: 10px; height: 20px;">Transparent</button>
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Formatting</label>
-                    <div class="toggle-group" style="width: fit-content;">
+                    <div class="toggle-group">
                         <button type="button" class="toggle-btn format-toggle ${comp.data.fontWeight === 'bold' ? 'active' : ''}" data-key="fontWeight" data-val-on="bold" data-val-off="normal">B</button>
                         <button type="button" class="toggle-btn format-toggle ${comp.data.fontStyle === 'italic' ? 'active' : ''}" data-key="fontStyle" data-val-on="italic" data-val-off="normal">I</button>
-                        <button type="button" class="toggle-btn format-toggle ${comp.data.textDecoration === 'underline' ? 'active' : ''}" data-key="textDecoration" data-val-on="underline" data-val-off="none">U</button>
                     </div>
                 </div>
                 <div class="grid grid-cols-3">
                     <div class="form-group">
-                        <label class="form-label">Padding Top</label>
-                        <input type="number" class="form-control" data-key="paddingTop" value="${comp.data.paddingTop}">
+                        <label class="form-label">Padding T</label>
+                        <input type="number" class="form-control" data-key="paddingTop" value="${comp.data.paddingTop || 0}">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Padding Bottom</label>
-                        <input type="number" class="form-control" data-key="paddingBottom" value="${comp.data.paddingBottom}">
+                        <label class="form-label">Padding B</label>
+                        <input type="number" class="form-control" data-key="paddingBottom" value="${comp.data.paddingBottom || 0}">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Padding L/R</label>
-                        <input type="number" class="form-control" data-key="paddingLeftRight" value="${comp.data.paddingLeftRight}">
+                        <input type="number" class="form-control" data-key="paddingLeftRight" value="${comp.data.paddingLeftRight || 0}">
                     </div>
                 </div>
             `;
@@ -513,26 +582,22 @@ const renderComponents = () => {
             componentFormHtml = `
                 <div class="form-group">
                     <label class="form-label">Image Source (URL)</label>
-                    <input type="text" class="form-control" data-key="src" value="${comp.data.src}">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Or Upload Image</label>
-                    <input type="file" class="form-control" accept="image/*" data-upload-id="${comp.id}">
+                    <input type="text" class="form-control" data-key="src" value="${comp.data.src || ''}">
                 </div>
                 <div class="grid grid-cols-2">
                     <div class="form-group">
                         <label class="form-label">Alt Text</label>
-                        <input type="text" class="form-control" data-key="alt" value="${comp.data.alt}">
+                        <input type="text" class="form-control" data-key="alt" value="${comp.data.alt || ''}">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Link URL</label>
-                        <input type="text" class="form-control" data-key="link" value="${comp.data.link}">
+                        <input type="text" class="form-control" data-key="link" value="${comp.data.link || ''}">
                     </div>
                 </div>
                 <div class="grid grid-cols-2">
                     <div class="form-group">
                         <label class="form-label">Width (%)</label>
-                        <input type="text" class="form-control" data-key="width" value="${comp.data.width.includes('%') ? comp.data.width : comp.data.width + '%'}" placeholder="e.g. 100%">
+                        <input type="text" class="form-control" data-key="width" value="${comp.data.width || '100%'}">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Alignment</label>
@@ -545,44 +610,33 @@ const renderComponents = () => {
                 </div>
                 <div class="grid grid-cols-3">
                     <div class="form-group">
-                        <label class="form-label">Padding Top</label>
-                        <input type="number" class="form-control" data-key="paddingTop" value="${comp.data.paddingTop}">
+                        <label class="form-label">Padding T</label>
+                        <input type="number" class="form-control" data-key="paddingTop" value="${comp.data.paddingTop || 0}">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Padding Bottom</label>
-                        <input type="number" class="form-control" data-key="paddingBottom" value="${comp.data.paddingBottom}">
+                        <label class="form-label">Padding B</label>
+                        <input type="number" class="form-control" data-key="paddingBottom" value="${comp.data.paddingBottom || 0}">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Padding L/R</label>
-                        <input type="number" class="form-control" data-key="paddingLeftRight" value="${comp.data.paddingLeftRight}">
+                        <input type="number" class="form-control" data-key="paddingLeftRight" value="${comp.data.paddingLeftRight || 0}">
                     </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Section Background Color</label>
-                    <div class="color-input-container">
-                        <input type="color" class="color-input-hidden" data-key="backgroundColor" value="${comp.data.backgroundColor === 'transparent' ? '#ffffff' : comp.data.backgroundColor}">
-                        <div class="color-swatch-display" style="background: ${comp.data.backgroundColor === 'transparent' ? '#ffffff' : comp.data.backgroundColor}"></div>
-                    </div>
-                    <button type="button" class="btn btn-ghost btn-xs transparent-bg-btn" style="margin-top: 4px; font-size: 10px; height: 20px;">Transparent</button>
-                </div>
-                <div class="image-preview-container" style="margin-top: 12px; text-align: center; border: 1px solid var(--separator-secondary); border-radius: var(--radius-md); padding: 8px; background: var(--background-secondary);">
-                    <img src="${comp.data.src}" alt="Preview" style="max-width: 100%; max-height: 150px; border-radius: 4px;">
                 </div>
             `;
         } else if (comp.type === 'button') {
             componentFormHtml = `
                 <div class="form-group">
                     <label class="form-label">Button Text</label>
-                    <input type="text" class="form-control" data-key="text" value="${comp.data.text}">
+                    <input type="text" class="form-control" data-key="text" value="${comp.data.text || ''}">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Button Link</label>
-                    <input type="text" class="form-control" data-key="link" value="${comp.data.link}">
+                    <input type="text" class="form-control" data-key="link" value="${comp.data.link || ''}">
                 </div>
                 <div class="grid grid-cols-2">
                     <div class="form-group">
                         <label class="form-label">Font Size</label>
-                        <input type="number" class="form-control" data-key="fontSize" value="${comp.data.fontSize}">
+                        <input type="number" class="form-control" data-key="fontSize" value="${comp.data.fontSize || 16}">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Button Width Setting</label>
@@ -599,94 +653,260 @@ const renderComponents = () => {
                     <div class="form-group">
                         <label class="form-label">Text Color</label>
                         <div class="color-input-container">
-                            <input type="color" class="color-input-hidden" data-key="textColor" value="${comp.data.textColor}">
-                            <div class="color-swatch-display" style="background: ${comp.data.textColor}"></div>
+                            <input type="color" class="color-input-hidden" data-key="textColor" value="${comp.data.textColor || '#ffffff'}">
+                            <div class="color-swatch-display" style="background: ${comp.data.textColor || '#ffffff'}"></div>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Button Color</label>
                         <div class="color-input-container">
-                            <input type="color" class="color-input-hidden" data-key="backgroundColor" value="${comp.data.backgroundColor}">
-                            <div class="color-swatch-display" style="background: ${comp.data.backgroundColor}"></div>
+                            <input type="color" class="color-input-hidden" data-key="backgroundColor" value="${comp.data.backgroundColor || '#007aff'}">
+                            <div class="color-swatch-display" style="background: ${comp.data.backgroundColor || '#007aff'}"></div>
                         </div>
                     </div>
                 </div>
-                <div class="grid grid-cols-3">
-                    <div class="form-group">
-                        <label class="form-label">Padding Top</label>
-                        <input type="number" class="form-control" data-key="paddingTop" value="${comp.data.paddingTop}">
+            `;
+        } else if (comp.type === 'sales_offer') {
+            const addOffers = JSON.parse(comp.data.additionalOffers || '[]');
+            
+            const renderControlCluster = (prefix: string) => `
+                <div class="control-cluster">
+                    <div class="control-item">
+                        <span class="control-label-tiny">Size</span>
+                        <input type="number" class="control-input-mini" data-key="${prefix}FontSize" value="${comp.data[prefix + 'FontSize'] || 16}">
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Padding Bottom</label>
-                        <input type="number" class="form-control" data-key="paddingBottom" value="${comp.data.paddingBottom}">
+                    <div class="control-item">
+                        <span class="control-label-tiny">Text</span>
+                        <div class="color-input-container mini">
+                            <input type="color" class="color-input-hidden" data-key="${prefix}Color" value="${comp.data[prefix + 'Color'] || '#000000'}">
+                            <div class="color-swatch-display" style="background: ${comp.data[prefix + 'Color'] || '#000000'}"></div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Padding L/R</label>
-                        <input type="number" class="form-control" data-key="paddingLeftRight" value="${comp.data.paddingLeftRight}">
+                    <div class="control-item">
+                        <span class="control-label-tiny">Bg</span>
+                        <div class="color-input-container mini">
+                            <input type="color" class="color-input-hidden" data-key="${prefix}BgColor" value="${comp.data[prefix + 'BgColor'] || 'transparent'}">
+                            <div class="color-swatch-display" style="background: ${comp.data[prefix + 'BgColor'] === 'transparent' ? '#ffffff' : comp.data[prefix + 'BgColor'] || '#ffffff'}"></div>
+                        </div>
                     </div>
                 </div>
+            `;
+
+            componentFormHtml = `
                 <div class="form-group">
-                    <label class="form-label">Alignment</label>
-                    <select class="form-control" data-key="align">
-                        <option value="left" ${comp.data.align === 'left' ? 'selected' : ''}>Left</option>
-                        <option value="center" ${comp.data.align === 'center' ? 'selected' : ''}>Center</option>
-                        <option value="right" ${comp.data.align === 'right' ? 'selected' : ''}>Right</option>
+                    <label class="form-label">Offer Layout</label>
+                    <select class="form-control" data-key="layout">
+                        <option value="left" ${comp.data.layout === 'left' ? 'selected' : ''}>Left (Image Left, Details Right)</option>
+                        <option value="center" ${comp.data.layout === 'center' ? 'selected' : ''}>Center (Image Top, Details Below)</option>
+                        <option value="right" ${comp.data.layout === 'right' ? 'selected' : ''}>Right (Details Left, Image Right)</option>
                     </select>
                 </div>
+                
+                <details class="form-section">
+                    <summary>Image Settings</summary>
+                    <div class="form-section-content">
+                        <div class="form-group">
+                            <label class="form-label">Image Source URL</label>
+                            <input type="text" class="form-control" data-key="imageSrc" value="${comp.data.imageSrc || ''}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Image Alt Text</label>
+                            <input type="text" class="form-control" data-key="imageAlt" value="${comp.data.imageAlt || ''}">
+                        </div>
+                    </div>
+                </details>
+
+                <details class="form-section" open>
+                    <summary>Primary Offer Fields</summary>
+                    <div class="form-section-content">
+                        <div class="offer-field-group">
+                            <div class="offer-field-header">
+                                <label class="label-prominent">Vehicle Name</label>
+                                ${renderControlCluster('vehicle')}
+                            </div>
+                            <input type="text" class="form-control" data-key="vehicleText" value="${comp.data.vehicleText || ''}">
+                        </div>
+
+                        <div class="offer-field-group">
+                            <div class="offer-field-header">
+                                <label class="label-prominent">Main Offer (e.g. $2,500 Off)</label>
+                                ${renderControlCluster('mainOffer')}
+                            </div>
+                            <input type="text" class="form-control" data-key="mainOfferText" value="${comp.data.mainOfferText || ''}">
+                        </div>
+
+                        <div class="offer-field-group">
+                            <div class="offer-field-header">
+                                <label class="label-prominent">Offer Details</label>
+                                ${renderControlCluster('details')}
+                            </div>
+                            <textarea class="form-control" data-key="detailsText">${comp.data.detailsText || ''}</textarea>
+                        </div>
+                    </div>
+                </details>
+
+                <details class="form-section" ${addOffers.length > 0 ? 'open' : ''}>
+                    <summary>Additional Offers (${addOffers.length})</summary>
+                    <div class="form-section-content">
+                        <div id="additional-offers-list-${comp.id}">
+                            ${addOffers.map((o: any, i: number) => `
+                                <div class="card mb-4 p-4" style="background: var(--background-secondary);">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="font-bold text-xs">OFFER #${i + 1}</span>
+                                        <button type="button" class="btn btn-ghost btn-sm remove-sub-offer" data-index="${i}" style="color: var(--destructive); height: 24px;">Remove</button>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Separator (e.g. AND)</label>
+                                        <input type="text" class="form-control sub-offer-field" data-index="${i}" data-field="separator" value="${o.separator || ''}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Title</label>
+                                        <input type="text" class="form-control sub-offer-field" data-index="${i}" data-field="offer" value="${o.offer || ''}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Details</label>
+                                        <input type="text" class="form-control sub-offer-field" data-index="${i}" data-field="details" value="${o.details || ''}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Disclaimer</label>
+                                        <input type="text" class="form-control sub-offer-field" data-index="${i}" data-field="disclaimer" value="${o.disclaimer || ''}">
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button type="button" class="btn btn-secondary btn-sm w-full add-sub-offer-btn">Add Additional Offer</button>
+                    </div>
+                </details>
+
+                <details class="form-section">
+                    <summary>Stock/VIN & Disclaimer</summary>
+                    <div class="form-section-content">
+                        <div class="offer-field-group">
+                            <div class="offer-field-header">
+                                <label class="label-prominent">Stock # or VIN</label>
+                                ${renderControlCluster('stockVin')}
+                            </div>
+                            <input type="text" class="form-control" data-key="stockVinText" value="${comp.data.stockVinText || ''}">
+                        </div>
+                        <div class="offer-field-group">
+                            <div class="offer-field-header">
+                                <label class="label-prominent">Disclaimer</label>
+                                ${renderControlCluster('disclaimer')}
+                            </div>
+                            <textarea class="form-control" data-key="disclaimerText">${comp.data.disclaimerText || ''}</textarea>
+                        </div>
+                    </div>
+                </details>
+
+                <details class="form-section">
+                    <summary>Button & Styling</summary>
+                    <div class="form-section-content">
+                        <div class="form-group">
+                            <label class="form-label">Button Text</label>
+                            <input type="text" class="form-control" data-key="btnText" value="${comp.data.btnText || ''}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Button Link</label>
+                            <input type="text" class="form-control" data-key="btnLink" value="${comp.data.btnLink || ''}">
+                        </div>
+                        <div class="grid grid-cols-2">
+                            <div class="form-group">
+                                <label class="form-label">Font Size</label>
+                                <input type="number" class="form-control" data-key="btnFontSize" value="${comp.data.btnFontSize || 16}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Button Width Setting</label>
+                                <select class="form-control" data-key="btnWidthType">
+                                    <option value="full" ${comp.data.btnWidthType === 'full' ? 'selected' : ''}>Full Width (100%)</option>
+                                    <option value="auto" ${comp.data.btnWidthType === 'auto' ? 'selected' : ''}>Auto-Sized</option>
+                                    <option value="small" ${comp.data.btnWidthType === 'small' ? 'selected' : ''}>Fixed: Small (160px)</option>
+                                    <option value="medium" ${comp.data.btnWidthType === 'medium' ? 'selected' : ''}>Fixed: Medium (280px)</option>
+                                    <option value="large" ${comp.data.btnWidthType === 'large' ? 'selected' : ''}>Fixed: Large (400px)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2">
+                             <div class="form-group">
+                                <label class="form-label">Alignment</label>
+                                <select class="form-control" data-key="btnAlign">
+                                    <option value="center" ${(!comp.data.btnAlign || comp.data.btnAlign === 'center') ? 'selected' : ''}>Center</option>
+                                    <option value="left" ${comp.data.btnAlign === 'left' ? 'selected' : ''}>Left</option>
+                                    <option value="right" ${comp.data.btnAlign === 'right' ? 'selected' : ''}>Right</option>
+                                </select>
+                             </div>
+                             <div class="form-group">
+                                <label class="form-label">Button Color</label>
+                                <div class="color-input-container">
+                                    <input type="color" class="color-input-hidden" data-key="btnColor" value="${comp.data.btnColor || '#007aff'}">
+                                    <div class="color-swatch-display" style="background: ${comp.data.btnColor || '#007aff'}"></div>
+                                </div>
+                             </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Text Color</label>
+                            <div class="color-input-container">
+                                <input type="color" class="color-input-hidden" data-key="btnTextColor" value="${comp.data.btnTextColor || '#ffffff'}">
+                                <div class="color-swatch-display" style="background: ${comp.data.btnTextColor || '#ffffff'}"></div>
+                            </div>
+                        </div>
+                    </div>
+                </details>
             `;
         }
 
         item.innerHTML = `
-            <div class="card-header" style="background: var(--background-tertiary); min-height: 40px;">
-                <span class="text-sm font-bold" style="text-transform: uppercase; color: var(--label-secondary);">
-                    #${index + 1} - ${comp.type.replace('_', ' ')}
-                </span>
-                <button type="button" class="btn btn-ghost btn-sm remove-comp-btn" style="height: 24px; padding: 0 8px; color: var(--destructive); border-color: transparent;">
-                    Remove
-                </button>
+            <div class="card-header">
+                <span class="text-xs font-bold uppercase" style="color: var(--label-secondary);">#${index + 1} - ${comp.type.replace('_', ' ')}</span>
+                <button type="button" class="btn btn-ghost btn-sm remove-comp-btn" style="color: var(--destructive); height: 24px;">Delete</button>
             </div>
             <div class="card-body">
                 ${componentFormHtml}
             </div>
         `;
 
-        item.querySelectorAll('input, textarea, select').forEach(input => {
-            input.addEventListener('input', (e) => {
-                const target = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
-                const key = target.getAttribute('data-key');
-                if (key) {
-                    let val = target.value;
-                    if (comp.type === 'image' && key === 'width' && !val.includes('%') && val !== '') {
-                        val = val + '%';
-                    }
-                    updateComponentData(comp.id, key, val);
-                    if (target.type === 'color') {
-                        const swatch = target.nextElementSibling as HTMLElement;
-                        if (swatch) swatch.style.background = target.value;
-                    }
-                    if (comp.type === 'image' && key === 'src') {
-                        const previewImg = item.querySelector('.image-preview-container img') as HTMLImageElement;
-                        if (previewImg) previewImg.src = target.value;
-                    }
-                }
+        // Event Listeners for nested fields (Sales Offer)
+        if (comp.type === 'sales_offer') {
+            item.querySelector('.add-sub-offer-btn')?.addEventListener('click', () => {
+                const current = JSON.parse(comp.data.additionalOffers || '[]');
+                current.push({ offer: 'New Offer', details: 'Offer details', separator: 'AND', disclaimer: '' });
+                updateComponentData(comp.id, 'additionalOffers', JSON.stringify(current));
+                renderComponents();
             });
-        });
 
-        const fileInput = item.querySelector(`[data-upload-id="${comp.id}"]`) as HTMLInputElement;
-        fileInput?.addEventListener('change', (e) => {
-            const file = fileInput.files?.[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (re) => {
-                    const base64 = re.target?.result as string;
-                    updateComponentData(comp.id, 'src', base64);
-                    const urlInput = item.querySelector('[data-key="src"]') as HTMLInputElement;
-                    if (urlInput) urlInput.value = base64;
-                    const previewImg = item.querySelector('.image-preview-container img') as HTMLImageElement;
-                    if (previewImg) previewImg.src = base64;
-                    showToast('Image uploaded');
-                };
-                reader.readAsDataURL(file);
+            item.querySelectorAll('.remove-sub-offer').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const idx = parseInt(btn.getAttribute('data-index') || '0');
+                    const current = JSON.parse(comp.data.additionalOffers || '[]');
+                    current.splice(idx, 1);
+                    updateComponentData(comp.id, 'additionalOffers', JSON.stringify(current));
+                    renderComponents();
+                });
+            });
+
+            item.querySelectorAll('.sub-offer-field').forEach(input => {
+                input.addEventListener('input', (e: any) => {
+                    const idx = parseInt(e.target.getAttribute('data-index') || '0');
+                    const field = e.target.getAttribute('data-field');
+                    const current = JSON.parse(comp.data.additionalOffers || '[]');
+                    current[idx][field] = e.target.value;
+                    updateComponentData(comp.id, 'additionalOffers', JSON.stringify(current));
+                });
+            });
+        }
+
+        item.querySelectorAll('input, textarea, select').forEach(input => {
+            if (!input.classList.contains('sub-offer-field')) {
+                input.addEventListener('input', (e) => {
+                    const target = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+                    const key = target.getAttribute('data-key');
+                    if (key) {
+                        updateComponentData(comp.id, key, target.value);
+                        if (target.type === 'color') {
+                            const swatch = target.nextElementSibling as HTMLElement;
+                            if (swatch) swatch.style.background = target.value;
+                        }
+                    }
+                });
             }
         });
 
@@ -703,424 +923,318 @@ const renderComponents = () => {
             });
         });
 
-        item.querySelector('.transparent-bg-btn')?.addEventListener('click', () => {
-            updateComponentData(comp.id, 'backgroundColor', 'transparent');
-            const swatch = item.querySelector('[data-key="backgroundColor"]')?.nextElementSibling as HTMLElement;
-            if (swatch) swatch.style.background = 'transparent';
-            showToast('Background set to transparent');
-        });
-
         item.querySelector('.remove-comp-btn')?.addEventListener('click', () => removeComponent(comp.id));
         componentsContainer.appendChild(item);
     });
 };
 
-const generateEmailHtml = (): string => {
+function generateEmailHtml(): string {
   let sectionsHtml = '';
   
   activeComponents.forEach(comp => {
-    const d = comp.data;
+    const d = comp.data || {};
     const isTransparent = d.backgroundColor === 'transparent';
     
     if (comp.type === 'header' || comp.type === 'text_block') {
       const styles = [
-          `padding: ${d.paddingTop}px ${d.paddingLeftRight}px ${d.paddingBottom}px ${d.paddingLeftRight}px`,
-          `background-color: ${d.backgroundColor}`,
-          `color: ${d.textColor}`,
-          `font-size: ${d.fontSize}px`,
-          `text-align: ${d.textAlign}`,
-          `font-weight: ${d.fontWeight}`,
-          `font-style: ${d.fontStyle}`,
-          `text-decoration: ${d.textDecoration}`,
+          `padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px`,
+          `background-color: ${d.backgroundColor || 'transparent'}`,
+          `color: ${d.textColor || '#000'}`,
+          `font-size: ${d.fontSize || 16}px`,
+          `text-align: ${d.textAlign || 'left'}`,
+          `font-weight: ${d.fontWeight || 'normal'}`,
+          `font-style: ${d.fontStyle || 'normal'}`,
           `line-height: 1.5`,
           `font-family: ${designSettings.fontFamily}`
       ].join(';');
       
-      let htmlContent = '';
-      const lines = d.text.split('\n');
-      let currentListType: 'ul' | 'ol' | null = null;
-      let listBuffer: string[] = [];
-
-      const flushList = () => {
-          if (currentListType && listBuffer.length > 0) {
-              const listTag = currentListType;
-              const listStyles = `margin: 0; padding-left: 24px; text-align: ${d.textAlign};`;
-              htmlContent += `<${listTag} style="${listStyles}">` + 
-                            listBuffer.map(item => `<li>${item}</li>`).join('') + 
-                            `</${listTag}>`;
-              listBuffer = [];
-              currentListType = null;
-          }
-      };
-
-      lines.forEach(line => {
-          const bulletMatch = line.match(/^(\s*)([•\*\-])\s+(.*)/);
-          const numberMatch = line.match(/^(\s*)(\d+[\.\)])\s+(.*)/);
-
-          if (bulletMatch) {
-              if (currentListType === 'ol') flushList();
-              currentListType = 'ul';
-              listBuffer.push(bulletMatch[3]);
-          } else if (numberMatch) {
-              if (currentListType === 'ul') flushList();
-              currentListType = 'ol';
-              listBuffer.push(numberMatch[3]);
-          } else {
-              flushList();
-              if (line.trim() === '') {
-                  htmlContent += '<br>';
-              } else {
-                  htmlContent += line + '<br>';
-              }
-          }
-      });
-      flushList();
-      
+      const txt = d.text || '';
       sectionsHtml += `
         <tr>
-            <td align="${d.textAlign}" bgcolor="${isTransparent ? '' : d.backgroundColor}" style="${styles}">
-                <div style="font-family: ${designSettings.fontFamily}; color: ${d.textColor}; font-size: ${d.fontSize}px; line-height: 1.5;">
-                    ${htmlContent}
+            <td align="${d.textAlign || 'left'}" bgcolor="${isTransparent ? '' : d.backgroundColor}" style="${styles}">
+                <div style="font-family: ${designSettings.fontFamily}; color: ${d.textColor || '#000'}; font-size: ${d.fontSize || 16}px;">
+                    ${txt.replace(/\n/g, '<br>')}
                 </div>
             </td>
         </tr>
       `;
     } else if (comp.type === 'image') {
-        const numericWidth = parseFloat(d.width.replace(/%/g, '')) || 100;
-        
-        // Map percentage to pixels for the width attribute (Outlook compatibility)
-        const htmlWidthAttr = Math.round((numericWidth / 100) * 600).toString();
+        const numericWidth = parseFloat((d.width || '100%').replace(/%/g, '')) || 100;
         const styleWidth = `${numericWidth}%`;
-        
-        const containerStyles = [
-            `padding: ${d.paddingTop}px ${d.paddingLeftRight}px ${d.paddingBottom}px ${d.paddingLeftRight}px`,
-            `background-color: ${d.backgroundColor}`,
-            `text-align: ${d.align}`,
-            `font-size: 0`, // Remove ghost spacing
-            `line-height: 0` // Remove ghost spacing
-        ].join(';');
-        
-        const imgStyles = [
-            `display: block`,
-            `max-width: 100%`,
-            `width: ${styleWidth}`,
-            `height: auto`,
-            `border: 0`,
-            `margin: ${d.align === 'center' ? '0 auto' : '0'}`
-        ].join(';');
-
-        let imgTag = `<img src="${d.src}" alt="${d.alt.replace(/"/g, '&quot;')}" width="${htmlWidthAttr}" height="auto" style="${imgStyles}" border="0" />`;
-        if (d.link) imgTag = `<a href="${d.link}" target="_blank" style="text-decoration: none; border: 0;">${imgTag}</a>`;
-        
+        const imgStyles = [`display: block`, `max-width: 100%`, `width: ${styleWidth}`, `height: auto`, `border: 0`, `margin: ${d.align === 'center' ? '0 auto' : '0'}`].join(';');
+        let imgTag = `<img src="${d.src || ''}" alt="${d.alt || 'Image'}" style="${imgStyles}" border="0" />`;
+        if (d.link) imgTag = `<a href="${d.link}" target="_blank" style="text-decoration: none;">${imgTag}</a>`;
         sectionsHtml += `
             <tr>
-                <td align="${d.align}" bgcolor="${isTransparent ? '' : d.backgroundColor}" style="${containerStyles}">
-                    <!--[if (gte mso 9)|(IE)]>
-                    <table width="${htmlWidthAttr}" align="${d.align}" border="0" cellspacing="0" cellpadding="0" style="margin: ${d.align === 'center' ? '0 auto' : '0'};">
-                        <tr>
-                            <td>
-                    <![endif]-->
-                    <div style="display: block; width: 100%; max-width: ${styleWidth};">
-                        ${imgTag}
-                    </div>
-                    <!--[if (gte mso 9)|(IE)]>
-                            </td>
-                        </tr>
-                    </table>
-                    <![endif]-->
+                <td align="${d.align || 'center'}" bgcolor="${isTransparent ? '' : d.backgroundColor}" style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
+                    <div style="display: block; width: 100%; max-width: ${styleWidth};">${imgTag}</div>
                 </td>
             </tr>
         `;
     } else if (comp.type === 'button') {
         const radius = designSettings.buttonStyle === 'pill' ? '50px' : designSettings.buttonStyle === 'square' ? '0px' : '8px';
         const isOutlined = designSettings.buttonStyle === 'outlined';
-        
-        // Sizing logic
         let tableWidthAttr = "100%";
-        let maxWidthStyle = "100%";
-        
         const widthType = d.widthType || 'full';
-        if (widthType === 'auto') {
-            tableWidthAttr = ""; // Allow content to fit
-            maxWidthStyle = "fit-content";
-        } else if (widthType === 'small') {
-            tableWidthAttr = "160";
-            maxWidthStyle = "160px";
-        } else if (widthType === 'medium') {
-            tableWidthAttr = "280";
-            maxWidthStyle = "280px";
-        } else if (widthType === 'large') {
-            tableWidthAttr = "400";
-            maxWidthStyle = "400px";
-        }
-
-        const btnStyles = [
-            `background-color: ${isOutlined ? '#ffffff' : d.backgroundColor}`,
-            `color: ${isOutlined ? d.backgroundColor : d.textColor}`,
-            `padding: 12px 24px`,
-            `text-decoration: none`,
-            `display: block`,
-            `font-weight: bold`,
-            `border-radius: ${radius}`,
-            `font-size: ${d.fontSize}px`,
-            `font-family: ${designSettings.fontFamily}`,
-            `text-align: center`,
-            isOutlined ? `border: 2px solid ${d.backgroundColor}` : 'border: 0'
-        ].join(';');
+        if (widthType === 'auto') tableWidthAttr = "";
+        else if (widthType === 'small') tableWidthAttr = "160";
+        else if (widthType === 'medium') tableWidthAttr = "280";
+        else if (widthType === 'large') tableWidthAttr = "400";
         
-        const containerStyles = [
-            `padding: ${d.paddingTop}px ${d.paddingLeftRight}px ${d.paddingBottom}px ${d.paddingLeftRight}px`,
-            `text-align: ${d.align}`
-        ].join(';');
-
+        const btnStyles = [`background-color: ${isOutlined ? '#ffffff' : d.backgroundColor}`, `color: ${isOutlined ? d.backgroundColor : d.textColor}`, `padding: 12px 24px`, `text-decoration: none`, `display: block`, `font-weight: bold`, `border-radius: ${radius}`, `font-size: ${d.fontSize}px`, `font-family: ${designSettings.fontFamily}`, `text-align: center`, isOutlined ? `border: 2px solid ${d.backgroundColor}` : 'border: 0'].join(';');
+        
         sectionsHtml += `
             <tr>
-                <td align="${d.align}" style="${containerStyles}">
-                    <table border="0" cellspacing="0" cellpadding="0" ${tableWidthAttr ? `width="${tableWidthAttr}"` : ""} style="margin: ${d.align === 'center' ? '0 auto' : '0'}; ${maxWidthStyle ? `max-width: ${maxWidthStyle};` : ""} ${widthType === 'full' ? 'width: 100%;' : ""}">
+                <td align="${d.align || 'center'}" style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
+                    <table border="0" cellspacing="0" cellpadding="0" ${tableWidthAttr ? `width="${tableWidthAttr}"` : ""} style="margin: ${d.align === 'center' ? '0 auto' : '0'};">
                         <tr>
                             <td align="center" bgcolor="${isOutlined ? '#ffffff' : d.backgroundColor}" style="border-radius: ${radius};">
-                                <a href="${d.link}" target="_blank" style="${btnStyles}">
-                                    ${d.text}
-                                </a>
+                                <a href="${d.link || '#'}" target="_blank" style="${btnStyles}">${d.text || 'Button'}</a>
                             </td>
                         </tr>
                     </table>
                 </td>
             </tr>
         `;
+    } else if (comp.type === 'sales_offer') {
+        const layout = d.layout || 'center';
+        const addOffers = JSON.parse(d.additionalOffers || '[]');
+        
+        const renderDetails = () => {
+            let detailsHtml = '';
+            // For side-by-side layouts, generally left-aligned text looks better and is standard.
+            const textAlign = layout === 'center' ? 'center' : 'left';
+            
+            const renderField = (text: string, fontSize: string, color: string, bgColor: string, fontWeight: string, extraStyle: string = '') => {
+                if (!text) return '';
+                const style = [
+                    `font-family: ${designSettings.fontFamily}`,
+                    `color: ${color || '#000'}`,
+                    `font-size: ${fontSize || 14}px`,
+                    `background-color: ${bgColor === 'transparent' ? 'transparent' : bgColor || '#fff'}`,
+                    `font-weight: ${fontWeight}`,
+                    `text-align: ${textAlign}`,
+                    `line-height: 1.2`,
+                    extraStyle
+                ].join(';');
+                return `<div style="${style}">${text}</div>`;
+            };
+
+            if(d.vehicleText) detailsHtml += renderField(d.vehicleText, d.vehicleFontSize, d.vehicleColor, d.vehicleBgColor, 'bold', 'margin-bottom: 8px;');
+            if(d.mainOfferText) detailsHtml += renderField(d.mainOfferText, d.mainOfferFontSize, d.mainOfferColor, d.mainOfferBgColor, '800', 'margin-bottom: 8px;');
+            if(d.detailsText) detailsHtml += renderField(d.detailsText, d.detailsFontSize, d.detailsColor, d.detailsBgColor, 'normal', 'margin-bottom: 12px; line-height: 1.4;');
+            
+            addOffers.forEach((o: any) => {
+                const subSize = d.mainOfferFontSize ? Math.round(parseInt(d.mainOfferFontSize)*0.75).toString() : '14';
+                if (o.separator) detailsHtml += `<div style="font-family: ${designSettings.fontFamily}; font-size: 11px; font-weight: 800; color: #8e8e93; margin: 12px 0; text-align: ${textAlign};">${o.separator}</div>`;
+                detailsHtml += renderField(o.offer, subSize, d.mainOfferColor, 'transparent', 'bold');
+                detailsHtml += renderField(o.details, d.detailsFontSize, d.detailsColor, 'transparent', 'normal', 'margin-bottom: 4px; line-height: 1.4;');
+                if (o.disclaimer) detailsHtml += renderField(o.disclaimer, '10', '#8e8e93', 'transparent', 'normal', 'margin-bottom: 8px; opacity: 0.8;');
+            });
+            
+            if (d.stockVinText) detailsHtml += renderField(d.stockVinText, d.stockVinFontSize, d.stockVinColor, d.stockVinBgColor, 'normal', 'margin-top: 10px;');
+            
+            const radius = designSettings.buttonStyle === 'pill' ? '50px' : designSettings.buttonStyle === 'square' ? '0px' : '8px';
+            
+            const btnAlign = d.btnAlign || textAlign;
+            let btnTableWidthAttr = "100%";
+            const btnWidthType = d.btnWidthType || 'full';
+            if (btnWidthType === 'auto') btnTableWidthAttr = "";
+            else if (btnWidthType === 'small') btnTableWidthAttr = "160";
+            else if (btnWidthType === 'medium') btnTableWidthAttr = "280";
+            else if (btnWidthType === 'large') btnTableWidthAttr = "400";
+            
+            let btnMargin = '16px 0 0 0';
+            if (btnAlign === 'center') btnMargin = '16px auto 0';
+            else if (btnAlign === 'right') btnMargin = '16px 0 0 auto';
+
+            detailsHtml += `
+                <table border="0" cellspacing="0" cellpadding="0" ${btnTableWidthAttr ? `width="${btnTableWidthAttr}"` : ""} style="margin: ${btnMargin}; width: ${btnWidthType === 'full' ? '100%' : (btnTableWidthAttr ? btnTableWidthAttr+'px' : 'auto')}; max-width: 100%;">
+                    <tr>
+                        <td align="center" bgcolor="${d.btnColor || '#007aff'}" style="border-radius: ${radius};">
+                            <a href="${d.btnLink || '#'}" target="_blank" style="background-color: ${d.btnColor || '#007aff'}; color: ${d.btnTextColor || '#fff'}; padding: 10px 20px; text-decoration: none; display: block; font-weight: bold; border-radius: ${radius}; font-size: ${d.btnFontSize || 16}px; font-family: ${designSettings.fontFamily}; text-align: center;">${d.btnText || 'View'}</a>
+                        </td>
+                    </tr>
+                </table>
+            `;
+            
+            if (d.disclaimerText) detailsHtml += renderField(d.disclaimerText, d.disclaimerFontSize, d.disclaimerColor, d.disclaimerBgColor, 'normal', 'margin-top: 16px; opacity: 0.8;');
+            
+            return detailsHtml;
+        };
+
+        const renderImage = () => {
+            const imgStyles = [`display: block`, `max-width: 100%`, `width: 100%`, `height: auto`, `border: 0`].join(';');
+            let imgTag = `<img src="${d.imageSrc || ''}" alt="${d.imageAlt || 'Sales Offer'}" style="${imgStyles}" border="0" />`;
+            if (d.imageLink) imgTag = `<a href="${d.imageLink}" target="_blank" style="text-decoration: none;">${imgTag}</a>`;
+            return imgTag;
+        };
+
+        if (layout === 'center') {
+            sectionsHtml += `
+                <tr>
+                    <td bgcolor="${d.backgroundColor}" style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                            <tr><td align="center" style="padding-bottom: 20px;">${renderImage()}</td></tr>
+                            <tr><td align="center">${renderDetails()}</td></tr>
+                        </table>
+                    </td>
+                </tr>
+            `;
+        } else {
+            // Layout Left or Right
+            const isLeft = layout === 'left';
+            const isRTL = layout === 'right'; // RTL strategy for Right Layout
+            const dir = isRTL ? 'rtl' : 'ltr';
+            
+            // Calculate available width for columns
+            const paddingLR = parseInt(d.paddingLeftRight) || 20;
+            const totalContentWidth = 600 - (paddingLR * 2);
+            const gutter = 24;
+            const availableWidth = totalContentWidth - gutter - 4;
+            
+            // Split: Image ~44%, Content ~56%
+            const imgColWidth = Math.floor(availableWidth * 0.44);
+            const textColWidth = availableWidth - imgColWidth;
+            
+            // Assign Content: Always Image First in Source Order for Mobile Stacking
+            const col1Content = renderImage(); // Image is always col1 source
+            const col2Content = renderDetails(); // Details is always col2 source
+            
+            // Assign Widths
+            const col1Width = imgColWidth;
+            const col2Width = textColWidth;
+            
+            // Padding Logic
+            // If LTR (Left Layout): Image (Left) needs Right Padding. Text (Right) needs Left Padding.
+            // If RTL (Right Layout): Image (Right) needs Left Padding. Text (Left) needs Right Padding.
+            const p1 = isRTL ? '0 0 0 12px' : '0 12px 0 0';
+            const p2 = isRTL ? '0 12px 0 0' : '0 0 0 12px';
+            
+            // Style refinement to prevent image gaps
+            const col1Style = `padding: ${p1}; font-size: 0; line-height: 0;`; 
+            const col2Style = `padding: ${p2}; font-size: 14px; line-height: 1.4;`;
+
+            sectionsHtml += `
+                <tr>
+                    <td bgcolor="${d.backgroundColor || 'transparent'}" style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                            <tr>
+                                <td style="font-size: 0; text-align: center; direction: ${dir};">
+                                    <!--[if (gte mso 9)|(IE)]>
+                                    <table width="100%" border="0" cellspacing="0" cellpadding="0" dir="${dir}">
+                                    <tr>
+                                    <td width="${col1Width}" valign="top" style="vertical-align: top;">
+                                    <![endif]-->
+                                    <div class="mobile-stack" style="display: inline-block; width: 100%; max-width: ${col1Width}px; vertical-align: top; direction: ltr;">
+                                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                            <tr>
+                                                <td class="mobile-padding-reset mobile-padding-bottom" align="left" valign="top" style="${col1Style}">
+                                                    ${col1Content}
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div><!--
+                                    --><!--[if (gte mso 9)|(IE)]>
+                                    </td>
+                                    <td width="${col2Width}" valign="top" style="vertical-align: top;">
+                                    <![endif]--><!--
+                                    --><div class="mobile-stack" style="display: inline-block; width: 100%; max-width: ${col2Width}px; vertical-align: top; direction: ltr;">
+                                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                            <tr>
+                                                <td class="mobile-padding-reset" align="left" valign="top" style="${col2Style}">
+                                                    ${col2Content}
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <!--[if (gte mso 9)|(IE)]>
+                                    </td>
+                                    </tr>
+                                    </table>
+                                    <![endif]-->
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            `;
+        }
     }
   });
 
   return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!--[if !mso]><!-->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!--<![endif]-->
     <title>Email Template</title>
     <style type="text/css">
-        body {
-            margin: 0 !important;
-            padding: 0 !important;
-            -webkit-text-size-adjust: 100% !important;
-            -ms-text-size-adjust: 100% !important;
-            -webkit-font-smoothing: antialiased !important;
-        }
-        img {
-            border: 0 !important;
-            outline: none !important;
-            text-decoration: none !important;
-            -ms-interpolation-mode: bicubic !important;
-        }
-        table {
-            border-collapse: collapse !important;
-            mso-table-lspace: 0pt !important;
-            mso-table-rspace: 0pt !important;
-        }
-        td {
-            mso-line-height-rule: exactly !important;
-        }
-        .wrapper {
-            width: 100% !important;
-            max-width: 600px !important;
-        }
+        body { margin: 0 !important; padding: 0 !important; -webkit-text-size-adjust: 100% !important; -ms-text-size-adjust: 100% !important; -webkit-font-smoothing: antialiased !important; }
+        img { border: 0 !important; outline: none !important; text-decoration: none !important; -ms-interpolation-mode: bicubic !important; }
+        table { border-collapse: collapse !important; mso-table-lspace: 0pt !important; mso-table-rspace: 0pt !important; }
+        
         @media screen and (max-width: 600px) {
-            .wrapper {
-                width: 100% !important;
-                max-width: 100% !important;
-            }
+            .wrapper { width: 100% !important; max-width: 100% !important; }
+            .mobile-stack { display: block !important; width: 100% !important; max-width: 100% !important; }
+            .mobile-padding-reset { padding-left: 0 !important; padding-right: 0 !important; }
+            .mobile-padding-bottom { padding-bottom: 24px !important; }
+            .mobile-center { text-align: center !important; }
         }
     </style>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f5f5f7;">
     <center>
-        <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f5f5f7" style="table-layout: fixed;">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f5f5f7">
             <tr>
                 <td align="center" style="padding: 20px 0;">
-                    <!--[if (gte mso 9)|(IE)]>
-                    <table width="600" align="center" border="0" cellspacing="0" cellpadding="0">
-                        <tr>
-                            <td>
-                    <![endif]-->
-                    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="wrapper" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-                        ${sectionsHtml || '<tr><td style="padding: 40px; text-align: center; color: #86868b; font-family: sans-serif;">No content added yet.</td></tr>'}
+                    <table class="wrapper" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+                        ${sectionsHtml || '<tr><td style="padding: 40px; text-align: center; font-family: sans-serif;">No content added yet.</td></tr>'}
                     </table>
-                    <!--[if (gte mso 9)|(IE)]>
-                            </td>
-                        </tr>
-                    </table>
-                    <![endif]-->
                 </td>
             </tr>
         </table>
     </center>
 </body>
 </html>`.trim();
-};
+}
 
 emailForm.addEventListener('submit', (e: Event) => {
   e.preventDefault();
   const btnText = generateBtn.querySelector('.btn-text') as HTMLElement;
   const spinner = generateBtn.querySelector('.spinner') as HTMLElement;
   const checkmark = generateBtn.querySelector('.checkmark') as HTMLElement;
+  
+  if (!btnText || !spinner || !checkmark) return;
+
   generateBtn.disabled = true;
   btnText.textContent = 'Generating...';
   spinner.classList.remove('hidden');
   
   setTimeout(() => {
-    outputPlaceholder.style.display = 'none';
-    outputContainer.style.display = 'grid';
-    const html = generateEmailHtml();
-    const codeBlock = document.getElementById('code-block') as HTMLElement;
-    codeBlock.textContent = html;
-    previewPane.srcdoc = html;
-    spinner.classList.add('hidden');
-    checkmark.classList.remove('hidden');
-    btnText.textContent = 'Complete';
-    showToast('Template Generated');
-    setTimeout(() => {
-        generateBtn.disabled = false;
-        checkmark.classList.add('hidden');
-        btnText.textContent = 'Generate Template';
-    }, 2000);
+    try {
+        outputPlaceholder.style.display = 'none';
+        outputContainer.style.display = 'grid';
+        
+        const html = generateEmailHtml();
+        const codeBlock = document.getElementById('code-block') as HTMLElement;
+        if(codeBlock) codeBlock.textContent = html;
+        if(previewPane) previewPane.srcdoc = html;
+        
+        spinner.classList.add('hidden');
+        checkmark.classList.remove('hidden');
+        btnText.textContent = 'Complete';
+        showToast('Template Generated');
+    } catch (err) {
+        console.error("Generation failed:", err);
+        showToast('Error generating template. Check console.');
+        spinner.classList.add('hidden');
+    } finally {
+        setTimeout(() => {
+            generateBtn.disabled = false;
+            checkmark.classList.add('hidden');
+            btnText.textContent = 'Generate Template';
+        }, 2000);
+    }
   }, 600);
 });
-
-copyBtn?.addEventListener('click', async () => {
-  const codeBlock = document.getElementById('code-block') as HTMLElement;
-  try {
-    await navigator.clipboard.writeText(codeBlock.textContent || '');
-    showToast('Copied to clipboard');
-  } catch (err) { console.error(err); }
-});
-
-downloadBtn?.addEventListener('click', () => {
-    const html = generateEmailHtml();
-    const blob = new Blob([html], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `email_template_${Date.now()}.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    showToast('HTML file downloaded');
-});
-
-// Template Management
-const getSavedTemplates = (): SavedTemplate[] => {
-    const data = localStorage.getItem(LS_TEMPLATES_KEY);
-    return data ? JSON.parse(data) : [];
-};
-
-const saveTemplate = () => {
-    const name = prompt('Enter a name for this template:', `Template ${new Date().toLocaleDateString()}`);
-    if (!name) return;
-
-    const newTemplate: SavedTemplate = {
-        id: Date.now().toString(),
-        name,
-        createdAt: new Date().toISOString(),
-        designSettings: { ...designSettings },
-        components: [...activeComponents]
-    };
-
-    const templates = getSavedTemplates();
-    templates.unshift(newTemplate);
-    localStorage.setItem(LS_TEMPLATES_KEY, JSON.stringify(templates));
-    renderSavedTemplates();
-    showToast('Template saved successfully');
-};
-
-const deleteTemplate = (id: string) => {
-    const templates = getSavedTemplates().filter(t => t.id !== id);
-    localStorage.setItem(LS_TEMPLATES_KEY, JSON.stringify(templates));
-    renderSavedTemplates();
-    showToast('Template deleted');
-};
-
-const loadTemplate = (id: string) => {
-    const templates = getSavedTemplates();
-    const template = templates.find(t => t.id === id);
-    if (template) {
-        designSettings = { ...template.designSettings };
-        activeComponents = [...template.components];
-        
-        // Update font select UI
-        if (fontSelect) fontSelect.value = designSettings.fontFamily;
-        // Update button style UI
-        buttonStyleOptions.forEach(opt => {
-            opt.classList.toggle('selected', opt.getAttribute('data-button') === designSettings.buttonStyle);
-        });
-
-        renderComponents();
-        saveDraft();
-        showToast(`Loaded: ${template.name}`);
-    }
-};
-
-const renderSavedTemplates = () => {
-    const templates = getSavedTemplates();
-    if (!savedTemplatesList) return;
-    
-    if (templates.length === 0) {
-        savedTemplatesList.innerHTML = `<p class="text-sm" style="color: var(--label-secondary); text-align: center;">No saved templates found.</p>`;
-        return;
-    }
-
-    savedTemplatesList.innerHTML = templates.map(t => `
-        <div class="card" style="margin-bottom: 8px; background: var(--background-secondary);">
-            <div class="card-body" style="padding: 12px; display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <h4 class="text-base font-bold">${t.name}</h4>
-                    <p class="text-xs" style="color: var(--label-tertiary);">${new Date(t.createdAt).toLocaleString()}</p>
-                </div>
-                <div class="flex gap-2">
-                    <button class="btn btn-primary btn-sm load-tpl-btn" data-id="${t.id}">Load</button>
-                    <button class="btn btn-ghost btn-sm del-tpl-btn" data-id="${t.id}" style="color: var(--destructive);">Delete</button>
-                </div>
-            </div>
-        </div>
-    `).join('');
-
-    savedTemplatesList.querySelectorAll('.load-tpl-btn').forEach(btn => {
-        btn.addEventListener('click', () => loadTemplate(btn.getAttribute('data-id') || ''));
-    });
-    savedTemplatesList.querySelectorAll('.del-tpl-btn').forEach(btn => {
-        btn.addEventListener('click', () => deleteTemplate(btn.getAttribute('data-id') || ''));
-    });
-};
-
-const saveDraft = () => {
-    const draft = { designSettings, activeComponents };
-    localStorage.setItem(LS_DRAFT_KEY, JSON.stringify(draft));
-};
-
-const loadDraft = () => {
-    const data = localStorage.getItem(LS_DRAFT_KEY);
-    if (data) {
-        const draft = JSON.parse(data);
-        designSettings = draft.designSettings;
-        activeComponents = draft.activeComponents;
-        
-        if (fontSelect) fontSelect.value = designSettings.fontFamily;
-        buttonStyleOptions.forEach(opt => {
-            opt.classList.toggle('selected', opt.getAttribute('data-button') === designSettings.buttonStyle);
-        });
-        
-        renderComponents();
-        showToast('Draft restored');
-    }
-};
-
-// Initialization
-saveTemplateBtn?.addEventListener('click', saveTemplate);
-renderMergeFieldsSidebar();
-loadDraft();
-renderComponents();
-renderSavedTemplates();
