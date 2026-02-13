@@ -519,6 +519,13 @@ const addNewComponent = (type: string) => {
             stockVinTextAlign: 'center',
             stockVinPaddingTop: '10', stockVinPaddingBottom: '0',
 
+            mileageText: 'Mileage: {{customer.last_transaction.vehicle.mileage}}',
+            mileageFontSize: '11',
+            mileageColor: '#86868b',
+            mileageBgColor: 'transparent',
+            mileageTextAlign: 'center',
+            mileagePaddingTop: '4', mileagePaddingBottom: '0',
+
             disclaimerText: '*Terms and conditions apply. Offer valid through end of month.',
             disclaimerFontSize: '10',
             disclaimerColor: '#86868b',
@@ -750,181 +757,91 @@ const renderComponents = () => {
             const imageEnabled = comp.data.imageEnabled === 'true';
 
             componentFormHtml = `
-                <div class="form-group">
-                    <label class="form-label">Offer Layout</label>
-                    <select class="form-control" data-key="layout">
-                        <option value="left" ${comp.data.layout === 'left' ? 'selected' : ''}>Left (Image Left, Details Right)</option>
-                        <option value="center" ${comp.data.layout === 'center' ? 'selected' : ''}>Center (Image Top, Details Below)</option>
-                        <option value="right" ${comp.data.layout === 'right' ? 'selected' : ''}>Right (Details Left, Image Right)</option>
+                <div class="form-group-inline">
+                    <label class="form-label-inline">Offer Layout</label>
+                    <select class="form-control compact" data-key="layout">
+                        <option value="left" ${comp.data.layout === 'left' ? 'selected' : ''}>Left (Image Left)</option>
+                        <option value="center" ${comp.data.layout === 'center' ? 'selected' : ''}>Center (Image Top)</option>
+                        <option value="right" ${comp.data.layout === 'right' ? 'selected' : ''}>Right (Image Right)</option>
                     </select>
                 </div>
                 
-                <details class="form-section">
-                    <summary>Image Settings</summary>
-                    <div class="form-section-content">
-                       <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
-                            <label class="form-label" for="image-enabled-${comp.id}" style="margin-bottom: 0;">Show Image</label>
-                            <div class="toggle-switch">
-                                <input type="checkbox" id="image-enabled-${comp.id}" class="toggle-switch-checkbox" data-key="imageEnabled" ${imageEnabled ? 'checked' : ''}>
-                                <label for="image-enabled-${comp.id}" class="toggle-switch-label"></label>
-                            </div>
+                <div class="form-group-inline wrap">
+                    <div class="toggle-switch-group">
+                        <div class="toggle-switch compact">
+                            <input type="checkbox" id="image-enabled-${comp.id}" class="toggle-switch-checkbox" data-key="imageEnabled" ${imageEnabled ? 'checked' : ''}>
+                            <label for="image-enabled-${comp.id}" class="toggle-switch-label"></label>
                         </div>
-                        <div id="image-fields-container-${comp.id}" style="display: ${imageEnabled ? 'block' : 'none'}; margin-top: var(--spacing-md); border-top: 1px solid var(--separator-secondary); padding-top: var(--spacing-md);">
-                            <div class="form-group">
-                                <label class="form-label">Image Source URL</label>
-                                <input type="text" class="form-control" data-key="imageSrc" value="${comp.data.imageSrc || ''}">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Image Alt Text</label>
-                                <input type="text" class="form-control" data-key="imageAlt" value="${comp.data.imageAlt || ''}">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Image Link URL</label>
-                                <input type="text" class="form-control" data-key="imageLink" value="${comp.data.imageLink || ''}">
-                            </div>
-                        </div>
+                        <label for="image-enabled-${comp.id}" class="toggle-switch-text-label">Show Image</label>
                     </div>
-                </details>
-
-                <details class="form-section">
-                    <summary>Primary Offer Fields</summary>
-                    <div class="form-section-content">
-                        <div class="offer-field-group">
-                            <label class="label-prominent">Vehicle Name</label>
-                            <input type="text" class="form-control" data-key="vehicleText" data-stylable="true" data-component-id="${comp.id}" data-field-key="vehicle" data-field-label="Vehicle Name" value="${comp.data.vehicleText || ''}" style="margin-top: 4px;">
-                        </div>
-
-                        <div class="offer-field-group">
-                            <label class="label-prominent">Main Offer (e.g. $2,500 Off)</label>
-                            <input type="text" class="form-control" data-key="mainOfferText" data-stylable="true" data-component-id="${comp.id}" data-field-key="mainOffer" data-field-label="Main Offer" value="${comp.data.mainOfferText || ''}" style="margin-top: 4px;">
-                        </div>
-
-                        <div class="offer-field-group">
-                            <label class="label-prominent">Offer Details</label>
-                            <textarea class="form-control" data-key="detailsText" data-stylable="true" data-component-id="${comp.id}" data-field-key="details" data-field-label="Offer Details" style="margin-top: 4px;">${comp.data.detailsText || ''}</textarea>
-                        </div>
+                    <div id="image-fields-container-${comp.id}" style="display: ${imageEnabled ? 'flex' : 'none'}; gap: var(--spacing-md); flex: 1; flex-wrap: wrap; align-items: center;">
+                        <div class="inline-input-group"><label>URL:</label><input type="text" class="form-control compact" data-key="imageSrc" value="${comp.data.imageSrc || ''}"></div>
+                        <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
+                        <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp">
+                        <div class="inline-input-group"><label>Alt:</label><input type="text" class="form-control compact" data-key="imageAlt" value="${comp.data.imageAlt || ''}"></div>
+                        <div class="inline-input-group"><label>Link:</label><input type="text" class="form-control compact" data-key="imageLink" value="${comp.data.imageLink || ''}"></div>
                     </div>
-                </details>
+                </div>
 
-                <details class="form-section">
-                    <summary>Additional Offers (${addOffers.length})</summary>
-                    <div class="form-section-content">
-                        <div id="additional-offers-list-${comp.id}">
-                            ${addOffers.map((o: any, i: number) => `
-                                <div class="card mb-4 p-4" style="background: var(--background-secondary);">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <span class="font-bold text-xs">OFFER #${i + 1}</span>
-                                        <button type="button" class="btn btn-ghost btn-sm remove-sub-offer" data-index="${i}" style="color: var(--destructive); height: 24px;">Remove</button>
-                                    </div>
-                                    
-                                    <div class="offer-field-group">
-                                        <label class="form-label">Separator (e.g. AND)</label>
-                                        <input type="text" class="form-control sub-offer-field" data-index="${i}" data-field="separator" data-stylable="true" data-component-id="${comp.id}" data-field-key="separator" data-field-label="Separator" data-sub-offer-index="${i}" value="${o.separator || ''}" style="margin-top: 4px;">
-                                    </div>
-                                    
-                                    <div class="offer-field-group">
-                                       <label class="form-label">Title</label>
-                                       <input type="text" class="form-control sub-offer-field" data-index="${i}" data-field="offer" data-stylable="true" data-component-id="${comp.id}" data-field-key="offer" data-field-label="Title" data-sub-offer-index="${i}" value="${o.offer || ''}" style="margin-top: 4px;">
-                                    </div>
-                                    
-                                    <div class="offer-field-group">
-                                        <label class="form-label">Details</label>
-                                        <input type="text" class="form-control sub-offer-field" data-index="${i}" data-field="details" data-stylable="true" data-component-id="${comp.id}" data-field-key="details" data-field-label="Details" data-sub-offer-index="${i}" value="${o.details || ''}" style="margin-top: 4px;">
-                                    </div>
+                <div class="compact-separator"><span>Primary Offer</span></div>
 
-                                    <div class="offer-field-group">
-                                        <label class="form-label">Disclaimer</label>
-                                        <input type="text" class="form-control sub-offer-field" data-index="${i}" data-field="disclaimer" data-stylable="true" data-component-id="${comp.id}" data-field-key="disclaimer" data-field-label="Disclaimer" data-sub-offer-index="${i}" value="${o.disclaimer || ''}" style="margin-top: 4px;">
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                        <button type="button" class="btn btn-secondary btn-sm w-full add-sub-offer-btn">Add Additional Offer</button>
-                    </div>
-                </details>
+                <div class="form-group-inline"><label class="form-label-inline">Vehicle</label><input type="text" class="form-control compact" data-key="vehicleText" data-stylable="true" data-component-id="${comp.id}" data-field-key="vehicle" data-field-label="Vehicle Name" value="${comp.data.vehicleText || ''}"></div>
+                <div class="form-group-inline"><label class="form-label-inline">Main Offer</label><input type="text" class="form-control compact" data-key="mainOfferText" data-stylable="true" data-component-id="${comp.id}" data-field-key="mainOffer" data-field-label="Main Offer" value="${comp.data.mainOfferText || ''}"></div>
+                <div class="form-group-inline align-start"><label class="form-label-inline">Details</label><textarea class="form-control compact" data-key="detailsText" data-stylable="true" data-component-id="${comp.id}" data-field-key="details" data-field-label="Offer Details">${comp.data.detailsText || ''}</textarea></div>
 
-                <details class="form-section">
-                    <summary>Stock/VIN & Disclaimer</summary>
-                    <div class="form-section-content">
-                        <div class="offer-field-group">
-                            <label class="label-prominent">Stock # or VIN</label>
-                            <input type="text" class="form-control" data-key="stockVinText" data-stylable="true" data-component-id="${comp.id}" data-field-key="stockVin" data-field-label="Stock/VIN" value="${comp.data.stockVinText || ''}" style="margin-top: 4px;">
+                <div class="compact-separator">
+                    <span>Additional Offers (${addOffers.length})</span>
+                    <button type="button" class="btn btn-ghost btn-sm add-sub-offer-btn">+ Add</button>
+                </div>
+                <div id="additional-offers-list-${comp.id}" class="compact-offers-container">
+                    ${addOffers.map((o: any, i: number) => `
+                        <div class="compact-offer-item">
+                            <div class="compact-offer-header">
+                                <span>Offer #${i + 1}</span>
+                                <button type="button" class="btn btn-ghost btn-sm remove-sub-offer" data-index="${i}">×</button>
+                            </div>
+                            <div class="compact-offer-body">
+                                <div class="inline-input-group"><label>Sep:</label><input type="text" class="form-control compact sub-offer-field" data-index="${i}" data-field="separator" value="${o.separator || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="separator" data-field-label="Separator" data-sub-offer-index="${i}"></div>
+                                <div class="inline-input-group"><label>Title:</label><input type="text" class="form-control compact sub-offer-field" data-index="${i}" data-field="offer" value="${o.offer || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="offer" data-field-label="Title" data-sub-offer-index="${i}"></div>
+                                <div class="inline-input-group"><label>Details:</label><input type="text" class="form-control compact sub-offer-field" data-index="${i}" data-field="details" value="${o.details || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="details" data-field-label="Details" data-sub-offer-index="${i}"></div>
+                                <div class="inline-input-group"><label>Disclaimer:</label><input type="text" class="form-control compact sub-offer-field" data-index="${i}" data-field="disclaimer" value="${o.disclaimer || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="disclaimer" data-field-label="Disclaimer" data-sub-offer-index="${i}"></div>
+                            </div>
                         </div>
-                        <div class="offer-field-group">
-                            <label class="label-prominent">Disclaimer</label>
-                            <textarea class="form-control" data-key="disclaimerText" data-stylable="true" data-component-id="${comp.id}" data-field-key="disclaimer" data-field-label="Disclaimer" style="margin-top: 4px;">${comp.data.disclaimerText || ''}</textarea>
-                        </div>
-                    </div>
-                </details>
+                    `).join('')}
+                </div>
 
-                <details class="form-section">
-                    <summary>Button & Styling</summary>
-                    <div class="form-section-content">
-                        <div class="form-group">
-                            <label class="form-label">Button Text</label>
-                            <input type="text" class="form-control" data-key="btnText" value="${comp.data.btnText || ''}">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Button Link</label>
-                            <input type="text" class="form-control" data-key="btnLink" value="${comp.data.btnLink || ''}">
-                        </div>
-                        <div class="grid grid-cols-4">
-                            <div class="form-group">
-                                <label class="form-label">Font Size</label>
-                                <input type="number" class="form-control" data-key="btnFontSize" value="${comp.data.btnFontSize || 16}">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Pad Top</label>
-                                <input type="number" class="form-control" data-key="btnPaddingTop" value="${comp.data.btnPaddingTop || 12}">
-                            </div>
-                             <div class="form-group">
-                                <label class="form-label">Pad Bottom</label>
-                                <input type="number" class="form-control" data-key="btnPaddingBottom" value="${comp.data.btnPaddingBottom || 12}">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Button Width</label>
-                                <select class="form-control" data-key="btnWidthType">
-                                    <option value="full" ${comp.data.btnWidthType === 'full' ? 'selected' : ''}>Full Width</option>
-                                    <option value="auto" ${comp.data.widthType === 'auto' ? 'selected' : ''}>Auto</option>
-                                    <option value="small" ${comp.data.widthType === 'small' ? 'selected' : ''}>Small</option>
-                                    <option value="medium" ${comp.data.widthType === 'medium' ? 'selected' : ''}>Medium</option>
-                                    <option value="large" ${comp.data.widthType === 'large' ? 'selected' : ''}>Large</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2">
-                             <div class="form-group">
-                                <label class="form-label">Alignment</label>
-                                <select class="form-control" data-key="btnAlign">
-                                    <option value="center" ${(!comp.data.btnAlign || comp.data.btnAlign === 'center') ? 'selected' : ''}>Center</option>
-                                    <option value="left" ${comp.data.btnAlign === 'left' ? 'selected' : ''}>Left</option>
-                                    <option value="right" ${comp.data.btnAlign === 'right' ? 'selected' : ''}>Right</option>
-                                </select>
-                             </div>
-                             <div class="form-group">
-                                <label class="form-label">Button Color</label>
-                                <div class="color-input-container">
-                                    <input type="color" class="color-input-hidden" data-key="btnColor" value="${comp.data.btnColor || '#007aff'}">
-                                    <div class="color-swatch-display" style="background: ${comp.data.btnColor || '#007aff'}"></div>
-                                </div>
-                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Text Color</label>
-                            <div class="color-input-container">
-                                <input type="color" class="color-input-hidden" data-key="btnTextColor" value="${comp.data.btnTextColor || '#ffffff'}">
-                                <div class="color-swatch-display" style="background: ${comp.data.btnTextColor || '#ffffff'}"></div>
-                            </div>
-                        </div>
-                    </div>
-                </details>
+                <div class="compact-separator"><span>Vehicle & Legal Details</span></div>
+                
+                <div class="form-group-inline wrap">
+                    <div class="inline-input-group"><label>Stock/VIN:</label><input type="text" class="form-control compact" data-key="stockVinText" data-stylable="true" data-component-id="${comp.id}" data-field-key="stockVin" data-field-label="Stock/VIN" value="${comp.data.stockVinText || ''}"></div>
+                    <div class="inline-input-group"><label>Mileage:</label><input type="text" class="form-control compact" data-key="mileageText" data-stylable="true" data-component-id="${comp.id}" data-field-key="mileage" data-field-label="Mileage" value="${comp.data.mileageText || ''}"></div>
+                </div>
+                <div class="form-group-inline align-start"><label class="form-label-inline">Disclaimer</label><textarea class="form-control compact" style="height: 48px;" data-key="disclaimerText" data-stylable="true" data-component-id="${comp.id}" data-field-key="disclaimer" data-field-label="Disclaimer">${comp.data.disclaimerText || ''}</textarea></div>
+                
+                <div class="compact-separator"><span>Button Settings</span></div>
+
+                <div class="form-group-inline wrap">
+                    <div class="inline-input-group"><label>Text:</label><input type="text" class="form-control compact" data-key="btnText" value="${comp.data.btnText || ''}"></div>
+                    <div class="inline-input-group"><label>Link:</label><input type="text" class="form-control compact" data-key="btnLink" value="${comp.data.btnLink || ''}"></div>
+                </div>
+                <div class="form-group-inline wrap button-controls-compact">
+                    <div class="inline-input-group"><label>Font:</label><input type="number" class="form-control compact" data-key="btnFontSize" value="${comp.data.btnFontSize || 14}"></div>
+                    <div class="inline-input-group"><label>Pad T:</label><input type="number" class="form-control compact" data-key="btnPaddingTop" value="${comp.data.btnPaddingTop || 12}"></div>
+                    <div class="inline-input-group"><label>Pad B:</label><input type="number" class="form-control compact" data-key="btnPaddingBottom" value="${comp.data.btnPaddingBottom || 12}"></div>
+                    <div class="inline-input-group"><label>Width:</label><select class="form-control compact" data-key="btnWidthType"><option value="full" ${comp.data.btnWidthType === 'full' ? 'selected' : ''}>Full</option><option value="auto" ${comp.data.btnWidthType === 'auto' ? 'selected' : ''}>Auto</option><option value="small" ${comp.data.btnWidthType === 'small' ? 'selected' : ''}>Small</option><option value="medium" ${comp.data.btnWidthType === 'medium' ? 'selected' : ''}>Medium</option><option value="large" ${comp.data.btnWidthType === 'large' ? 'selected' : ''}>Large</option></select></div>
+                    <div class="inline-input-group"><label>Align:</label><select class="form-control compact" data-key="btnAlign"><option value="center" ${(!comp.data.btnAlign || comp.data.btnAlign === 'center') ? 'selected' : ''}>Center</option><option value="left" ${comp.data.btnAlign === 'left' ? 'selected' : ''}>Left</option><option value="right" ${comp.data.btnAlign === 'right' ? 'selected' : ''}>Right</option></select></div>
+                    <div class="inline-input-group color-group"><label>Btn:</label><div class="color-input-container mini"><input type="color" class="color-input-hidden" data-key="btnColor" value="${comp.data.btnColor || '#007aff'}"><div class="color-swatch-display" style="background: ${comp.data.btnColor || '#007aff'}"></div></div></div>
+                    <div class="inline-input-group color-group"><label>Text:</label><div class="color-input-container mini"><input type="color" class="color-input-hidden" data-key="btnTextColor" value="${comp.data.btnTextColor || '#ffffff'}"><div class="color-swatch-display" style="background: ${comp.data.btnTextColor || '#ffffff'}"></div></div></div>
+                </div>
             `;
         }
 
         item.innerHTML = `
             <div class="card-header">
                 <span class="text-xs font-bold uppercase" style="color: var(--label-secondary);">#${index + 1} - ${comp.type.replace('_', ' ')}</span>
-                <button type="button" class="btn btn-ghost btn-sm remove-comp-btn" style="color: var(--destructive); height: 24px;">Delete</button>
+                <button type="button" class="btn btn-ghost btn-sm remove-comp-btn">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                </button>
             </div>
             <div class="card-body">
                 ${componentFormHtml}
@@ -933,6 +850,49 @@ const renderComponents = () => {
 
         // Event Listeners for nested fields (Sales Offer)
         if (comp.type === 'sales_offer') {
+            const uploadBtn = item.querySelector('.upload-btn') as HTMLButtonElement;
+            const fileInput = item.querySelector('.file-input') as HTMLInputElement;
+
+            uploadBtn?.addEventListener('click', () => {
+                fileInput?.click();
+            });
+
+            fileInput?.addEventListener('change', (e) => {
+                const target = e.target as HTMLInputElement;
+                const file = target.files?.[0];
+                if (file) {
+                    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                    if (!validTypes.includes(file.type)) {
+                        showToast('Invalid file type. Use JPG, PNG, GIF, or WEBP.');
+                        return;
+                    }
+                    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                        showToast('File is too large. Max size is 5MB.');
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    reader.onloadstart = () => {
+                        uploadBtn.textContent = '...';
+                        uploadBtn.disabled = true;
+                    };
+                    reader.onload = (event) => {
+                        const result = event.target?.result as string;
+                        updateComponentData(comp.id, 'imageSrc', result);
+                        (item.querySelector('input[data-key="imageSrc"]') as HTMLInputElement).value = result;
+                        showToast('Image uploaded.');
+                        uploadBtn.textContent = 'Upload';
+                        uploadBtn.disabled = false;
+                    };
+                    reader.onerror = () => {
+                        showToast('Error reading file.');
+                        uploadBtn.textContent = 'Upload';
+                        uploadBtn.disabled = false;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
             item.querySelector('.add-sub-offer-btn')?.addEventListener('click', () => {
                 const current = JSON.parse(comp.data.additionalOffers || '[]');
                 current.push({
@@ -1002,25 +962,19 @@ const renderComponents = () => {
                     const target = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
                     const key = target.getAttribute('data-key');
                     if (key) {
-                        // FIX: The error is likely caused by the use of `String()` to cast a boolean.
-                        // While the reported line number is 1591, this is a more probable source for such a specific error.
-                        // Replaced `String(boolean)` with `boolean.toString()` for better robustness.
                         const value = target.type === 'checkbox' ? ((target as HTMLInputElement).checked).toString() : target.value;
                         updateComponentData(comp.id, key, value);
 
-                        if (key === 'layout') {
+                        if (comp.type === 'sales_offer' && key === 'layout') {
                             const newAlignment = value;
                             
-                            // Update main fields
-                            const prefixes = ['vehicle', 'mainOffer', 'details', 'stockVin', 'disclaimer'];
+                            const prefixes = ['vehicle', 'mainOffer', 'details', 'stockVin', 'mileage', 'disclaimer'];
                             prefixes.forEach(prefix => {
                                 updateComponentData(comp.id, `${prefix}TextAlign`, newAlignment);
                             });
 
-                            // Update button alignment
                             updateComponentData(comp.id, 'btnAlign', newAlignment);
 
-                            // Update sub-offer fields
                             try {
                                 const offers = JSON.parse(comp.data.additionalOffers || '[]');
                                 const updatedOffers = offers.map((offer: any) => ({
@@ -1038,14 +992,14 @@ const renderComponents = () => {
                         }
 
                         if (target.type === 'color') {
-                            const swatch = target.nextElementSibling as HTMLElement;
-                            if (swatch) swatch.style.background = target.value;
+                           const swatch = (target.parentElement as HTMLElement).querySelector('.color-swatch-display') as HTMLElement;
+                           if(swatch) swatch.style.background = target.value;
                         }
 
                         if (key === 'imageEnabled') {
                             const fieldsContainer = item.querySelector(`#image-fields-container-${comp.id}`) as HTMLElement;
                             if (fieldsContainer) {
-                                fieldsContainer.style.display = (target as HTMLInputElement).checked ? 'block' : 'none';
+                                fieldsContainer.style.display = (target as HTMLInputElement).checked ? 'flex' : 'none';
                             }
                         }
                     }
@@ -1201,6 +1155,7 @@ function generateEmailHtml(): string {
             });
             
             detailsHtml += renderField({ text: d.stockVinText, fontSize: d.stockVinFontSize, color: d.stockVinColor, bgColor: d.stockVinBgColor, fontWeight: 'normal', textAlign: d.stockVinTextAlign, paddingTop: d.stockVinPaddingTop, paddingBottom: d.stockVinPaddingBottom });
+            detailsHtml += renderField({ text: d.mileageText, fontSize: d.mileageFontSize, color: d.mileageColor, bgColor: d.mileageBgColor, fontWeight: 'normal', textAlign: d.mileageTextAlign, paddingTop: d.mileagePaddingTop, paddingBottom: d.mileagePaddingBottom });
             
             const radius = designSettings.buttonStyle === 'pill' ? '50px' : designSettings.buttonStyle === 'square' ? '0px' : '8px';
             
