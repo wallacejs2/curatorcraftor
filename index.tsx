@@ -512,14 +512,15 @@ const addNewComponent = (type: string) => {
             detailsTextAlign: 'center',
             detailsPaddingTop: '0', detailsPaddingBottom: '12',
 
-            stockVinText: 'VIN: {{customer.last_transaction.vehicle.vin}}',
+            stockVinType: 'stock',
+            stockVinValue: '{{customer.last_transaction.vehicle.vin}}',
             stockVinFontSize: '11',
             stockVinColor: '#86868b',
             stockVinBgColor: 'transparent',
             stockVinTextAlign: 'center',
             stockVinPaddingTop: '10', stockVinPaddingBottom: '0',
 
-            mileageText: 'Mileage: {{customer.last_transaction.vehicle.mileage}}',
+            mileageValue: '{{customer.last_transaction.vehicle.mileage}}',
             mileageFontSize: '11',
             mileageColor: '#86868b',
             mileageBgColor: 'transparent',
@@ -753,6 +754,19 @@ const renderComponents = () => {
                 </div>
             `;
         } else if (comp.type === 'sales_offer') {
+            // Data Migration for old templates
+            if (comp.data.stockVinText && !comp.data.stockVinValue) {
+                comp.data.stockVinValue = comp.data.stockVinText;
+                delete comp.data.stockVinText;
+            }
+            if (comp.data.mileageText && !comp.data.mileageValue) {
+                comp.data.mileageValue = comp.data.mileageText;
+                delete comp.data.mileageText;
+            }
+            if (!comp.data.stockVinType) {
+                comp.data.stockVinType = 'stock';
+            }
+
             const addOffers = JSON.parse(comp.data.additionalOffers || '[]');
             const imageEnabled = comp.data.imageEnabled === 'true';
 
@@ -783,9 +797,26 @@ const renderComponents = () => {
                     </div>
                 </div>
 
-                <div class="compact-separator"><span>Primary Offer</span></div>
+                <div class="compact-separator"><span>Vehicle Section</span></div>
+                <div class="form-group-inline vehicle-section-inline">
+                     <div class="inline-input-group vehicle-input-group">
+                        <label>Vehicle:</label>
+                        <input type="text" class="form-control compact" data-key="vehicleText" data-stylable="true" data-component-id="${comp.id}" data-field-key="vehicle" data-field-label="Vehicle Name" value="${comp.data.vehicleText || ''}">
+                    </div>
+                    <div class="inline-input-group stock-vin-group">
+                        <select class="form-control compact stock-vin-type" data-key="stockVinType">
+                            <option value="stock" ${comp.data.stockVinType === 'stock' ? 'selected' : ''}>Stock #</option>
+                            <option value="vin" ${comp.data.stockVinType === 'vin' ? 'selected' : ''}>VIN</option>
+                        </select>
+                        <input type="text" class="form-control compact" data-key="stockVinValue" data-stylable="true" data-component-id="${comp.id}" data-field-key="stockVin" data-field-label="Stock/VIN" value="${comp.data.stockVinValue || ''}" placeholder="Enter value">
+                    </div>
+                    <div class="inline-input-group mileage-input-group">
+                        <label>Mileage:</label>
+                        <input type="text" class="form-control compact" data-key="mileageValue" data-stylable="true" data-component-id="${comp.id}" data-field-key="mileage" data-field-label="Mileage" value="${comp.data.mileageValue || ''}" placeholder="Optional">
+                    </div>
+                </div>
 
-                <div class="form-group-inline"><label class="form-label-inline">Vehicle</label><input type="text" class="form-control compact" data-key="vehicleText" data-stylable="true" data-component-id="${comp.id}" data-field-key="vehicle" data-field-label="Vehicle Name" value="${comp.data.vehicleText || ''}"></div>
+                <div class="compact-separator"><span>Offers Section</span></div>
                 <div class="form-group-inline"><label class="form-label-inline">Main Offer</label><input type="text" class="form-control compact" data-key="mainOfferText" data-stylable="true" data-component-id="${comp.id}" data-field-key="mainOffer" data-field-label="Main Offer" value="${comp.data.mainOfferText || ''}"></div>
                 <div class="form-group-inline align-start"><label class="form-label-inline">Details</label><textarea class="form-control compact" data-key="detailsText" data-stylable="true" data-component-id="${comp.id}" data-field-key="details" data-field-label="Offer Details">${comp.data.detailsText || ''}</textarea></div>
 
@@ -800,24 +831,26 @@ const renderComponents = () => {
                                 <span>Offer #${i + 1}</span>
                                 <button type="button" class="btn btn-ghost btn-sm remove-sub-offer" data-index="${i}">×</button>
                             </div>
-                            <div class="compact-offer-body">
-                                <div class="inline-input-group"><label>Sep:</label><input type="text" class="form-control compact sub-offer-field" data-index="${i}" data-field="separator" value="${o.separator || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="separator" data-field-label="Separator" data-sub-offer-index="${i}"></div>
-                                <div class="inline-input-group"><label>Title:</label><input type="text" class="form-control compact sub-offer-field" data-index="${i}" data-field="offer" value="${o.offer || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="offer" data-field-label="Title" data-sub-offer-index="${i}"></div>
-                                <div class="inline-input-group"><label>Details:</label><input type="text" class="form-control compact sub-offer-field" data-index="${i}" data-field="details" value="${o.details || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="details" data-field-label="Details" data-sub-offer-index="${i}"></div>
-                                <div class="inline-input-group"><label>Disclaimer:</label><input type="text" class="form-control compact sub-offer-field" data-index="${i}" data-field="disclaimer" value="${o.disclaimer || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="disclaimer" data-field-label="Disclaimer" data-sub-offer-index="${i}"></div>
+                            <div class="separator-offer-row">
+                                <div class="separator-group">
+                                    <label class="form-label-inline">Separator</label>
+                                    <input type="text" class="form-control compact sub-offer-field" data-index="${i}" data-field="separator" value="${o.separator || ''}" placeholder="AND" data-stylable="true" data-component-id="${comp.id}" data-field-key="separator" data-field-label="Separator" data-sub-offer-index="${i}">
+                                </div>
+                                <div class="offer-group">
+                                    <label class="form-label-inline offer-label-short">Offer</label>
+                                    <input type="text" class="form-control compact sub-offer-field" data-index="${i}" data-field="offer" value="${o.offer || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="offer" data-field-label="Offer" data-sub-offer-index="${i}">
+                                </div>
+                            </div>
+                            <div class="form-group-inline align-start">
+                                <label class="form-label-inline">Details</label>
+                                <textarea class="form-control compact sub-offer-field" data-index="${i}" data-field="details" data-stylable="true" data-component-id="${comp.id}" data-field-key="details" data-field-label="Details" data-sub-offer-index="${i}">${o.details || ''}</textarea>
                             </div>
                         </div>
                     `).join('')}
                 </div>
-
-                <div class="compact-separator"><span>Vehicle & Legal Details</span></div>
                 
-                <div class="form-group-inline wrap">
-                    <div class="inline-input-group"><label>Stock/VIN:</label><input type="text" class="form-control compact" data-key="stockVinText" data-stylable="true" data-component-id="${comp.id}" data-field-key="stockVin" data-field-label="Stock/VIN" value="${comp.data.stockVinText || ''}"></div>
-                    <div class="inline-input-group"><label>Mileage:</label><input type="text" class="form-control compact" data-key="mileageText" data-stylable="true" data-component-id="${comp.id}" data-field-key="mileage" data-field-label="Mileage" value="${comp.data.mileageText || ''}"></div>
-                </div>
                 <div class="form-group-inline align-start"><label class="form-label-inline">Disclaimer</label><textarea class="form-control compact" style="height: 48px;" data-key="disclaimerText" data-stylable="true" data-component-id="${comp.id}" data-field-key="disclaimer" data-field-label="Disclaimer">${comp.data.disclaimerText || ''}</textarea></div>
-                
+
                 <div class="compact-separator"><span>Button Settings</span></div>
 
                 <div class="form-group-inline wrap">
@@ -914,12 +947,6 @@ const renderComponents = () => {
                     detailsBgColor: 'transparent',
                     detailsTextAlign: 'center',
                     detailsPaddingTop: '0', detailsPaddingBottom: '4',
-                    disclaimer: 'Disclaimer for additional offer.',
-                    disclaimerFontSize: '10',
-                    disclaimerColor: '#86868b',
-                    disclaimerBgColor: 'transparent',
-                    disclaimerTextAlign: 'center',
-                    disclaimerPaddingTop: '8', disclaimerPaddingBottom: '0',
                 });
                 updateComponentData(comp.id, 'additionalOffers', JSON.stringify(current));
                 renderComponents();
@@ -1154,8 +1181,19 @@ function generateEmailHtml(): string {
                 detailsHtml += renderField({ text: o.disclaimer, fontSize: o.disclaimerFontSize, color: o.disclaimerColor, bgColor: o.disclaimerBgColor, fontWeight: 'normal', textAlign: o.disclaimerTextAlign, paddingTop: o.disclaimerPaddingTop, paddingBottom: o.disclaimerPaddingBottom });
             });
             
-            detailsHtml += renderField({ text: d.stockVinText, fontSize: d.stockVinFontSize, color: d.stockVinColor, bgColor: d.stockVinBgColor, fontWeight: 'normal', textAlign: d.stockVinTextAlign, paddingTop: d.stockVinPaddingTop, paddingBottom: d.stockVinPaddingBottom });
-            detailsHtml += renderField({ text: d.mileageText, fontSize: d.mileageFontSize, color: d.mileageColor, bgColor: d.mileageBgColor, fontWeight: 'normal', textAlign: d.mileageTextAlign, paddingTop: d.mileagePaddingTop, paddingBottom: d.mileagePaddingBottom });
+            let finalStockVinText = '';
+            if (d.stockVinValue && d.stockVinValue.trim() !== '') {
+                const label = d.stockVinType === 'stock' ? 'Stock #:' : 'VIN:';
+                finalStockVinText = `${label} ${d.stockVinValue.trim()}`;
+            }
+
+            let finalMileageText = '';
+            if (d.mileageValue && d.mileageValue.trim() !== '') {
+                finalMileageText = `Mileage: ${d.mileageValue.trim()}`;
+            }
+
+            detailsHtml += renderField({ text: finalStockVinText, fontSize: d.stockVinFontSize, color: d.stockVinColor, bgColor: d.stockVinBgColor, fontWeight: 'normal', textAlign: d.stockVinTextAlign, paddingTop: d.stockVinPaddingTop, paddingBottom: d.stockVinPaddingBottom });
+            detailsHtml += renderField({ text: finalMileageText, fontSize: d.mileageFontSize, color: d.mileageColor, bgColor: d.mileageBgColor, fontWeight: 'normal', textAlign: d.mileageTextAlign, paddingTop: d.mileagePaddingTop, paddingBottom: d.mileagePaddingBottom });
             
             const radius = designSettings.buttonStyle === 'pill' ? '50px' : designSettings.buttonStyle === 'square' ? '0px' : '8px';
             
@@ -1187,7 +1225,8 @@ function generateEmailHtml(): string {
         };
 
         const renderImage = (fixedWidth?: number) => {
-            const imgStyles = `display: block; width: 100%; max-width: ${fixedWidth ? `${fixedWidth}px` : '100%'}; height: auto; border: 0;`.replace(/\s/g,'');
+            const styleStr = `display: block; width: 100%; max-width: ${fixedWidth ? `${fixedWidth}px` : '100%'}; height: auto; border: 0;`;
+            const imgStyles = styleStr.replace(/\s/g,'');
             let imgTag = `<img src="${d.imageSrc || ''}" alt="${d.imageAlt || 'Sales Offer'}" ${fixedWidth ? `width="${fixedWidth}"` : ''} style="${imgStyles}" border="0" />`;
             if (d.imageLink) imgTag = `<a href="${d.imageLink}" target="_blank" style="text-decoration: none;">${imgTag}</a>`;
             return imgTag;

@@ -231,9 +231,9 @@ textarea.form-control {
   font-weight: 500;
   color: var(--label-secondary);
   flex-shrink: 0;
-  width: 90px;
+  width: 110px;
   text-align: right;
-  padding-right: var(--spacing-sm);
+  padding-right: var(--spacing-md);
 }
 
 .form-group-inline.align-start .form-label-inline {
@@ -256,7 +256,7 @@ textarea.form-control {
 
 textarea.form-control.compact {
   height: 60px;
-  resize: none;
+  resize: vertical;
 }
 
 .inline-input-group {
@@ -314,11 +314,11 @@ textarea.form-control.compact {
 .compact-offers-container {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-sm);
+    gap: var(--spacing-md);
 }
 
 .compact-offer-item {
-  padding: var(--spacing-md);
+  padding: var(--spacing-xl);
   background: var(--background-secondary);
   border-radius: var(--radius-md);
   border: 1px solid var(--separator-secondary);
@@ -338,11 +338,31 @@ textarea.form-control.compact {
     text-transform: uppercase;
 }
 
-.compact-offer-body {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--spacing-sm) var(--spacing-md);
+.separator-offer-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.separator-group {
+  display: flex;
+  align-items: center;
+}
+
+.separator-group > .form-control {
+  width: 80px;
+}
+
+.offer-group {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  gap: var(--spacing-sm);
+}
+
+.offer-label-short {
+  width: 50px;
 }
 
 .toggle-switch-group {
@@ -637,4 +657,47 @@ textarea.form-control.compact {
 
 .add-sub-offer-btn {
   margin-top: 0;
+}
+
+.vehicle-section-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.vehicle-input-group {
+    flex: 1 1 40%;
+    min-width: 200px;
+}
+.stock-vin-group {
+    display: flex;
+    align-items: center;
+    flex: 0 1 290px;
+    gap: var(--spacing-sm);
+}
+.stock-vin-type {
+    flex-shrink: 0;
+    width: 100px;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+}
+.stock-vin-group > input {
+    flex: 1 1 auto;
+}
+.mileage-input-group {
+    flex: 0 1 160px;
+}
+
+
+@media (max-width: 768px) {
+  .vehicle-section-inline {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
