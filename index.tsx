@@ -40,7 +40,13 @@ const MERGE_FIELDS: MergeFieldGroup[] = [
     title: "Recipient Details",
     items: [
       { label: "First Name", value: "{{recipient.first_name}}" },
-      { label: "Last Name", value: "{{recipient.last_name}}" }
+      { label: "Last Name", value: "{{recipient.last_name}}" },
+      { label: "Email", value: "{{recipient.email}}" },
+      { label: "Phone", value: "{{recipient.phone}}" },
+      { label: "Address", value: "{{recipient.address}}" },
+      { label: "City", value: "{{recipient.city}}" },
+      { label: "State", value: "{{recipient.state}}" },
+      { label: "Zip", value: "{{recipient.zip}}" }
     ]
   },
   {
@@ -50,7 +56,11 @@ const MERGE_FIELDS: MergeFieldGroup[] = [
       { label: "Year", value: "{{customer.last_transaction.vehicle.year}}" },
       { label: "Make", value: "{{customer.last_transaction.vehicle.make}}" },
       { label: "Model", value: "{{customer.last_transaction.vehicle.model}}" },
-      { label: "VIN", value: "{{customer.last_transaction.vehicle.vin}}" }
+      { label: "Trim", value: "{{customer.last_transaction.vehicle.trim}}" },
+      { label: "VIN", value: "{{customer.last_transaction.vehicle.vin}}" },
+      { label: "Mileage", value: "{{customer.last_transaction.vehicle.mileage}}" },
+      { label: "Color", value: "{{customer.last_transaction.vehicle.color}}" },
+      { label: "Stock Number", value: "{{customer.last_transaction.vehicle.stock_number}}" }
     ]
   },
   {
@@ -75,8 +85,10 @@ const MERGE_FIELDS: MergeFieldGroup[] = [
       { label: "Dealership Name", value: "{{dealership.name}}" },
       { label: "Dealership Phone", value: "{{dealership.phone_number}}" },
       { label: "Dealership Address", value: "{{dealership.address}}" },
+      { label: "Website URL", value: "{{dealership.website_url}}" },
       { label: "Sales Rep Name", value: "{{dealership.sales.representative.name}}" },
-      { label: "Sales Rep Title", value: "{{dealership.sales.representative.title}}" }
+      { label: "Sales Rep Title", value: "{{dealership.sales.representative.title}}" },
+      { label: "Sales Rep Email", value: "{{dealership.sales.representative.email}}" }
     ]
   },
   {
@@ -215,11 +227,15 @@ const triggerPreviewUpdate = () => {
 };
 
 const saveDraft = () => {
-    localStorage.setItem(LS_DRAFT_KEY, JSON.stringify({
-        designSettings,
-        activeComponents
-    }));
-    triggerPreviewUpdate();
+    try {
+        localStorage.setItem(LS_DRAFT_KEY, JSON.stringify({
+            designSettings,
+            activeComponents
+        }));
+        triggerPreviewUpdate();
+    } catch (e) {
+        console.error("Failed to save draft", e);
+    }
 };
 
 // Design Customization Logic
@@ -1238,3 +1254,133 @@ emailForm.addEventListener('submit', (e: Event) => {
     }
   }, 600);
 });
+
+copyBtn?.addEventListener('click', async () => {
+  const codeBlock = document.getElementById('code-block') as HTMLElement;
+  try {
+    await navigator.clipboard.writeText(codeBlock.textContent || '');
+    showToast('Copied to clipboard');
+  } catch (err) { console.error(err); }
+});
+
+downloadBtn?.addEventListener('click', () => {
+    const html = generateEmailHtml();
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `email_template_${Date.now()}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('HTML file downloaded');
+});
+
+const getSavedTemplates = (): SavedTemplate[] => {
+    try {
+        const data = localStorage.getItem(LS_TEMPLATES_KEY);
+        return data ? JSON.parse(data) : [];
+    } catch (e) {
+        console.error("Failed to load templates", e);
+        return [];
+    }
+};
+
+const saveTemplate = () => {
+    const name = prompt('Enter a name for this template:', `Template ${new Date().toLocaleDateString()}`);
+    if (!name) return;
+
+    const newTemplate: SavedTemplate = {
+        id: Date.now().toString(),
+        name,
+        createdAt: new Date().toISOString(),
+        designSettings: { ...designSettings },
+        components: [...activeComponents]
+    };
+
+    const templates = getSavedTemplates();
+    templates.unshift(newTemplate);
+    localStorage.setItem(LS_TEMPLATES_KEY, JSON.stringify(templates));
+    renderSavedTemplates();
+    showToast('Template saved');
+};
+
+const deleteTemplate = (id: string) => {
+    const templates = getSavedTemplates().filter(t => t.id !== id);
+    localStorage.setItem(LS_TEMPLATES_KEY, JSON.stringify(templates));
+    renderSavedTemplates();
+    showToast('Template deleted');
+};
+
+const loadTemplate = (id: string) => {
+    const templates = getSavedTemplates();
+    const template = templates.find(t => t.id === id);
+    if (template) {
+        designSettings = { ...template.designSettings };
+        activeComponents = [...template.components];
+        if (fontSelect) fontSelect.value = designSettings.fontFamily;
+        buttonStyleOptions.forEach(opt => {
+            opt.classList.toggle('selected', opt.getAttribute('data-button') === designSettings.buttonStyle);
+        });
+        renderComponents();
+        saveDraft();
+        showToast(`Loaded: ${template.name}`);
+    }
+};
+
+const renderSavedTemplates = () => {
+    const templates = getSavedTemplates();
+    if (!savedTemplatesList) return;
+    if (templates.length === 0) {
+        savedTemplatesList.innerHTML = `<p class="text-sm" style="color: var(--label-secondary); text-align: center;">No saved templates found.</p>`;
+        return;
+    }
+    savedTemplatesList.innerHTML = templates.map(t => `
+        <div class="card" style="margin-bottom: 8px; background: var(--background-secondary);">
+            <div class="card-body" style="padding: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h4 class="text-base font-bold">${t.name}</h4>
+                    <p class="text-xs" style="color: var(--label-tertiary);">${new Date(t.createdAt).toLocaleString()}</p>
+                </div>
+                <div class="flex gap-2">
+                    <button class="btn btn-primary btn-sm load-tpl-btn" data-id="${t.id}">Load</button>
+                    <button class="btn btn-ghost btn-sm del-tpl-btn" data-id="${t.id}" style="color: var(--destructive); height: 32px;">Delete</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    savedTemplatesList.querySelectorAll('.load-tpl-btn').forEach(btn => {
+        btn.addEventListener('click', () => loadTemplate(btn.getAttribute('data-id') || ''));
+    });
+    savedTemplatesList.querySelectorAll('.del-tpl-btn').forEach(btn => {
+        btn.addEventListener('click', () => deleteTemplate(btn.getAttribute('data-id') || ''));
+    });
+};
+
+const loadDraft = () => {
+    try {
+        const data = localStorage.getItem(LS_DRAFT_KEY);
+        if (data) {
+            const draft = JSON.parse(data);
+            if (draft && draft.designSettings && Array.isArray(draft.activeComponents)) {
+                designSettings = draft.designSettings;
+                activeComponents = draft.activeComponents;
+                if (fontSelect) fontSelect.value = designSettings.fontFamily;
+                buttonStyleOptions.forEach(opt => {
+                    opt.classList.toggle('selected', opt.getAttribute('data-button') === designSettings.buttonStyle);
+                });
+                renderComponents();
+            }
+        }
+    } catch (e) {
+        console.error("Failed to load draft", e);
+    }
+};
+
+saveTemplateBtn?.addEventListener('click', saveTemplate);
+renderMergeFieldsSidebar();
+loadDraft();
+renderComponents();
+renderSavedTemplates();
