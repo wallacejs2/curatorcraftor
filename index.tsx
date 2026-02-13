@@ -849,7 +849,7 @@ const renderComponents = () => {
                     `).join('')}
                 </div>
                 
-                <div class="form-group-inline align-start"><label class="form-label-inline">Disclaimer</label><textarea class="form-control compact" style="height: 48px;" data-key="disclaimerText" data-stylable="true" data-component-id="${comp.id}" data-field-key="disclaimer" data-field-label="Disclaimer">${comp.data.disclaimerText || ''}</textarea></div>
+                <div class="form-group-inline align-start disclaimer-group"><label class="form-label-inline">Disclaimer</label><textarea class="form-control compact" style="height: 48px;" data-key="disclaimerText" data-stylable="true" data-component-id="${comp.id}" data-field-key="disclaimer" data-field-label="Disclaimer">${comp.data.disclaimerText || ''}</textarea></div>
 
                 <div class="compact-separator"><span>Button Settings</span></div>
 
