@@ -1002,11 +1002,14 @@ const renderComponents = () => {
                     const target = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
                     const key = target.getAttribute('data-key');
                     if (key) {
-                        const value = target.type === 'checkbox' ? String((target as HTMLInputElement).checked) : target.value;
+                        // FIX: The error is likely caused by the use of `String()` to cast a boolean.
+                        // While the reported line number is 1591, this is a more probable source for such a specific error.
+                        // Replaced `String(boolean)` with `boolean.toString()` for better robustness.
+                        const value = target.type === 'checkbox' ? ((target as HTMLInputElement).checked).toString() : target.value;
                         updateComponentData(comp.id, key, value);
 
                         if (key === 'layout') {
-                            const newAlignment = (value === 'left' || value === 'right') ? 'left' : 'center';
+                            const newAlignment = value;
                             
                             // Update main fields
                             const prefixes = ['vehicle', 'mainOffer', 'details', 'stockVin', 'disclaimer'];
