@@ -511,6 +511,72 @@ const addNewComponent = (type: string) => {
             backgroundColor: 'transparent',
             matchEmailBackground: 'true',
         };
+    } else if (type === 'service_offer') {
+        data = {
+            // Content
+            showImage: 'false',
+            imageUrl: '',
+            imageAlt: '',
+            imageLink: '',
+            serviceTitle: 'Oil Change Special',
+            couponCode: 'OILCHANGE50',
+            serviceDetails: 'Get $50 off your next oil change service. Includes up to 5 quarts of synthetic blend oil and filter replacement.',
+            disclaimer: '*Valid at participating dealers only. Cannot be combined with other offers.',
+            buttonText: 'Schedule Now',
+            buttonLink: '',
+            // Styling
+            showBorder: 'false',
+            borderStyle: 'solid',
+            borderColor: '#CCCCCC',
+            borderRadius: '8',
+            containerPaddingTop: '20',
+            containerPaddingBottom: '20',
+            containerPaddingLeft: '20',
+            containerPaddingRight: '20',
+            imageWidth: '100',
+            imageAlignment: 'center',
+            imagePaddingTop: '10',
+            imagePaddingBottom: '10',
+            titleFontSize: '24',
+            titleFontWeight: 'bold',
+            titleTextColor: '#000000',
+            titleBgColor: 'transparent',
+            titleAlignment: 'center',
+            titlePaddingTop: '10',
+            titlePaddingBottom: '10',
+            couponFontSize: '20',
+            couponFontWeight: 'bold',
+            couponTextColor: '#0066FF',
+            couponBgColor: '#F0F7FF',
+            couponAlignment: 'center',
+            couponPaddingTop: '8',
+            couponPaddingBottom: '8',
+            couponPaddingLeft: '16',
+            couponPaddingRight: '16',
+            couponShowBorder: 'false',
+            couponBorderStyle: 'dashed',
+            couponBorderColor: '#0066FF',
+            detailsFontSize: '16',
+            detailsTextColor: '#333333',
+            detailsBgColor: 'transparent',
+            detailsAlignment: 'center',
+            detailsLineHeight: '1.5',
+            detailsPaddingTop: '12',
+            detailsPaddingBottom: '12',
+            disclaimerFontSize: '12',
+            disclaimerTextColor: '#666666',
+            disclaimerBgColor: 'transparent',
+            disclaimerAlignment: 'center',
+            disclaimerPaddingTop: '8',
+            disclaimerPaddingBottom: '8',
+            buttonFontSize: '16',
+            buttonAlignment: 'center',
+            buttonBgColor: '#0066FF',
+            buttonTextColor: '#FFFFFF',
+            buttonPaddingTop: '12',
+            buttonPaddingBottom: '12',
+            buttonWidth: 'auto'
+        };
     } else if (type === 'sales_offer') {
         data = {
             layout: 'center',
@@ -585,7 +651,7 @@ const addNewComponent = (type: string) => {
     activeComponents.push({ id, type, data });
     renderComponents();
     saveDraft();
-    showToast(`${type.replace('_', ' ').charAt(0).toUpperCase() + type.replace('_', ' ').slice(1)} added`);
+    showToast(`${type.replace(/_/g, ' ').charAt(0).toUpperCase() + type.replace(/_/g, ' ').slice(1)} added`);
 };
 
 const removeComponent = (id: string) => {
@@ -662,6 +728,9 @@ const renderComponents = () => {
             case 'sales_offer':
                 sourceFieldKey = 'vehicleText';
                 break;
+            case 'service_offer':
+                sourceFieldKey = 'serviceTitle';
+                break;
             case 'divider':
             case 'spacer':
                 sourceFieldKey = ''; // No dynamic title source
@@ -729,6 +798,50 @@ const renderComponents = () => {
             componentFormHtml = `
                 <div class="spacer-preview ${hasBg ? 'has-bg-color' : ''}" style="height: ${comp.data.height}px; background-color: ${bgColor};" data-stylable="true" data-component-id="${comp.id}" data-field-key="spacer" data-field-label="Spacer" tabindex="0">
                     <span class="spacer-preview-label">Height: ${comp.data.height}px</span>
+                </div>
+            `;
+        } else if (comp.type === 'service_offer') {
+            const showImage = comp.data.showImage === 'true';
+            componentFormHtml = `
+                <div tabindex="0" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferContainer" data-field-label="Service Offer">
+                    <div class="service-offer-form">
+                        <div class="form-group-inline wrap" style="border-bottom: 1px solid var(--separator-secondary); padding-bottom: var(--spacing-md);">
+                            <div class="toggle-switch-group">
+                                <div class="toggle-switch compact">
+                                    <input type="checkbox" id="service-image-enabled-${comp.id}" class="toggle-switch-checkbox" data-key="showImage" ${showImage ? 'checked' : ''}>
+                                    <label for="service-image-enabled-${comp.id}" class="toggle-switch-label"></label>
+                                </div>
+                                <label for="service-image-enabled-${comp.id}" class="toggle-switch-text-label">Show Image</label>
+                            </div>
+                            <div id="service-image-fields-${comp.id}" style="display: ${showImage ? 'flex' : 'none'}; gap: var(--spacing-md); flex: 1; flex-wrap: wrap; align-items: center;">
+                                <div class="inline-input-group"><label>URL:</label><input type="text" class="form-control compact" data-key="imageUrl" value="${comp.data.imageUrl || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferImage" data-field-label="Image"></div>
+                                <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
+                                <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp">
+                                <div class="inline-input-group"><label>Alt:</label><input type="text" class="form-control compact" data-key="imageAlt" value="${comp.data.imageAlt || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferImage" data-field-label="Image"></div>
+                                <div class="inline-input-group"><label>Link:</label><input type="text" class="form-control compact" data-key="imageLink" value="${comp.data.imageLink || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferImage" data-field-label="Image"></div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Service Offer Title</label>
+                            <input type="text" class="form-control" data-key="serviceTitle" value="${comp.data.serviceTitle || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferTitle" data-field-label="Service Title">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Coupon Code</label>
+                            <input type="text" class="form-control" data-key="couponCode" value="${comp.data.couponCode || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferCoupon" data-field-label="Coupon Code">
+                        </div>
+                         <div class="form-group">
+                            <label class="form-label">Service Offer Details</label>
+                            <textarea class="form-control" data-key="serviceDetails" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferDetails" data-field-label="Service Details" rows="3">${comp.data.serviceDetails || ''}</textarea>
+                        </div>
+                         <div class="form-group">
+                            <label class="form-label">Disclaimer</label>
+                            <textarea class="form-control" data-key="disclaimer" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferDisclaimer" data-field-label="Disclaimer" rows="2">${comp.data.disclaimer || ''}</textarea>
+                        </div>
+                        <div class="form-group-inline wrap">
+                            <div class="inline-input-group"><label>Button Text:</label><input type="text" class="form-control compact" data-key="buttonText" value="${comp.data.buttonText || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferButton" data-field-label="Button"></div>
+                            <div class="inline-input-group"><label>Button Link:</label><input type="text" class="form-control compact" data-key="buttonLink" value="${comp.data.buttonLink || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferButton" data-field-label="Button"></div>
+                        </div>
+                    </div>
                 </div>
             `;
         } else if (comp.type === 'sales_offer') {
@@ -877,7 +990,7 @@ const renderComponents = () => {
         }
 
 
-        if (comp.type === 'image') {
+        if (comp.type === 'image' || comp.type === 'sales_offer' || comp.type === 'service_offer') {
             const uploadBtn = item.querySelector('.upload-btn') as HTMLButtonElement;
             const fileInput = item.querySelector('.file-input') as HTMLInputElement;
 
@@ -906,8 +1019,12 @@ const renderComponents = () => {
                     };
                     reader.onload = (event) => {
                         const result = event.target?.result as string;
-                        updateComponentData(comp.id, 'src', result);
-                        (item.querySelector('input[data-key="src"]') as HTMLInputElement).value = result;
+                        let keyToUpdate = 'src';
+                        if (comp.type === 'sales_offer') keyToUpdate = 'imageSrc';
+                        if (comp.type === 'service_offer') keyToUpdate = 'imageUrl';
+                        
+                        updateComponentData(comp.id, keyToUpdate, result);
+                        (item.querySelector(`input[data-key="${keyToUpdate}"]`) as HTMLInputElement).value = result;
                         showToast('Image uploaded.');
                         uploadBtn.textContent = 'Upload';
                         uploadBtn.disabled = false;
@@ -923,49 +1040,6 @@ const renderComponents = () => {
         }
         
         if (comp.type === 'sales_offer') {
-            const uploadBtn = item.querySelector('.upload-btn') as HTMLButtonElement;
-            const fileInput = item.querySelector('.file-input') as HTMLInputElement;
-
-            uploadBtn?.addEventListener('click', () => {
-                fileInput?.click();
-            });
-
-            fileInput?.addEventListener('change', (e) => {
-                const target = e.target as HTMLInputElement;
-                const file = target.files?.[0];
-                if (file) {
-                    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-                    if (!validTypes.includes(file.type)) {
-                        showToast('Invalid file type. Use JPG, PNG, GIF, or WEBP.');
-                        return;
-                    }
-                    if (file.size > 5 * 1024 * 1024) { // 5MB limit
-                        showToast('File is too large. Max size is 5MB.');
-                        return;
-                    }
-                    
-                    const reader = new FileReader();
-                    reader.onloadstart = () => {
-                        uploadBtn.textContent = '...';
-                        uploadBtn.disabled = true;
-                    };
-                    reader.onload = (event) => {
-                        const result = event.target?.result as string;
-                        updateComponentData(comp.id, 'imageSrc', result);
-                        (item.querySelector('input[data-key="imageSrc"]') as HTMLInputElement).value = result;
-                        showToast('Image uploaded.');
-                        uploadBtn.textContent = 'Upload';
-                        uploadBtn.disabled = false;
-                    };
-                    reader.onerror = () => {
-                        showToast('Error reading file.');
-                        uploadBtn.textContent = 'Upload';
-                        uploadBtn.disabled = false;
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-
             item.querySelector('.add-sub-offer-btn')?.addEventListener('click', () => {
                 const current = JSON.parse(comp.data.additionalOffers || '[]');
                 current.push({
@@ -1063,8 +1137,9 @@ const renderComponents = () => {
                            if(swatch) swatch.style.background = target.value;
                         }
 
-                        if (key === 'imageEnabled') {
-                            const fieldsContainer = item.querySelector(`#image-fields-container-${comp.id}`) as HTMLElement;
+                        if (key === 'imageEnabled' || key === 'showImage') {
+                            const containerId = (key === 'showImage') ? `#service-image-fields-${comp.id}` : `#image-fields-container-${comp.id}`;
+                            const fieldsContainer = item.querySelector(containerId) as HTMLElement;
                             if (fieldsContainer) {
                                 fieldsContainer.style.display = (target as HTMLInputElement).checked ? 'flex' : 'none';
                             }
@@ -1250,6 +1325,109 @@ function generateEmailHtml(): string {
             <tr>
                 <td style="height: ${height}px; line-height: ${height}px; font-size: 0; ${bgStyle}">
                     &nbsp;
+                </td>
+            </tr>
+        `;
+    } else if (comp.type === 'service_offer') {
+        const d = comp.data;
+        let contentBlocks = '';
+
+        // Image
+        if (d.showImage === 'true' && d.imageUrl) {
+            const imgStyles = `display: block; width: ${d.imageWidth || '100'}%; max-width: 100%; height: auto; border: 0; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;`;
+            let imgTag = `<img src="${d.imageUrl}" alt="${d.imageAlt || ''}" style="${imgStyles}" />`;
+            if (d.imageLink) {
+                imgTag = `<a href="${d.imageLink}" target="_blank" style="text-decoration: none;">${imgTag}</a>`;
+            }
+            contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${d.imageAlignment}" style="padding: ${d.imagePaddingTop}px 0 ${d.imagePaddingBottom}px 0;">${imgTag}</td></tr></table>`;
+        }
+        
+        // Title
+        if (d.serviceTitle) {
+            contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${d.titleAlignment}" style="font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${d.titleFontSize}px; font-weight: ${d.titleFontWeight}; color: ${d.titleTextColor}; padding: ${d.titlePaddingTop}px 0 ${d.titlePaddingBottom}px 0; line-height: 1.2;">${d.serviceTitle}</td></tr></table>`;
+        }
+
+        // Coupon
+        if (d.couponCode) {
+            const couponBorderStyle = d.couponShowBorder === 'true' ? `border: 1px ${d.couponBorderStyle} ${d.couponBorderColor};` : '';
+            contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${d.couponAlignment}" style="padding: 10px 0;"><table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;"><tr><td align="center" style="font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${d.couponFontSize}px; font-weight: ${d.couponFontWeight}; color: ${d.couponTextColor}; background-color: ${d.couponBgColor}; padding: ${d.couponPaddingTop}px ${d.couponPaddingLeft}px ${d.couponPaddingBottom}px ${d.couponPaddingRight}px; ${couponBorderStyle}; line-height: 1.2;">${d.couponCode}</td></tr></table></td></tr></table>`;
+        }
+
+        // Details
+        if (d.serviceDetails) {
+            contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${d.detailsAlignment}" style="font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${d.detailsFontSize}px; color: ${d.detailsTextColor}; line-height: ${d.detailsLineHeight}; padding: ${d.detailsPaddingTop}px 0 ${d.detailsPaddingBottom}px 0;">${d.serviceDetails.replace(/\n/g, '<br>')}</td></tr></table>`;
+        }
+        
+        // Button
+        if (d.buttonText) {
+            const btnRadius = designSettings.buttonStyle === 'pill' ? '9999px' : designSettings.buttonStyle === 'square' ? '0px' : '8px';
+            const isOutlined = designSettings.buttonStyle === 'outlined';
+            const buttonWidth = d.buttonWidth || 'auto';
+
+            let aStylesList = [
+                `background-color: ${isOutlined ? 'transparent' : d.buttonBgColor}`,
+                `color: ${isOutlined ? d.buttonBgColor : d.buttonTextColor}`,
+                `display: block`,
+                `font-family: ${designSettings.fontFamily}, Arial, sans-serif`,
+                `font-size: ${d.buttonFontSize}px`,
+                `font-weight: bold`,
+                `text-decoration: none`,
+                `border-radius: ${btnRadius}`,
+                isOutlined ? `border: 2px solid ${d.buttonBgColor}` : 'border: 0',
+                `text-align: center`,
+                `line-height: 1.2`,
+                `box-sizing: border-box`,
+                `-webkit-text-size-adjust: none`,
+            ];
+
+            if (buttonWidth === 'auto') {
+                aStylesList.push(`padding: ${d.buttonPaddingTop}px 24px ${d.buttonPaddingBottom}px 24px`);
+            } else {
+                aStylesList.push(`padding: ${d.buttonPaddingTop}px 0 ${d.buttonPaddingBottom}px 0`);
+                aStylesList.push(`width: 100%`);
+            }
+            const aStyles = aStylesList.join('; ');
+            
+            const vmlHeight = (parseInt(d.buttonPaddingTop) + parseInt(d.buttonPaddingBottom) + parseInt(d.buttonFontSize)) * 1.3;
+            let vmlWidthStyle = '';
+            if (buttonWidth !== 'auto') {
+                vmlWidthStyle = `width:${(buttonWidth === '100%') ? '100%' : buttonWidth};`;
+            }
+
+            const vmlArcSize = btnRadius.includes('px') ? `${Math.min(50, (parseInt(btnRadius) / (vmlHeight/2)) * 100)}%` : '8%';
+            
+            const vmlButton = `<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${d.buttonLink || '#'}" style="height:${vmlHeight}px;v-text-anchor:middle;${vmlWidthStyle}" arcsize="${vmlArcSize}" strokecolor="${isOutlined ? d.buttonBgColor : 'none'}" strokeweight="${isOutlined ? '2px' : '0'}" fillcolor="${isOutlined ? 'transparent' : d.buttonBgColor}"><w:anchorlock/><center style="color:${isOutlined ? d.buttonBgColor : d.buttonTextColor};font-family:Arial,sans-serif;font-size:${d.buttonFontSize}px;font-weight:bold;">${d.buttonText}</center></v:roundrect><![endif]-->`;
+            const htmlButton = `<!--[if !mso]><!--><a href="${d.buttonLink || '#'}" style="${aStyles}" target="_blank">${d.buttonText}</a><!--<![endif]-->`;
+            
+            let buttonContent = `${vmlButton}${htmlButton}`;
+             if (buttonWidth !== '100%') {
+                buttonContent = `<table cellpadding="0" cellspacing="0" border="0" style="width: ${buttonWidth === 'auto' ? 'auto' : buttonWidth};"><tr><td align="center">${vmlButton}${htmlButton}</td></tr></table>`;
+            }
+
+            contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${d.buttonAlignment}" style="padding: 12px 0;">${buttonContent}</td></tr></table>`;
+        }
+
+        // Disclaimer
+        if (d.disclaimer) {
+            contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${d.disclaimerAlignment}" style="font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${d.disclaimerFontSize}px; color: ${d.disclaimerTextColor}; padding: ${d.disclaimerPaddingTop}px 0 ${d.disclaimerPaddingBottom}px 0; line-height: 1.4;">${d.disclaimer.replace(/\n/g, '<br>')}</td></tr></table>`;
+        }
+
+        let mainTableStyle = `border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;`;
+        if (d.showBorder === 'true') {
+            mainTableStyle += ` border: 1px ${d.borderStyle} ${d.borderColor}; border-radius: ${d.borderRadius || '8'}px;`;
+        }
+        const innerPadding = '20px'; // As per user's example
+
+        sectionsHtml += `
+            <tr>
+                <td align="center" style="padding: ${d.containerPaddingTop}px ${d.containerPaddingRight}px ${d.containerPaddingBottom}px ${d.containerPaddingLeft}px;">
+                    <table width="600" cellpadding="0" cellspacing="0" border="0" style="width: 100%; max-width: 600px; ${mainTableStyle}">
+                        <tr>
+                            <td style="padding: ${innerPadding};">
+                                ${contentBlocks}
+                            </td>
+                        </tr>
+                    </table>
                 </td>
             </tr>
         `;
@@ -1801,7 +1979,7 @@ const renderStylingPanel = () => {
 
                 <div class="form-group">
                     <label class="form-label">Width (%)</label>
-                    <input type="number" class="form-control style-control" data-style-key="width" value="${d.width ? d.width.replace('%','') : '100'}">
+                    <input type="number" class="form-control style-control" data-style-key="width" value="${parseInt(d.width || '100', 10)}">
                 </div>
 
                 <div class="form-group">
@@ -1995,6 +2173,132 @@ const renderStylingPanel = () => {
         });
 
         return;
+    } else if (comp.type === 'service_offer') {
+        const d = comp.data;
+        let content = '';
+
+        const header = `
+            <div class="design-option-group" style="border-top: 1px solid var(--separator-secondary); padding-top: var(--spacing-lg); margin-top: var(--spacing-lg);">
+                <h4>Field Styling</h4>
+                <p class="text-sm" style="color: var(--label-secondary); margin-bottom: var(--spacing-md);">Currently editing: <strong style="color: var(--label-primary);">${activeField.fieldLabel}</strong></p>
+        `;
+        const footer = `</div>`;
+
+        switch(activeField.fieldKey) {
+            case 'serviceOfferContainer':
+                const showBorder = d.showBorder === 'true';
+                content = `
+                    <div class="form-group"><label class="form-label"><input type="checkbox" class="style-control" data-style-key="showBorder" ${showBorder ? 'checked' : ''}> Show Border</label></div>
+                    <div class="form-group"><label class="form-label">Border Style</label><select class="form-control style-control" data-style-key="borderStyle" ${!showBorder ? 'disabled' : ''}><option value="solid" ${d.borderStyle === 'solid' ? 'selected': ''}>Solid</option><option value="dashed" ${d.borderStyle === 'dashed' ? 'selected': ''}>Dashed</option><option value="dotted" ${d.borderStyle === 'dotted' ? 'selected': ''}>Dotted</option></select></div>
+                    <div class="form-group"><label class="form-label">Border Color</label><input type="color" class="form-control style-control" data-style-key="borderColor" value="${d.borderColor}" ${!showBorder ? 'disabled' : ''}></div>
+                    <div class="form-group"><label class="form-label">Border Radius (px)</label><input type="number" class="form-control style-control" data-style-key="borderRadius" value="${d.borderRadius || '8'}" ${!showBorder ? 'disabled' : ''}></div>
+                    <hr style="border: none; border-top: 1px solid var(--separator-secondary); margin: var(--spacing-lg) 0;" />
+                    <h5>Container Padding</h5>
+                    <div class="grid grid-cols-2">
+                        <div class="form-group"><label class="form-label">Top</label><input type="number" class="form-control style-control" data-style-key="containerPaddingTop" value="${d.containerPaddingTop}"></div>
+                        <div class="form-group"><label class="form-label">Bottom</label><input type="number" class="form-control style-control" data-style-key="containerPaddingBottom" value="${d.containerPaddingBottom}"></div>
+                        <div class="form-group"><label class="form-label">Left</label><input type="number" class="form-control style-control" data-style-key="containerPaddingLeft" value="${d.containerPaddingLeft}"></div>
+                        <div class="form-group"><label class="form-label">Right</label><input type="number" class="form-control style-control" data-style-key="containerPaddingRight" value="${d.containerPaddingRight}"></div>
+                    </div>
+                `;
+                break;
+            case 'serviceOfferImage':
+                 content = `
+                    <div class="form-group"><label class="form-label">Width (%)</label><input type="number" class="form-control style-control" data-style-key="imageWidth" value="${d.imageWidth}"></div>
+                    <div class="form-group"><label class="form-label">Alignment</label><select class="form-control style-control" data-style-key="imageAlignment"><option value="left" ${d.imageAlignment === 'left' ? 'selected' : ''}>Left</option><option value="center" ${d.imageAlignment === 'center' ? 'selected' : ''}>Center</option><option value="right" ${d.imageAlignment === 'right' ? 'selected' : ''}>Right</option></select></div>
+                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Padding Top</label><input type="number" class="form-control style-control" data-style-key="imagePaddingTop" value="${d.imagePaddingTop}"></div><div class="form-group"><label class="form-label">Padding Bottom</label><input type="number" class="form-control style-control" data-style-key="imagePaddingBottom" value="${d.imagePaddingBottom}"></div></div>
+                 `;
+                break;
+            case 'serviceOfferTitle':
+                content = `
+                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Font Size</label><input type="number" class="form-control style-control" data-style-key="titleFontSize" value="${d.titleFontSize}"></div><div class="form-group"><label class="form-label">Font Weight</label><select class="form-control style-control" data-style-key="titleFontWeight"><option value="normal" ${d.titleFontWeight === 'normal' ? 'selected' : ''}>Normal</option><option value="bold" ${d.titleFontWeight === 'bold' ? 'selected' : ''}>Bold</option></select></div></div>
+                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Text Color</label><input type="color" class="form-control style-control" data-style-key="titleTextColor" value="${d.titleTextColor}"></div><div class="form-group"><label class="form-label">BG Color</label><input type="color" class="form-control style-control" data-style-key="titleBgColor" value="${d.titleBgColor}"></div></div>
+                    <div class="form-group"><label class="form-label">Alignment</label><select class="form-control style-control" data-style-key="titleAlignment"><option value="left" ${d.titleAlignment === 'left' ? 'selected' : ''}>Left</option><option value="center" ${d.titleAlignment === 'center' ? 'selected' : ''}>Center</option><option value="right" ${d.titleAlignment === 'right' ? 'selected' : ''}>Right</option></select></div>
+                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Padding Top</label><input type="number" class="form-control style-control" data-style-key="titlePaddingTop" value="${d.titlePaddingTop}"></div><div class="form-group"><label class="form-label">Padding Bottom</label><input type="number" class="form-control style-control" data-style-key="titlePaddingBottom" value="${d.titlePaddingBottom}"></div></div>
+                `;
+                break;
+            case 'serviceOfferCoupon':
+                const couponShowBorder = d.couponShowBorder === 'true';
+                content = `
+                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Font Size</label><input type="number" class="form-control style-control" data-style-key="couponFontSize" value="${d.couponFontSize}"></div><div class="form-group"><label class="form-label">Font Weight</label><select class="form-control style-control" data-style-key="couponFontWeight"><option value="normal" ${d.couponFontWeight === 'normal' ? 'selected' : ''}>Normal</option><option value="bold" ${d.couponFontWeight === 'bold' ? 'selected' : ''}>Bold</option></select></div></div>
+                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Text Color</label><input type="color" class="form-control style-control" data-style-key="couponTextColor" value="${d.couponTextColor}"></div><div class="form-group"><label class="form-label">BG Color</label><input type="color" class="form-control style-control" data-style-key="couponBgColor" value="${d.couponBgColor}"></div></div>
+                    <div class="form-group"><label class="form-label">Alignment</label><select class="form-control style-control" data-style-key="couponAlignment"><option value="left" ${d.couponAlignment === 'left' ? 'selected' : ''}>Left</option><option value="center" ${d.couponAlignment === 'center' ? 'selected' : ''}>Center</option><option value="right" ${d.couponAlignment === 'right' ? 'selected' : ''}>Right</option></select></div>
+                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Padding T/B</label><input type="number" class="form-control style-control" data-style-key="couponPaddingTop" value="${d.couponPaddingTop}"><input type="number" class="form-control style-control mt-2" data-style-key="couponPaddingBottom" value="${d.couponPaddingBottom}"></div><div class="form-group"><label class="form-label">Padding L/R</label><input type="number" class="form-control style-control" data-style-key="couponPaddingLeft" value="${d.couponPaddingLeft}"><input type="number" class="form-control style-control mt-2" data-style-key="couponPaddingRight" value="${d.couponPaddingRight}"></div></div>
+                    <div class="form-group"><label class="form-label"><input type="checkbox" class="style-control" data-style-key="couponShowBorder" ${couponShowBorder ? 'checked' : ''}> Show Coupon Border</label></div>
+                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Border Style</label><select class="form-control style-control" data-style-key="couponBorderStyle" ${!couponShowBorder ? 'disabled' : ''}><option value="solid" ${d.couponBorderStyle === 'solid' ? 'selected': ''}>Solid</option><option value="dashed" ${d.couponBorderStyle === 'dashed' ? 'selected': ''}>Dashed</option><option value="dotted" ${d.couponBorderStyle === 'dotted' ? 'selected': ''}>Dotted</option></select></div><div class="form-group"><label class="form-label">Border Color</label><input type="color" class="form-control style-control" data-style-key="couponBorderColor" value="${d.couponBorderColor}" ${!couponShowBorder ? 'disabled' : ''}></div></div>
+                `;
+                break;
+            case 'serviceOfferDetails':
+                content = `
+                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Font Size</label><input type="number" class="form-control style-control" data-style-key="detailsFontSize" value="${d.detailsFontSize}"></div><div class="form-group"><label class="form-label">Line Height</label><input type="number" step="0.1" class="form-control style-control" data-style-key="detailsLineHeight" value="${d.detailsLineHeight}"></div></div>
+                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Text Color</label><input type="color" class="form-control style-control" data-style-key="detailsTextColor" value="${d.detailsTextColor}"></div><div class="form-group"><label class="form-label">BG Color</label><input type="color" class="form-control style-control" data-style-key="detailsBgColor" value="${d.detailsBgColor}"></div></div>
+                    <div class="form-group"><label class="form-label">Alignment</label><select class="form-control style-control" data-style-key="detailsAlignment"><option value="left" ${d.detailsAlignment === 'left' ? 'selected' : ''}>Left</option><option value="center" ${d.detailsAlignment === 'center' ? 'selected' : ''}>Center</option><option value="right" ${d.detailsAlignment === 'right' ? 'selected' : ''}>Right</option></select></div>
+                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Padding Top</label><input type="number" class="form-control style-control" data-style-key="detailsPaddingTop" value="${d.detailsPaddingTop}"></div><div class="form-group"><label class="form-label">Padding Bottom</label><input type="number" class="form-control style-control" data-style-key="detailsPaddingBottom" value="${d.detailsPaddingBottom}"></div></div>
+                `;
+                break;
+            case 'serviceOfferDisclaimer':
+                content = `
+                    <div class="form-group"><label class="form-label">Font Size</label><input type="number" class="form-control style-control" data-style-key="disclaimerFontSize" value="${d.disclaimerFontSize}"></div>
+                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Text Color</label><input type="color" class="form-control style-control" data-style-key="disclaimerTextColor" value="${d.disclaimerTextColor}"></div><div class="form-group"><label class="form-label">BG Color</label><input type="color" class="form-control style-control" data-style-key="disclaimerBgColor" value="${d.disclaimerBgColor}"></div></div>
+                    <div class="form-group"><label class="form-label">Alignment</label><select class="form-control style-control" data-style-key="disclaimerAlignment"><option value="left" ${d.disclaimerAlignment === 'left' ? 'selected' : ''}>Left</option><option value="center" ${d.disclaimerAlignment === 'center' ? 'selected' : ''}>Center</option><option value="right" ${d.disclaimerAlignment === 'right' ? 'selected' : ''}>Right</option></select></div>
+                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Padding Top</label><input type="number" class="form-control style-control" data-style-key="disclaimerPaddingTop" value="${d.disclaimerPaddingTop}"></div><div class="form-group"><label class="form-label">Padding Bottom</label><input type="number" class="form-control style-control" data-style-key="disclaimerPaddingBottom" value="${d.disclaimerPaddingBottom}"></div></div>
+                `;
+                break;
+            case 'serviceOfferButton':
+                content = `
+                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Font Size</label><input type="number" class="form-control style-control" data-style-key="buttonFontSize" value="${d.buttonFontSize}"></div><div class="form-group"><label class="form-label">Alignment</label><select class="form-control style-control" data-style-key="buttonAlignment"><option value="left" ${d.buttonAlignment === 'left' ? 'selected' : ''}>Left</option><option value="center" ${d.buttonAlignment === 'center' ? 'selected' : ''}>Center</option><option value="right" ${d.buttonAlignment === 'right' ? 'selected' : ''}>Right</option></select></div></div>
+                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Button Color</label><input type="color" class="form-control style-control" data-style-key="buttonBgColor" value="${d.buttonBgColor}"></div><div class="form-group"><label class="form-label">Text Color</label><input type="color" class="form-control style-control" data-style-key="buttonTextColor" value="${d.buttonTextColor}"></div></div>
+                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Padding T</label><input type="number" class="form-control style-control" data-style-key="buttonPaddingTop" value="${d.buttonPaddingTop}"></div><div class="form-group"><label class="form-label">Padding B</label><input type="number" class="form-control style-control" data-style-key="buttonPaddingBottom" value="${d.buttonPaddingBottom}"></div></div>
+                    <div class="form-group">
+                        <label class="form-label">Button Width</label>
+                        <select class="form-control style-control" data-style-key="buttonWidth">
+                            <option value="auto" ${d.buttonWidth === 'auto' ? 'selected' : ''}>Auto-Sized</option>
+                            <option value="100%" ${d.buttonWidth === '100%' ? 'selected' : ''}>Full Width (100%)</option>
+                            <option value="160px" ${d.buttonWidth === '160px' ? 'selected' : ''}>Fixed: Small (160px)</option>
+                            <option value="280px" ${d.buttonWidth === '280px' ? 'selected' : ''}>Fixed: Medium (280px)</option>
+                            <option value="400px" ${d.buttonWidth === '400px' ? 'selected' : ''}>Fixed: Large (400px)</option>
+                        </select>
+                    </div>
+                `;
+                break;
+            default:
+                 // By default, show container styles if an unknown or non-specific field is focused
+                const showBorderDefault = d.showBorder === 'true';
+                content = `
+                    <div class="form-group"><label class="form-label"><input type="checkbox" class="style-control" data-style-key="showBorder" ${showBorderDefault ? 'checked' : ''}> Show Border</label></div>
+                    <div class="form-group"><label class="form-label">Border Style</label><select class="form-control style-control" data-style-key="borderStyle" ${!showBorderDefault ? 'disabled' : ''}><option value="solid" ${d.borderStyle === 'solid' ? 'selected': ''}>Solid</option><option value="dashed" ${d.borderStyle === 'dashed' ? 'selected': ''}>Dashed</option><option value="dotted" ${d.borderStyle === 'dotted' ? 'selected': ''}>Dotted</option></select></div>
+                    <div class="form-group"><label class="form-label">Border Color</label><input type="color" class="form-control style-control" data-style-key="borderColor" value="${d.borderColor}" ${!showBorderDefault ? 'disabled' : ''}></div>
+                    <div class="form-group"><label class="form-label">Border Radius (px)</label><input type="number" class="form-control style-control" data-style-key="borderRadius" value="${d.borderRadius || '8'}" ${!showBorderDefault ? 'disabled' : ''}></div>
+                    <hr style="border: none; border-top: 1px solid var(--separator-secondary); margin: var(--spacing-lg) 0;" />
+                    <h5>Container Padding</h5>
+                    <div class="grid grid-cols-2">
+                        <div class="form-group"><label class="form-label">Top</label><input type="number" class="form-control style-control" data-style-key="containerPaddingTop" value="${d.containerPaddingTop}"></div>
+                        <div class="form-group"><label class="form-label">Bottom</label><input type="number" class="form-control style-control" data-style-key="containerPaddingBottom" value="${d.containerPaddingBottom}"></div>
+                        <div class="form-group"><label class="form-label">Left</label><input type="number" class="form-control style-control" data-style-key="containerPaddingLeft" value="${d.containerPaddingLeft}"></div>
+                        <div class="form-group"><label class="form-label">Right</label><input type="number" class="form-control style-control" data-style-key="containerPaddingRight" value="${d.containerPaddingRight}"></div>
+                    </div>
+                `;
+        }
+        
+        dynamicStylingContainer.innerHTML = header + content + footer;
+
+        dynamicStylingContainer.querySelectorAll('.style-control').forEach(el => {
+            const inputEl = el as HTMLInputElement | HTMLSelectElement;
+            const key = inputEl.dataset.styleKey;
+            if (!key) return;
+            const eventType = inputEl.type === 'checkbox' ? 'change' : 'input';
+            
+            inputEl.addEventListener(eventType, () => {
+                const value = inputEl.type === 'checkbox' ? (inputEl as HTMLInputElement).checked.toString() : inputEl.value;
+                updateComponentData(comp.id, key, value);
+
+                if (key === 'showBorder' || key === 'couponShowBorder') {
+                    renderStylingPanel();
+                }
+            });
+        });
+        return;
+
     } else if (
         (comp.type === 'button' && activeField.fieldKey === 'button') ||
         (comp.type === 'sales_offer' && activeField.fieldKey === 'salesOfferButton')

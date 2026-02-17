@@ -741,6 +741,55 @@ textarea.form-control.compact {
   z-index: 100;
 }
 
+.sidebar-details-group {
+  border-bottom: 1px solid var(--separator-secondary);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-md);
+}
+
+.sidebar-details-group summary {
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  list-style: none; /* or use a custom arrow */
+  padding: var(--spacing-sm) 0;
+  color: var(--label-primary);
+  display: flex;
+  justify-content: space-between;
+}
+
+.sidebar-details-group summary::before {
+    content: '▼';
+    font-size: 10px;
+    margin-right: var(--spacing-sm);
+    transition: transform 0.2s;
+    color: var(--label-secondary);
+}
+
+.sidebar-details-group[open] > summary::before {
+    transform: rotate(180deg);
+}
+
+.sidebar-details-group-content {
+    padding-top: var(--spacing-md);
+    padding-left: var(--spacing-sm);
+}
+
+.sidebar-details-group .form-group {
+    margin-bottom: var(--spacing-md);
+}
+
+.sidebar-details-group .form-label {
+    font-size: 12px;
+    margin-bottom: var(--spacing-xs);
+}
+
+.service-offer-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
 /* Right-side (Merge Fields) Sidebar - remains an overlay */
 .merge-fields-sidebar {
   position: fixed;
