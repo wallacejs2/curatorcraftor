@@ -49,12 +49,7 @@ const MERGE_FIELDS: MergeFieldGroup[] = [
     items: [
       { label: "First Name", value: "{{recipient.first_name}}" },
       { label: "Last Name", value: "{{recipient.last_name}}" },
-      { label: "Email", value: "{{recipient.email}}" },
-      { label: "Phone", value: "{{recipient.phone}}" },
-      { label: "Address", value: "{{recipient.address}}" },
-      { label: "City", value: "{{recipient.city}}" },
-      { label: "State", value: "{{recipient.state}}" },
-      { label: "Zip", value: "{{recipient.zip}}" }
+      { label: "Email", value: "{{recipient.email}}" }
     ]
   },
   {
@@ -66,9 +61,7 @@ const MERGE_FIELDS: MergeFieldGroup[] = [
       { label: "Model", value: "{{customer.last_transaction.vehicle.model}}" },
       { label: "Trim", value: "{{customer.last_transaction.vehicle.trim}}" },
       { label: "VIN", value: "{{customer.last_transaction.vehicle.vin}}" },
-      { label: "Mileage", value: "{{customer.last_transaction.vehicle.mileage}}" },
-      { label: "Color", value: "{{customer.last_transaction.vehicle.color}}" },
-      { label: "Stock Number", value: "{{customer.last_transaction.vehicle.stock_number}}" }
+      { label: "Mileage", value: "{{customer.last_transaction.vehicle.mileage}}" }
     ]
   },
   {
@@ -93,10 +86,8 @@ const MERGE_FIELDS: MergeFieldGroup[] = [
       { label: "Dealership Name", value: "{{dealership.name}}" },
       { label: "Dealership Phone", value: "{{dealership.phone_number}}" },
       { label: "Dealership Address", value: "{{dealership.address}}" },
-      { label: "Website URL", value: "{{dealership.website_url}}" },
       { label: "Sales Rep Name", value: "{{dealership.sales.representative.name}}" },
-      { label: "Sales Rep Title", value: "{{dealership.sales.representative.title}}" },
-      { label: "Sales Rep Email", value: "{{dealership.sales.representative.email}}" }
+      { label: "Sales Rep Title", value: "{{dealership.sales.representative.title}}" }
     ]
   },
   {
@@ -162,6 +153,8 @@ let designSettings: DesignSettings = {
 
 let activeComponents: EmailComponent[] = [];
 let activeField: ActiveField | null = null;
+let collapsedStates: Record<string, boolean> = {};
+let draggedComponentId: string | null = null;
 
 // DOM Elements
 const emailForm = document.getElementById('email-form') as HTMLFormElement;
@@ -175,7 +168,6 @@ const componentsContainer = document.getElementById('form-components-container')
 const addComponentBtn = document.getElementById('add-component-btn') as HTMLButtonElement;
 
 // Sidebar & Picker elements
-const designSidebar = document.getElementById('design-sidebar');
 const dynamicStylingContainer = document.getElementById('dynamic-styling-container');
 const mergeFieldsSidebar = document.getElementById('merge-fields-sidebar');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
@@ -183,7 +175,6 @@ const componentPickerOverlay = document.getElementById('component-picker-overlay
 const closeComponentPicker = document.getElementById('close-component-picker');
 
 // Toggle buttons
-const designToggle = document.getElementById('floating-design-btn');
 const mergeFieldsToggle = document.getElementById('merge-fields-toggle');
 const floatingMergeBtn = document.getElementById('floating-merge-btn');
 
@@ -192,7 +183,6 @@ const desktopViewBtn = document.getElementById('desktop-view-btn');
 const mobileViewBtn = document.getElementById('mobile-view-btn');
 
 // Close buttons
-const closeDesignSidebar = document.getElementById('close-design-sidebar');
 const closeMergeSidebar = document.getElementById('close-sidebar');
 
 // Design Settings Controls
@@ -220,6 +210,37 @@ const showToast = (message: string) => {
 // Local Storage Keys
 const LS_TEMPLATES_KEY = 'craftor_saved_templates';
 const LS_DRAFT_KEY = 'craftor_current_draft';
+const LS_COLLAPSED_KEY = 'craftor_component_states';
+
+
+const loadCollapsedStates = () => {
+    try {
+        const data = localStorage.getItem(LS_COLLAPSED_KEY);
+        collapsedStates = data ? JSON.parse(data) : {};
+    } catch (e) {
+        console.error("Failed to load component states", e);
+        collapsedStates = {};
+    }
+};
+
+const saveCollapsedStates = () => {
+    localStorage.setItem(LS_COLLAPSED_KEY, JSON.stringify(collapsedStates));
+};
+
+const toggleComponent = (id: string) => {
+    const componentEl = document.querySelector(`.component-item[data-id='${id}']`);
+    if (componentEl) {
+        const isCollapsed = componentEl.classList.toggle('collapsed');
+        collapsedStates[id] = isCollapsed;
+        saveCollapsedStates();
+    }
+};
+
+
+const truncate = (str: string, maxLength: number): string => {
+    if (!str) return '';
+    return str.length > maxLength ? str.substring(0, maxLength) + '...' : str;
+};
 
 // Debounce helper for preview updates
 let previewTimer: number;
@@ -325,6 +346,7 @@ const insertMergeField = (value: string) => {
         
         lastFocusedInput.dispatchEvent(new Event('input', { bubbles: true }));
         showToast(`Inserted: ${value}`);
+        closeSidebarFunc();
     } else {
         showToast('Please click a text field first to insert the merge field.');
     }
@@ -373,7 +395,6 @@ const renderMergeFieldsSidebar = () => {
 };
 
 const closeSidebarFunc = () => {
-  designSidebar?.classList.remove('open');
   mergeFieldsSidebar?.classList.remove('open');
   sidebarOverlay?.classList.remove('visible');
   document.body.style.overflow = '';
@@ -403,15 +424,8 @@ pickerOptions.forEach(opt => {
   });
 });
 
-closeDesignSidebar?.addEventListener('click', closeSidebarFunc);
 closeMergeSidebar?.addEventListener('click', closeSidebarFunc);
 sidebarOverlay?.addEventListener('click', closeSidebarFunc);
-
-designToggle?.addEventListener('click', () => {
-  designSidebar?.classList.add('open');
-  sidebarOverlay?.classList.add('visible');
-  document.body.style.overflow = 'hidden';
-});
 
 mergeFieldsToggle?.addEventListener('click', () => {
   mergeFieldsSidebar?.classList.add('open');
@@ -477,10 +491,10 @@ const addNewComponent = (type: string) => {
             textColor: '#ffffff',
             backgroundColor: '#007aff',
             align: 'center',
-            paddingTop: '20',
-            paddingBottom: '20',
+            paddingTop: '12',
+            paddingBottom: '12',
             paddingLeftRight: '20',
-            widthType: 'full'
+            widthType: 'auto'
         };
     } else if (type === 'sales_offer') {
         data = {
@@ -561,6 +575,8 @@ const addNewComponent = (type: string) => {
 
 const removeComponent = (id: string) => {
     activeComponents = activeComponents.filter(c => c.id !== id);
+    delete collapsedStates[id];
+    saveCollapsedStates();
     renderComponents();
     saveDraft();
     showToast('Section removed');
@@ -604,153 +620,80 @@ const renderComponents = () => {
     activeComponents.forEach((comp, index) => {
         const item = document.createElement('div');
         item.className = 'component-item card';
+        item.setAttribute('data-id', comp.id);
+        item.setAttribute('draggable', 'true');
+
+        if (collapsedStates[comp.id]) {
+            item.classList.add('collapsed');
+        }
         
         let componentFormHtml = '';
-        if (comp.type === 'header' || comp.type === 'text_block') {
-            const isHeader = comp.type === 'header';
+        let dynamicTitle = '';
+        const defaultTitleText = comp.type.replace(/_/g, ' ');
+        let sourceFieldKey = '';
+        const TRUNCATE_LENGTH = 45;
+
+        switch (comp.type) {
+            case 'header':
+            case 'text_block':
+                sourceFieldKey = 'text';
+                break;
+            case 'image':
+                sourceFieldKey = 'alt';
+                break;
+            case 'button':
+                sourceFieldKey = 'text';
+                break;
+            case 'sales_offer':
+                sourceFieldKey = 'vehicleText';
+                break;
+        }
+
+        const sourceValue = comp.data[sourceFieldKey] || '';
+        dynamicTitle = sourceValue ? truncate(sourceValue, TRUNCATE_LENGTH) : defaultTitleText;
+        
+        if (comp.type === 'header') {
             componentFormHtml = `
                 <div class="form-group">
-                    <label class="form-label">${isHeader ? 'Header' : 'Text'} Content</label>
-                    <textarea class="form-control" data-key="text">${comp.data.text || ''}</textarea>
+                    <label class="form-label">Header Content</label>
+                    <textarea class="form-control" data-key="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="header" data-field-label="Header Content">${comp.data.text || ''}</textarea>
                 </div>
-                <div class="grid grid-cols-2">
-                    <div class="form-group">
-                        <label class="form-label">Font Size (px)</label>
-                        <input type="number" class="form-control" data-key="fontSize" value="${comp.data.fontSize || 16}">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Alignment</label>
-                        <select class="form-control" data-key="textAlign">
-                            <option value="left" ${comp.data.textAlign === 'left' ? 'selected' : ''}>Left</option>
-                            <option value="center" ${comp.data.textAlign === 'center' ? 'selected' : ''}>Center</option>
-                            <option value="right" ${comp.data.textAlign === 'right' ? 'selected' : ''}>Right</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2">
-                    <div class="form-group">
-                        <label class="form-label">Text Color</label>
-                        <div class="color-input-container">
-                            <input type="color" class="color-input-hidden" data-key="textColor" value="${(comp.data.textColor && comp.data.textColor.startsWith('#')) ? comp.data.textColor : '#1d1d1f'}">
-                            <div class="color-swatch-display" style="background: ${comp.data.textColor || '#1d1d1f'}"></div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Background Color</label>
-                        <div class="color-input-container">
-                            <input type="color" class="color-input-hidden" data-key="backgroundColor" value="${comp.data.backgroundColor === 'transparent' ? '#ffffff' : comp.data.backgroundColor || '#ffffff'}">
-                            <div class="color-swatch-display" style="background: ${comp.data.backgroundColor === 'transparent' ? '#ffffff' : comp.data.backgroundColor || '#ffffff'}"></div>
-                        </div>
-                    </div>
-                </div>
+            `;
+        } else if (comp.type === 'text_block') {
+            componentFormHtml = `
                 <div class="form-group">
-                    <label class="form-label">Formatting</label>
-                    <div class="toggle-group">
-                        <button type="button" class="toggle-btn format-toggle ${comp.data.fontWeight === 'bold' ? 'active' : ''}" data-key="fontWeight" data-val-on="bold" data-val-off="normal">B</button>
-                        <button type="button" class="toggle-btn format-toggle ${comp.data.fontStyle === 'italic' ? 'active' : ''}" data-key="fontStyle" data-val-on="italic" data-val-off="normal">I</button>
-                    </div>
-                </div>
-                <div class="grid grid-cols-3">
-                    <div class="form-group">
-                        <label class="form-label">Padding T</label>
-                        <input type="number" class="form-control" data-key="paddingTop" value="${comp.data.paddingTop || 0}">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Padding B</label>
-                        <input type="number" class="form-control" data-key="paddingBottom" value="${comp.data.paddingBottom || 0}">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Padding L/R</label>
-                        <input type="number" class="form-control" data-key="paddingLeftRight" value="${comp.data.paddingLeftRight || 0}">
-                    </div>
+                    <label class="form-label">Text Content</label>
+                    <textarea class="form-control" data-key="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="textBlock" data-field-label="Text Block Content">${comp.data.text || ''}</textarea>
                 </div>
             `;
         } else if (comp.type === 'image') {
             componentFormHtml = `
-                <div class="form-group">
-                    <label class="form-label">Image Source (URL)</label>
-                    <input type="text" class="form-control" data-key="src" value="${comp.data.src || ''}">
-                </div>
-                <div class="grid grid-cols-2">
-                    <div class="form-group">
-                        <label class="form-label">Alt Text</label>
-                        <input type="text" class="form-control" data-key="alt" value="${comp.data.alt || ''}">
+                 <div class="image-component-form">
+                    <div class="form-group-inline wrap">
+                        <div class="inline-input-group">
+                            <label>Source URL:</label>
+                            <input type="text" class="form-control compact" data-key="src" data-stylable="true" data-component-id="${comp.id}" data-field-key="image" data-field-label="Image Source" value="${comp.data.src || ''}">
+                        </div>
+                        <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
+                        <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp">
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Link URL</label>
-                        <input type="text" class="form-control" data-key="link" value="${comp.data.link || ''}">
-                    </div>
-                </div>
-                <div class="grid grid-cols-2">
-                    <div class="form-group">
-                        <label class="form-label">Width (%)</label>
-                        <input type="text" class="form-control" data-key="width" value="${comp.data.width || '100%'}">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Alignment</label>
-                        <select class="form-control" data-key="align">
-                            <option value="left" ${comp.data.align === 'left' ? 'selected' : ''}>Left</option>
-                            <option value="center" ${comp.data.align === 'center' ? 'selected' : ''}>Center</option>
-                            <option value="right" ${comp.data.align === 'right' ? 'selected' : ''}>Right</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="grid grid-cols-3">
-                    <div class="form-group">
-                        <label class="form-label">Padding T</label>
-                        <input type="number" class="form-control" data-key="paddingTop" value="${comp.data.paddingTop || 0}">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Padding B</label>
-                        <input type="number" class="form-control" data-key="paddingBottom" value="${comp.data.paddingBottom || 0}">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Padding L/R</label>
-                        <input type="number" class="form-control" data-key="paddingLeftRight" value="${comp.data.paddingLeftRight || 0}">
+                    <div class="form-group-inline wrap">
+                        <div class="inline-input-group">
+                            <label>Alt Text:</label>
+                            <input type="text" class="form-control compact" data-key="alt" data-stylable="true" data-component-id="${comp.id}" data-field-key="image" data-field-label="Image Alt Text" value="${comp.data.alt || ''}">
+                        </div>
+                        <div class="inline-input-group">
+                            <label>Link URL:</label>
+                            <input type="text" class="form-control compact" data-key="link" data-stylable="true" data-component-id="${comp.id}" data-field-key="image" data-field-label="Image Link" value="${comp.data.link || ''}">
+                        </div>
                     </div>
                 </div>
             `;
         } else if (comp.type === 'button') {
             componentFormHtml = `
-                <div class="form-group">
-                    <label class="form-label">Button Text</label>
-                    <input type="text" class="form-control" data-key="text" value="${comp.data.text || ''}">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Button Link</label>
-                    <input type="text" class="form-control" data-key="link" value="${comp.data.link || ''}">
-                </div>
-                <div class="grid grid-cols-2">
-                    <div class="form-group">
-                        <label class="form-label">Font Size</label>
-                        <input type="number" class="form-control" data-key="fontSize" value="${comp.data.fontSize || 16}">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Button Width Setting</label>
-                        <select class="form-control" data-key="widthType">
-                            <option value="full" ${comp.data.widthType === 'full' ? 'selected' : ''}>Full Width (100%)</option>
-                            <option value="auto" ${comp.data.widthType === 'auto' ? 'selected' : ''}>Auto-Sized</option>
-                            <option value="small" ${comp.data.widthType === 'small' ? 'selected' : ''}>Fixed: Small (160px)</option>
-                            <option value="medium" ${comp.data.widthType === 'medium' ? 'selected' : ''}>Fixed: Medium (280px)</option>
-                            <option value="large" ${comp.data.widthType === 'large' ? 'selected' : ''}>Fixed: Large (400px)</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2">
-                    <div class="form-group">
-                        <label class="form-label">Text Color</label>
-                        <div class="color-input-container">
-                            <input type="color" class="color-input-hidden" data-key="textColor" value="${comp.data.textColor || '#ffffff'}">
-                            <div class="color-swatch-display" style="background: ${comp.data.textColor || '#ffffff'}"></div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Button Color</label>
-                        <div class="color-input-container">
-                            <input type="color" class="color-input-hidden" data-key="backgroundColor" value="${comp.data.backgroundColor || '#007aff'}">
-                            <div class="color-swatch-display" style="background: ${comp.data.backgroundColor || '#007aff'}"></div>
-                        </div>
-                    </div>
+                 <div class="form-group-inline wrap">
+                    <div class="inline-input-group"><label>Text:</label><input type="text" class="form-control compact" data-key="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="button" data-field-label="Button Text" value="${comp.data.text || ''}"></div>
+                    <div class="inline-input-group"><label>Link:</label><input type="text" class="form-control compact" data-key="link" data-stylable="true" data-component-id="${comp.id}" data-field-key="button" data-field-label="Button Link" value="${comp.data.link || ''}"></div>
                 </div>
             `;
         } else if (comp.type === 'sales_offer') {
@@ -852,26 +795,29 @@ const renderComponents = () => {
                 <div class="form-group-inline align-start disclaimer-group"><label class="form-label-inline">Disclaimer</label><textarea class="form-control compact" style="height: 48px;" data-key="disclaimerText" data-stylable="true" data-component-id="${comp.id}" data-field-key="disclaimer" data-field-label="Disclaimer">${comp.data.disclaimerText || ''}</textarea></div>
 
                 <div class="compact-separator"><span>Button Settings</span></div>
-
                 <div class="form-group-inline wrap">
-                    <div class="inline-input-group"><label>Text:</label><input type="text" class="form-control compact" data-key="btnText" value="${comp.data.btnText || ''}"></div>
-                    <div class="inline-input-group"><label>Link:</label><input type="text" class="form-control compact" data-key="btnLink" value="${comp.data.btnLink || ''}"></div>
-                </div>
-                <div class="form-group-inline wrap button-controls-compact">
-                    <div class="inline-input-group"><label>Font:</label><input type="number" class="form-control compact" data-key="btnFontSize" value="${comp.data.btnFontSize || 14}"></div>
-                    <div class="inline-input-group"><label>Pad T:</label><input type="number" class="form-control compact" data-key="btnPaddingTop" value="${comp.data.btnPaddingTop || 12}"></div>
-                    <div class="inline-input-group"><label>Pad B:</label><input type="number" class="form-control compact" data-key="btnPaddingBottom" value="${comp.data.btnPaddingBottom || 12}"></div>
-                    <div class="inline-input-group"><label>Width:</label><select class="form-control compact" data-key="btnWidthType"><option value="full" ${comp.data.btnWidthType === 'full' ? 'selected' : ''}>Full</option><option value="auto" ${comp.data.btnWidthType === 'auto' ? 'selected' : ''}>Auto</option><option value="small" ${comp.data.btnWidthType === 'small' ? 'selected' : ''}>Small</option><option value="medium" ${comp.data.btnWidthType === 'medium' ? 'selected' : ''}>Medium</option><option value="large" ${comp.data.btnWidthType === 'large' ? 'selected' : ''}>Large</option></select></div>
-                    <div class="inline-input-group"><label>Align:</label><select class="form-control compact" data-key="btnAlign"><option value="center" ${(!comp.data.btnAlign || comp.data.btnAlign === 'center') ? 'selected' : ''}>Center</option><option value="left" ${comp.data.btnAlign === 'left' ? 'selected' : ''}>Left</option><option value="right" ${comp.data.btnAlign === 'right' ? 'selected' : ''}>Right</option></select></div>
-                    <div class="inline-input-group color-group"><label>Btn:</label><div class="color-input-container mini"><input type="color" class="color-input-hidden" data-key="btnColor" value="${comp.data.btnColor || '#007aff'}"><div class="color-swatch-display" style="background: ${comp.data.btnColor || '#007aff'}"></div></div></div>
-                    <div class="inline-input-group color-group"><label>Text:</label><div class="color-input-container mini"><input type="color" class="color-input-hidden" data-key="btnTextColor" value="${comp.data.btnTextColor || '#ffffff'}"><div class="color-swatch-display" style="background: ${comp.data.btnTextColor || '#ffffff'}"></div></div></div>
+                    <div class="inline-input-group"><label>Text:</label><input type="text" class="form-control compact" data-key="btnText" data-stylable="true" data-component-id="${comp.id}" data-field-key="salesOfferButton" data-field-label="Button Text" value="${comp.data.btnText || ''}"></div>
+                    <div class="inline-input-group"><label>Link:</label><input type="text" class="form-control compact" data-key="btnLink" data-stylable="true" data-component-id="${comp.id}" data-field-key="salesOfferButton" data-field-label="Button Link" value="${comp.data.btnLink || ''}"></div>
                 </div>
             `;
         }
 
         item.innerHTML = `
             <div class="card-header">
-                <span class="text-xs font-bold uppercase" style="color: var(--label-secondary);">#${index + 1} - ${comp.type.replace('_', ' ')}</span>
+                <span class="drag-handle" title="Drag to reorder">
+                    <svg width="12" height="16" viewBox="0 0 12 16" fill="currentColor">
+                        <circle cx="3" cy="3" r="1.5"></circle>
+                        <circle cx="9" cy="3" r="1.5"></circle>
+                        <circle cx="3" cy="8" r="1.5"></circle>
+                        <circle cx="9" cy="8" r="1.5"></circle>
+                        <circle cx="3" cy="13" r="1.5"></circle>
+                        <circle cx="9" cy="13" r="1.5"></circle>
+                    </svg>
+                </span>
+                <div class="header-content-wrapper">
+                    <span class="collapse-icon">▼</span>
+                    <span id="component-title-${comp.id}" class="component-title text-xs font-bold uppercase" style="color: var(--label-secondary);">${index + 1} - ${dynamicTitle}</span>
+                </div>
                 <button type="button" class="btn btn-ghost btn-sm remove-comp-btn">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                 </button>
@@ -880,8 +826,67 @@ const renderComponents = () => {
                 ${componentFormHtml}
             </div>
         `;
+        
+        item.querySelector('.header-content-wrapper')?.addEventListener('click', () => toggleComponent(comp.id));
 
-        // Event Listeners for nested fields (Sales Offer)
+        const sourceInput = item.querySelector(`[data-key="${sourceFieldKey}"]`);
+        if (sourceInput) {
+            sourceInput.addEventListener('input', (e) => {
+                const target = e.target as HTMLInputElement | HTMLTextAreaElement;
+                const titleEl = document.getElementById(`component-title-${comp.id}`);
+                if (titleEl) {
+                    const newTitle = target.value ? truncate(target.value, TRUNCATE_LENGTH) : defaultTitleText;
+                    titleEl.textContent = `${index + 1} - ${newTitle}`;
+                }
+            });
+        }
+
+
+        if (comp.type === 'image') {
+            const uploadBtn = item.querySelector('.upload-btn') as HTMLButtonElement;
+            const fileInput = item.querySelector('.file-input') as HTMLInputElement;
+
+            uploadBtn?.addEventListener('click', () => {
+                fileInput?.click();
+            });
+
+            fileInput?.addEventListener('change', (e) => {
+                const target = e.target as HTMLInputElement;
+                const file = target.files?.[0];
+                if (file) {
+                    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                    if (!validTypes.includes(file.type)) {
+                        showToast('Invalid file type. Use JPG, PNG, GIF, or WEBP.');
+                        return;
+                    }
+                    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                        showToast('File is too large. Max size is 5MB.');
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    reader.onloadstart = () => {
+                        uploadBtn.textContent = '...';
+                        uploadBtn.disabled = true;
+                    };
+                    reader.onload = (event) => {
+                        const result = event.target?.result as string;
+                        updateComponentData(comp.id, 'src', result);
+                        (item.querySelector('input[data-key="src"]') as HTMLInputElement).value = result;
+                        showToast('Image uploaded.');
+                        uploadBtn.textContent = 'Upload';
+                        uploadBtn.disabled = false;
+                    };
+                    reader.onerror = () => {
+                        showToast('Error reading file.');
+                        uploadBtn.textContent = 'Upload';
+                        uploadBtn.disabled = false;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+        
         if (comp.type === 'sales_offer') {
             const uploadBtn = item.querySelector('.upload-btn') as HTMLButtonElement;
             const fileInput = item.querySelector('.file-input') as HTMLInputElement;
@@ -1047,10 +1052,70 @@ const renderComponents = () => {
             });
         });
 
-        item.querySelector('.remove-comp-btn')?.addEventListener('click', () => removeComponent(comp.id));
+        item.querySelector('.remove-comp-btn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeComponent(comp.id)
+        });
         componentsContainer.appendChild(item);
     });
+
+    initializeDragAndDrop();
 };
+
+function initializeDragAndDrop() {
+    const components = componentsContainer.querySelectorAll('.component-item');
+
+    components.forEach(comp => {
+        comp.addEventListener('dragstart', (e) => {
+            draggedComponentId = comp.getAttribute('data-id');
+            setTimeout(() => {
+                comp.classList.add('dragging');
+            }, 0);
+        });
+
+        comp.addEventListener('dragend', () => {
+            comp.classList.remove('dragging');
+            draggedComponentId = null;
+            document.querySelectorAll('.component-item.drag-over').forEach(c => c.classList.remove('drag-over'));
+        });
+
+        comp.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const targetComponent = e.currentTarget as HTMLElement;
+            if (targetComponent.getAttribute('data-id') !== draggedComponentId) {
+                if (!targetComponent.classList.contains('drag-over')) {
+                    document.querySelector('.drag-over')?.classList.remove('drag-over');
+                    targetComponent.classList.add('drag-over');
+                }
+            }
+        });
+
+        comp.addEventListener('dragleave', (e) => {
+            (e.currentTarget as HTMLElement).classList.remove('drag-over');
+        });
+
+        comp.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const droppedOnComponent = e.currentTarget as HTMLElement;
+            droppedOnComponent.classList.remove('drag-over');
+
+            const droppedOnId = droppedOnComponent.getAttribute('data-id');
+
+            if (draggedComponentId && draggedComponentId !== droppedOnId) {
+                const draggedIndex = activeComponents.findIndex(c => c.id === draggedComponentId);
+                const droppedOnIndex = activeComponents.findIndex(c => c.id === droppedOnId);
+
+                if (draggedIndex > -1 && droppedOnIndex > -1) {
+                    const [draggedItem] = activeComponents.splice(draggedIndex, 1);
+                    activeComponents.splice(droppedOnIndex, 0, draggedItem);
+                    
+                    saveDraft();
+                    renderComponents();
+                }
+            }
+        });
+    });
+}
 
 function generateEmailHtml(): string {
   let sectionsHtml = '';
@@ -1105,14 +1170,14 @@ function generateEmailHtml(): string {
         else if (widthType === 'medium') tableWidthAttr = "280";
         else if (widthType === 'large') tableWidthAttr = "400";
         
-        const btnStyles = [`background-color: ${isOutlined ? '#ffffff' : d.backgroundColor}`, `color: ${isOutlined ? d.backgroundColor : d.textColor}`, `padding: 12px 24px`, `text-decoration: none`, `display: block`, `font-weight: bold`, `border-radius: ${radius}`, `font-size: ${d.fontSize}px`, `font-family: ${designSettings.fontFamily}`, `text-align: center`, isOutlined ? `border: 2px solid ${d.backgroundColor}` : 'border: 0'].join(';');
+        const btnStyles = [`background-color: ${isOutlined ? 'transparent' : d.backgroundColor}`, `color: ${isOutlined ? d.backgroundColor : d.textColor}`, `padding: ${d.paddingTop || 12}px 24px ${d.paddingBottom || 12}px`, `text-decoration: none`, `display: block`, `font-weight: bold`, `border-radius: ${radius}`, `font-size: ${d.fontSize}px`, `font-family: ${designSettings.fontFamily}`, `text-align: center`, isOutlined ? `border: 2px solid ${d.backgroundColor}` : 'border: 0'].join(';');
         
         sectionsHtml += `
             <tr>
                 <td align="${d.align || 'center'}" style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
                     <table border="0" cellspacing="0" cellpadding="0" ${tableWidthAttr ? `width="${tableWidthAttr}"` : ""} style="margin: ${d.align === 'center' ? '0 auto' : '0'};">
                         <tr>
-                            <td align="center" bgcolor="${isOutlined ? '#ffffff' : d.backgroundColor}" style="border-radius: ${radius};">
+                            <td align="center" bgcolor="${isOutlined ? 'transparent' : d.backgroundColor}" style="border-radius: ${radius};">
                                 <a href="${d.link || '#'}" target="_blank" style="${btnStyles}">${d.text || 'Button'}</a>
                             </td>
                         </tr>
@@ -1225,8 +1290,7 @@ function generateEmailHtml(): string {
         };
 
         const renderImage = (fixedWidth?: number) => {
-            const styleStr = `display: block; width: 100%; max-width: ${fixedWidth ? `${fixedWidth}px` : '100%'}; height: auto; border: 0;`;
-            const imgStyles = styleStr.replace(/\s/g,'');
+            const imgStyles = `display: block; width: 100%; max-width: ${fixedWidth ? `${fixedWidth}px` : '100%'}; height: auto; border: 0;`;
             let imgTag = `<img src="${d.imageSrc || ''}" alt="${d.imageAlt || 'Sales Offer'}" ${fixedWidth ? `width="${fixedWidth}"` : ''} style="${imgStyles}" border="0" />`;
             if (d.imageLink) imgTag = `<a href="${d.imageLink}" target="_blank" style="text-decoration: none;">${imgTag}</a>`;
             return imgTag;
@@ -1291,7 +1355,6 @@ function generateEmailHtml(): string {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="x-apple-disable-message-reformatting">
-    <title>Email Template</title>
     <!--[if mso]>
     <style>
         * {
@@ -1503,84 +1566,384 @@ const renderStylingPanel = () => {
     }
 
     const comp = activeComponents.find(c => c.id === activeField.componentId);
-    if (!comp) return;
-    
-    let dataObject = comp.data;
-    if (activeField.subOfferIndex !== undefined) {
-        const offers = JSON.parse(comp.data.additionalOffers || '[]');
-        dataObject = offers[activeField.subOfferIndex] || {};
+    if (!comp) {
+        dynamicStylingContainer.innerHTML = '';
+        return;
     }
 
-    const fieldKey = activeField.fieldKey;
-    
-    const fontSize = dataObject[`${fieldKey}FontSize`] || '14';
-    const textAlign = dataObject[`${fieldKey}TextAlign`] || 'center';
-    const textColor = dataObject[`${fieldKey}Color`] || '#000000';
-    const bgColor = dataObject[`${fieldKey}BgColor`] || 'transparent';
-    const paddingTop = dataObject[`${fieldKey}PaddingTop`] || '0';
-    const paddingBottom = dataObject[`${fieldKey}PaddingBottom`] || '0';
+    // Path for Header Component
+    if (comp.type === 'header') {
+        const d = comp.data;
+        dynamicStylingContainer.innerHTML = `
+            <div class="design-option-group" style="border-top: 1px solid var(--separator-secondary); padding-top: var(--spacing-lg); margin-top: var(--spacing-lg);">
+                <h4>Field Styling</h4>
+                <p class="text-sm" style="color: var(--label-secondary); margin-bottom: var(--spacing-md);">Currently editing: <strong style="color: var(--label-primary);">${activeField.fieldLabel}</strong></p>
+                
+                <div class="grid grid-cols-2">
+                    <div class="form-group">
+                        <label class="form-label">Font Size (px)</label>
+                        <input type="number" class="form-control style-control" data-style-key="fontSize" value="${d.fontSize || 24}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Alignment</label>
+                        <select class="form-control style-control" data-style-key="textAlign">
+                            <option value="left" ${d.textAlign === 'left' ? 'selected' : ''}>Left</option>
+                            <option value="center" ${d.textAlign === 'center' ? 'selected' : ''}>Center</option>
+                            <option value="right" ${d.textAlign === 'right' ? 'selected' : ''}>Right</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2">
+                    <div class="form-group">
+                        <label class="form-label">Text Color</label>
+                        <input type="color" class="form-control style-control" data-style-key="textColor" value="${(d.textColor && d.textColor.startsWith('#')) ? d.textColor : '#1d1d1f'}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Background Color</label>
+                        <input type="color" class="form-control style-control" data-style-key="backgroundColor" value="${d.backgroundColor === 'transparent' ? '#ffffff' : d.backgroundColor || '#ffffff'}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Formatting</label>
+                    <div class="toggle-group">
+                        <button type="button" class="toggle-btn format-toggle style-control ${d.fontWeight === 'bold' ? 'active' : ''}" data-style-key="fontWeight" data-val-on="bold" data-val-off="normal">B</button>
+                        <button type="button" class="toggle-btn format-toggle style-control ${d.fontStyle === 'italic' ? 'active' : ''}" data-style-key="fontStyle" data-val-on="italic" data-val-off="normal">I</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3">
+                    <div class="form-group">
+                        <label class="form-label">Padding T</label>
+                        <input type="number" class="form-control style-control" data-style-key="paddingTop" value="${d.paddingTop || 0}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Padding B</label>
+                        <input type="number" class="form-control style-control" data-style-key="paddingBottom" value="${d.paddingBottom || 0}">
+                    </div>
+                     <div class="form-group">
+                        <label class="form-label">Padding L/R</label>
+                        <input type="number" class="form-control style-control" data-style-key="paddingLeftRight" value="${d.paddingLeftRight || 0}">
+                    </div>
+                </div>
+            </div>
+        `;
 
-    dynamicStylingContainer.innerHTML = `
-        <div class="design-option-group" style="border-top: 1px solid var(--separator-secondary); padding-top: var(--spacing-lg); margin-top: var(--spacing-lg);">
-            <h4>Field Styling</h4>
-            <p class="text-sm" style="color: var(--label-secondary); margin-bottom: var(--spacing-md);">Currently editing: <strong style="color: var(--label-primary);">${activeField.fieldLabel}</strong></p>
-            
-            <div class="form-group">
-                <label class="form-label">Font Size (px)</label>
-                <input type="number" class="form-control" data-style-key="FontSize" value="${fontSize}">
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Alignment</label>
-                <select class="form-control" data-style-key="TextAlign">
-                    <option value="left" ${textAlign === 'left' ? 'selected' : ''}>Left</option>
-                    <option value="center" ${textAlign === 'center' ? 'selected' : ''}>Center</option>
-                    <option value="right" ${textAlign === 'right' ? 'selected' : ''}>Right</option>
-                </select>
-            </div>
-            
-            <div class="grid grid-cols-2">
-                <div class="form-group">
-                    <label class="form-label">Text Color</label>
-                    <input type="color" class="form-control" data-style-key="Color" value="${textColor}">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Background Color</label>
-                    <input type="color" class="form-control" data-style-key="BgColor" value="${bgColor === 'transparent' ? '#ffffff' : bgColor}">
-                </div>
-            </div>
-            
-             <div class="grid grid-cols-2">
-                <div class="form-group">
-                    <label class="form-label">Padding Top</label>
-                    <input type="number" class="form-control" data-style-key="PaddingTop" value="${paddingTop}">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Padding Bottom</label>
-                    <input type="number" class="form-control" data-style-key="PaddingBottom" value="${paddingBottom}">
-                </div>
-            </div>
-        </div>
-    `;
+        dynamicStylingContainer.querySelectorAll('.style-control').forEach(el => {
+            const inputEl = el as HTMLInputElement | HTMLSelectElement | HTMLButtonElement;
+            const key = inputEl.dataset.styleKey;
+            if (!key) return;
 
-    dynamicStylingContainer.querySelectorAll('input, select').forEach(el => {
-        const inputEl = el as HTMLInputElement | HTMLSelectElement;
-        const styleKey = inputEl.dataset.styleKey;
-        if (!styleKey) return;
-        
-        const fullKey = `${fieldKey}${styleKey}`;
-
-        inputEl.addEventListener('input', () => {
-             if (activeField.subOfferIndex !== undefined) {
-                updateSubOfferData(activeField.componentId, activeField.subOfferIndex, fullKey, inputEl.value);
+            if (inputEl.classList.contains('format-toggle')) {
+                inputEl.addEventListener('click', () => {
+                    const onVal = inputEl.dataset.valOn as string;
+                    const offVal = inputEl.dataset.valOff as string;
+                    const currentVal = comp.data[key];
+                    const newVal = currentVal === onVal ? offVal : onVal;
+                    updateComponentData(comp.id, key, newVal);
+                    inputEl.classList.toggle('active');
+                });
             } else {
-                updateComponentData(activeField.componentId, fullKey, inputEl.value);
+                inputEl.addEventListener('input', () => {
+                    updateComponentData(comp.id, key, inputEl.value);
+                });
             }
         });
-    });
-}
+        return;
+    } else if (comp.type === 'text_block') {
+        const d = comp.data;
+        dynamicStylingContainer.innerHTML = `
+            <div class="design-option-group" style="border-top: 1px solid var(--separator-secondary); padding-top: var(--spacing-lg); margin-top: var(--spacing-lg);">
+                <h4>Field Styling</h4>
+                <p class="text-sm" style="color: var(--label-secondary); margin-bottom: var(--spacing-md);">Currently editing: <strong style="color: var(--label-primary);">${activeField.fieldLabel}</strong></p>
+                
+                <div class="grid grid-cols-2">
+                    <div class="form-group">
+                        <label class="form-label">Font Size (px)</label>
+                        <input type="number" class="form-control style-control" data-style-key="fontSize" value="${d.fontSize || 16}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Alignment</label>
+                        <select class="form-control style-control" data-style-key="textAlign">
+                            <option value="left" ${d.textAlign === 'left' ? 'selected' : ''}>Left</option>
+                            <option value="center" ${d.textAlign === 'center' ? 'selected' : ''}>Center</option>
+                            <option value="right" ${d.textAlign === 'right' ? 'selected' : ''}>Right</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2">
+                    <div class="form-group">
+                        <label class="form-label">Text Color</label>
+                        <input type="color" class="form-control style-control" data-style-key="textColor" value="${(d.textColor && d.textColor.startsWith('#')) ? d.textColor : '#3c3c43'}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Background Color</label>
+                        <input type="color" class="form-control style-control" data-style-key="backgroundColor" value="${d.backgroundColor === 'transparent' ? '#ffffff' : d.backgroundColor || '#ffffff'}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Formatting</label>
+                    <div class="toggle-group">
+                        <button type="button" class="toggle-btn format-toggle style-control ${d.fontWeight === 'bold' ? 'active' : ''}" data-style-key="fontWeight" data-val-on="bold" data-val-off="normal">B</button>
+                        <button type="button" class="toggle-btn format-toggle style-control ${d.fontStyle === 'italic' ? 'active' : ''}" data-style-key="fontStyle" data-val-on="italic" data-val-off="normal">I</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3">
+                    <div class="form-group">
+                        <label class="form-label">Padding T</label>
+                        <input type="number" class="form-control style-control" data-style-key="paddingTop" value="${d.paddingTop || 0}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Padding B</label>
+                        <input type="number" class="form-control style-control" data-style-key="paddingBottom" value="${d.paddingBottom || 0}">
+                    </div>
+                     <div class="form-group">
+                        <label class="form-label">Padding L/R</label>
+                        <input type="number" class="form-control style-control" data-style-key="paddingLeftRight" value="${d.paddingLeftRight || 0}">
+                    </div>
+                </div>
+            </div>
+        `;
+
+        dynamicStylingContainer.querySelectorAll('.style-control').forEach(el => {
+            const inputEl = el as HTMLInputElement | HTMLSelectElement | HTMLButtonElement;
+            const key = inputEl.dataset.styleKey;
+            if (!key) return;
+
+            if (inputEl.classList.contains('format-toggle')) {
+                inputEl.addEventListener('click', () => {
+                    const onVal = inputEl.dataset.valOn as string;
+                    const offVal = inputEl.dataset.valOff as string;
+                    const currentVal = comp.data[key];
+                    const newVal = currentVal === onVal ? offVal : onVal;
+                    updateComponentData(comp.id, key, newVal);
+                    inputEl.classList.toggle('active');
+                });
+            } else {
+                inputEl.addEventListener('input', () => {
+                    updateComponentData(comp.id, key, inputEl.value);
+                });
+            }
+        });
+        return;
+    } else if (comp.type === 'image') {
+        const d = comp.data;
+        dynamicStylingContainer.innerHTML = `
+            <div class="design-option-group" style="border-top: 1px solid var(--separator-secondary); padding-top: var(--spacing-lg); margin-top: var(--spacing-lg);">
+                <h4>Field Styling</h4>
+                <p class="text-sm" style="color: var(--label-secondary); margin-bottom: var(--spacing-md);">Currently editing: <strong style="color: var(--label-primary);">Image</strong></p>
+
+                <div class="form-group">
+                    <label class="form-label">Width (%)</label>
+                    <input type="number" class="form-control style-control" data-style-key="width" value="${d.width ? d.width.replace('%','') : '100'}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Alignment</label>
+                    <select class="form-control style-control" data-style-key="align">
+                        <option value="left" ${d.align === 'left' ? 'selected' : ''}>Left</option>
+                        <option value="center" ${d.align === 'center' ? 'selected' : ''}>Center</option>
+                        <option value="right" ${d.align === 'right' ? 'selected' : ''}>Right</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-3">
+                    <div class="form-group">
+                        <label class="form-label">Padding T</label>
+                        <input type="number" class="form-control style-control" data-style-key="paddingTop" value="${d.paddingTop || 0}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Padding B</label>
+                        <input type="number" class="form-control style-control" data-style-key="paddingBottom" value="${d.paddingBottom || 0}">
+                    </div>
+                     <div class="form-group">
+                        <label class="form-label">Padding L/R</label>
+                        <input type="number" class="form-control style-control" data-style-key="paddingLeftRight" value="${d.paddingLeftRight || 0}">
+                    </div>
+                </div>
+            </div>
+        `;
+
+        dynamicStylingContainer.querySelectorAll('.style-control').forEach(el => {
+            const inputEl = el as HTMLInputElement | HTMLSelectElement;
+            const key = inputEl.dataset.styleKey;
+            if (!key) return;
+            
+            inputEl.addEventListener('input', () => {
+                let value = inputEl.value;
+                if (key === 'width') {
+                    value = `${value}%`;
+                }
+                updateComponentData(comp.id, key, value);
+            });
+        });
+        return;
+    } else if (
+        (comp.type === 'button' && activeField.fieldKey === 'button') ||
+        (comp.type === 'sales_offer' && activeField.fieldKey === 'salesOfferButton')
+    ) {
+        const isSalesOffer = comp.type === 'sales_offer';
+        const p = isSalesOffer ? 'btn' : ''; // prefix
+        const d = comp.data;
+
+        const get = (key: string, def: string) => d[p ? `${p}${key.charAt(0).toUpperCase() + key.slice(1)}` : key] || def;
+        
+        const fontSize = get('fontSize', '16');
+        const align = get('align', 'center');
+        const bgColor = d[isSalesOffer ? 'btnColor' : 'backgroundColor'] || '#007aff';
+        const textColor = get('textColor', '#ffffff');
+        const paddingTop = get('paddingTop', '12');
+        const paddingBottom = get('paddingBottom', '12');
+        const widthType = get('widthType', 'auto');
+        
+        dynamicStylingContainer.innerHTML = `
+            <div class="design-option-group" style="border-top: 1px solid var(--separator-secondary); padding-top: var(--spacing-lg); margin-top: var(--spacing-lg);">
+                <h4>Field Styling</h4>
+                <p class="text-sm" style="color: var(--label-secondary); margin-bottom: var(--spacing-md);">Currently editing: <strong style="color: var(--label-primary);">${activeField.fieldLabel}</strong></p>
+                
+                 <div class="form-group">
+                    <label class="form-label">Font Size (px)</label>
+                    <input type="number" class="form-control style-control" data-style-key="fontSize" value="${fontSize}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Alignment</label>
+                    <select class="form-control style-control" data-style-key="align">
+                        <option value="left" ${align === 'left' ? 'selected' : ''}>Left</option>
+                        <option value="center" ${align === 'center' ? 'selected' : ''}>Center</option>
+                        <option value="right" ${align === 'right' ? 'selected' : ''}>Right</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2">
+                    <div class="form-group">
+                        <label class="form-label">Button Color</label>
+                        <input type="color" class="form-control style-control" data-style-key="backgroundColor" value="${bgColor}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Text Color</label>
+                        <input type="color" class="form-control style-control" data-style-key="textColor" value="${textColor}">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2">
+                    <div class="form-group">
+                        <label class="form-label">Padding Top</label>
+                        <input type="number" class="form-control style-control" data-style-key="paddingTop" value="${paddingTop}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Padding Bottom</label>
+                        <input type="number" class="form-control style-control" data-style-key="paddingBottom" value="${paddingBottom}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Button Width</label>
+                    <select class="form-control style-control" data-style-key="widthType">
+                        <option value="full" ${widthType === 'full' ? 'selected' : ''}>Full Width (100%)</option>
+                        <option value="auto" ${widthType === 'auto' ? 'selected' : ''}>Auto-Sized</option>
+                        <option value="small" ${widthType === 'small' ? 'selected' : ''}>Fixed: Small (160px)</option>
+                        <option value="medium" ${widthType === 'medium' ? 'selected' : ''}>Fixed: Medium (280px)</option>
+                        <option value="large" ${widthType === 'large' ? 'selected' : ''}>Fixed: Large (400px)</option>
+                    </select>
+                </div>
+            </div>
+        `;
+        
+        dynamicStylingContainer.querySelectorAll('.style-control').forEach(el => {
+            const inputEl = el as HTMLInputElement | HTMLSelectElement;
+            let key = inputEl.dataset.styleKey;
+            if (!key) return;
+
+            let finalKey = p ? `${p}${key.charAt(0).toUpperCase() + key.slice(1)}` : key;
+            if(isSalesOffer && key === 'backgroundColor') finalKey = 'btnColor';
+            
+            inputEl.addEventListener('input', () => {
+                updateComponentData(comp.id, finalKey, inputEl.value);
+            });
+        });
+        return;
+    }
+
+    // Path for Sales Offer Fields
+    if (comp.type === 'sales_offer') {
+        let dataObject = comp.data;
+        if (activeField.subOfferIndex !== undefined) {
+            const offers = JSON.parse(comp.data.additionalOffers || '[]');
+            dataObject = offers[activeField.subOfferIndex] || {};
+        }
+
+        const fieldKey = activeField.fieldKey;
+        
+        const fontSize = dataObject[`${fieldKey}FontSize`] || '14';
+        const textAlign = dataObject[`${fieldKey}TextAlign`] || 'center';
+        const textColor = dataObject[`${fieldKey}Color`] || '#000000';
+        const bgColor = dataObject[`${fieldKey}BgColor`] || 'transparent';
+        const paddingTop = dataObject[`${fieldKey}PaddingTop`] || '0';
+        const paddingBottom = dataObject[`${fieldKey}PaddingBottom`] || '0';
+
+        dynamicStylingContainer.innerHTML = `
+            <div class="design-option-group" style="border-top: 1px solid var(--separator-secondary); padding-top: var(--spacing-lg); margin-top: var(--spacing-lg);">
+                <h4>Field Styling</h4>
+                <p class="text-sm" style="color: var(--label-secondary); margin-bottom: var(--spacing-md);">Currently editing: <strong style="color: var(--label-primary);">${activeField.fieldLabel}</strong></p>
+                
+                <div class="form-group">
+                    <label class="form-label">Font Size (px)</label>
+                    <input type="number" class="form-control" data-style-key="FontSize" value="${fontSize}">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Alignment</label>
+                    <select class="form-control" data-style-key="TextAlign">
+                        <option value="left" ${textAlign === 'left' ? 'selected' : ''}>Left</option>
+                        <option value="center" ${textAlign === 'center' ? 'selected' : ''}>Center</option>
+                        <option value="right" ${textAlign === 'right' ? 'selected' : ''}>Right</option>
+                    </select>
+                </div>
+                
+                <div class="grid grid-cols-2">
+                    <div class="form-group">
+                        <label class="form-label">Text Color</label>
+                        <input type="color" class="form-control" data-style-key="Color" value="${textColor}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Background Color</label>
+                        <input type="color" class="form-control" data-style-key="BgColor" value="${bgColor === 'transparent' ? '#ffffff' : bgColor}">
+                    </div>
+                </div>
+                
+                 <div class="grid grid-cols-2">
+                    <div class="form-group">
+                        <label class="form-label">Padding Top</label>
+                        <input type="number" class="form-control" data-style-key="PaddingTop" value="${paddingTop}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Padding Bottom</label>
+                        <input type="number" class="form-control" data-style-key="PaddingBottom" value="${paddingBottom}">
+                    </div>
+                </div>
+            </div>
+        `;
+
+        dynamicStylingContainer.querySelectorAll('input, select').forEach(el => {
+            const inputEl = el as HTMLInputElement | HTMLSelectElement;
+            const styleKey = inputEl.dataset.styleKey;
+            if (!styleKey) return;
+            
+            const fullKey = `${fieldKey}${styleKey}`;
+
+            inputEl.addEventListener('input', () => {
+                 if (activeField.subOfferIndex !== undefined) {
+                    updateSubOfferData(activeField.componentId, activeField.subOfferIndex, fullKey, inputEl.value);
+                } else {
+                    updateComponentData(activeField.componentId, fullKey, inputEl.value);
+                }
+            });
+        });
+        return;
+    }
+    
+    // Clear panel if no specific handler
+    dynamicStylingContainer.innerHTML = '';
+};
+
 
 saveTemplateBtn?.addEventListener('click', saveTemplate);
+loadCollapsedStates();
 renderMergeFieldsSidebar();
 loadDraft();
 renderComponents();

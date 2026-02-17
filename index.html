@@ -95,106 +95,10 @@
 </script>
 </head>
   <body>
-    <div class="container">
-      <main>
-        <section class="hero">
-          <h1 class="text-6xl hero-title">Craftor</h1>
-          <p class="text-lg hero-subtitle">
-            Automotive Email Builder: Create, customize, and conquer.
-          </p>
-        </section>
-
-        <!-- Saved Templates Section -->
-        <section class="card mb-6">
-          <div class="card-header">
-            <h2 class="text-2xl">Saved Templates</h2>
-            <button type="button" id="save-template-btn" class="btn btn-primary btn-sm">
-              Save Current Template
-            </button>
-          </div>
-          <div class="card-body">
-            <div id="saved-templates-list" class="grid grid-cols-1">
-              <!-- Templates will be injected here -->
-              <p class="text-sm" style="color: var(--label-secondary); text-align: center;">No saved templates found.</p>
-            </div>
-          </div>
-        </section>
-
-        <section class="card mb-6">
-          <div class="card-header">
-            <h2 class="text-2xl">Customize Your Email</h2>
-            <button type="button" id="merge-fields-toggle" class="btn btn-ghost btn-sm">
-              Insert Merge Fields
-            </button>
-          </div>
-          <div class="card-body">
-            <form id="email-form">
-              <div id="form-components-container" class="components-container">
-                <!-- Dynamic form components will be injected here -->
-              </div>
-
-              <button type="button" id="add-component-btn" class="add-component-trigger">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-                Add Section
-              </button>
-
-              <button type="submit" id="generate-btn" class="btn btn-primary w-full" style="margin-top: var(--spacing-2xl);">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="checkmark hidden"><path d="M20 6 9 17l-5-5"></path></svg>
-                <span class="btn-text">Generate Template</span>
-                <div class="spinner hidden"></div>
-              </button>
-            </form>
-          </div>
-        </section>
-
-        <section class="grid grid-cols-2" id="output-container" style="display: none;">
-          <div class="card">
-            <div class="card-header">
-              <h3 class="text-xl">Preview</h3>
-              <div class="toggle-group">
-                <button id="desktop-view-btn" class="toggle-btn active" data-view="desktop">Desktop</button>
-                <button id="mobile-view-btn" class="toggle-btn" data-view="mobile">Mobile</button>
-              </div>
-            </div>
-            <div class="preview-container">
-              <iframe id="preview-pane" title="Email Preview" class="preview-frame desktop"></iframe>
-            </div>
-          </div>
-          
-          <div class="card">
-            <div class="card-header">
-              <h3 class="text-xl">HTML Code</h3>
-              <div class="flex gap-2">
-                <button id="download-btn" class="btn btn-secondary btn-sm">Download HTML</button>
-                <button id="copy-btn" class="btn btn-primary btn-sm">Copy HTML</button>
-              </div>
-            </div>
-            <div class="code-container">
-              <pre><code id="code-block" class="code-block"></code></pre>
-            </div>
-          </div>
-        </section>
-
-        <section class="card" id="output-placeholder">
-          <div class="card-body" style="text-align: center; padding: var(--spacing-3xl);">
-            <p class="text-lg" style="color: var(--label-secondary);">Your generated email will appear here.</p>
-          </div>
-        </section>
-
-        <footer style="text-align: center; margin-top: var(--spacing-3xl); color: var(--label-secondary);">
-          <p class="text-sm">Created by Jayden Wallace © 2025</p>
-        </footer>
-      </main>
-    </div>
-    
     <!-- Design Customization Sidebar (Left) -->
-    <div id="design-sidebar" class="design-sidebar">
+    <aside id="design-sidebar" class="design-sidebar">
       <div class="sidebar-header">
         <h3 class="text-xl">Design Customization</h3>
-        <button type="button" id="close-design-sidebar" class="btn btn-secondary btn-sm" style="width: 32px; height: 32px; padding: 0; border-radius: 50%;">&times;</button>
       </div>
       <div class="sidebar-content">
         <!-- Font Selection -->
@@ -241,6 +145,103 @@
 
         <!-- Dynamic Field Styling Container -->
         <div id="dynamic-styling-container"></div>
+      </div>
+    </aside>
+
+    <div class="main-content-area">
+      <div class="container">
+        <main>
+          <section class="hero">
+            <h1 class="text-6xl hero-title">Craftor</h1>
+            <p class="text-lg hero-subtitle">
+              Automotive Email Builder: Create, customize, and conquer.
+            </p>
+          </section>
+
+          <!-- Saved Templates Section -->
+          <section class="card mb-6">
+            <div class="card-header">
+              <h2 class="text-2xl">Saved Templates</h2>
+              <button type="button" id="save-template-btn" class="btn btn-primary btn-sm">
+                Save Current Template
+              </button>
+            </div>
+            <div class="card-body">
+              <div id="saved-templates-list" class="grid grid-cols-1">
+                <!-- Templates will be injected here -->
+                <p class="text-sm" style="color: var(--label-secondary); text-align: center;">No saved templates found.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="card mb-6">
+            <div class="card-header">
+              <h2 class="text-2xl">Customize Your Email</h2>
+              <button type="button" id="merge-fields-toggle" class="btn btn-ghost btn-sm">
+                Insert Merge Fields
+              </button>
+            </div>
+            <div class="card-body">
+              <form id="email-form">
+                <div id="form-components-container" class="components-container">
+                  <!-- Dynamic form components will be injected here -->
+                </div>
+
+                <button type="button" id="add-component-btn" class="add-component-trigger">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  Add Section
+                </button>
+
+                <button type="submit" id="generate-btn" class="btn btn-primary w-full" style="margin-top: var(--spacing-2xl);">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="checkmark hidden"><path d="M20 6 9 17l-5-5"></path></svg>
+                  <span class="btn-text">Generate Template</span>
+                  <div class="spinner hidden"></div>
+                </button>
+              </form>
+            </div>
+          </section>
+
+          <section class="grid grid-cols-2" id="output-container" style="display: none;">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="text-xl">Preview</h3>
+                <div class="toggle-group">
+                  <button id="desktop-view-btn" class="toggle-btn active" data-view="desktop">Desktop</button>
+                  <button id="mobile-view-btn" class="toggle-btn" data-view="mobile">Mobile</button>
+                </div>
+              </div>
+              <div class="preview-container">
+                <iframe id="preview-pane" title="Email Preview" class="preview-frame desktop"></iframe>
+              </div>
+            </div>
+            
+            <div class="card">
+              <div class="card-header">
+                <h3 class="text-xl">HTML Code</h3>
+                <div class="flex gap-2">
+                  <button id="download-btn" class="btn btn-secondary btn-sm">Download HTML</button>
+                  <button id="copy-btn" class="btn btn-primary btn-sm">Copy HTML</button>
+                </div>
+              </div>
+              <div class="code-container">
+                <pre><code id="code-block" class="code-block"></code></pre>
+              </div>
+            </div>
+          </section>
+
+          <section class="card" id="output-placeholder">
+            <div class="card-body" style="text-align: center; padding: var(--spacing-3xl);">
+              <p class="text-lg" style="color: var(--label-secondary);">Your generated email will appear here.</p>
+            </div>
+          </section>
+
+          <footer style="text-align: center; margin-top: var(--spacing-3xl); color: var(--label-secondary);">
+            <p class="text-sm">Created by Jayden Wallace © 2025</p>
+          </footer>
+        </main>
       </div>
     </div>
     
@@ -312,13 +313,6 @@
     </div>
     
     <!-- Floating Action Buttons -->
-    <button type="button" id="floating-design-btn" class="fab fab-design" title="Design Customization">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 20h9"></path>
-        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-      </svg>
-    </button>
-    
     <button type="button" id="floating-merge-btn" class="fab fab-merge" title="Insert Merge Fields">
       <span style="font-family: var(--font-family-mono); font-size: 16px; font-weight: bold;">{{}}</span>
     </button>
