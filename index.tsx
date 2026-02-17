@@ -496,6 +496,21 @@ const addNewComponent = (type: string) => {
             paddingLeftRight: '20',
             widthType: 'auto'
         };
+    } else if (type === 'divider') {
+        data = {
+            width: '100',
+            thickness: '2',
+            lineColor: '#CCCCCC',
+            alignment: 'center',
+            paddingTop: '16',
+            paddingBottom: '16'
+        };
+    } else if (type === 'spacer') {
+        data = {
+            height: '40',
+            backgroundColor: 'transparent',
+            matchEmailBackground: 'true',
+        };
     } else if (type === 'sales_offer') {
         data = {
             layout: 'center',
@@ -647,9 +662,13 @@ const renderComponents = () => {
             case 'sales_offer':
                 sourceFieldKey = 'vehicleText';
                 break;
+            case 'divider':
+            case 'spacer':
+                sourceFieldKey = ''; // No dynamic title source
+                break;
         }
 
-        const sourceValue = comp.data[sourceFieldKey] || '';
+        const sourceValue = sourceFieldKey ? comp.data[sourceFieldKey] || '' : '';
         dynamicTitle = sourceValue ? truncate(sourceValue, TRUNCATE_LENGTH) : defaultTitleText;
         
         if (comp.type === 'header') {
@@ -694,6 +713,22 @@ const renderComponents = () => {
                  <div class="form-group-inline wrap">
                     <div class="inline-input-group"><label>Text:</label><input type="text" class="form-control compact" data-key="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="button" data-field-label="Button Text" value="${comp.data.text || ''}"></div>
                     <div class="inline-input-group"><label>Link:</label><input type="text" class="form-control compact" data-key="link" data-stylable="true" data-component-id="${comp.id}" data-field-key="button" data-field-label="Button Link" value="${comp.data.link || ''}"></div>
+                </div>
+            `;
+        } else if (comp.type === 'divider') {
+            componentFormHtml = `
+                <div class="divider-preview-container" tabindex="0" data-alignment="${comp.data.alignment}" style="padding: ${comp.data.paddingTop}px 20px ${comp.data.paddingBottom}px 20px;" data-stylable="true" data-component-id="${comp.id}" data-field-key="divider" data-field-label="Divider">
+                    <div class="divider-preview-line" style="width: ${comp.data.width}%; height: ${comp.data.thickness}px; background-color: ${comp.data.lineColor};"></div>
+                </div>
+            `;
+        } else if (comp.type === 'spacer') {
+            const matchBg = comp.data.matchEmailBackground === 'true';
+            const bgColor = matchBg ? 'transparent' : comp.data.backgroundColor;
+            const hasBg = !matchBg && bgColor !== 'transparent';
+
+            componentFormHtml = `
+                <div class="spacer-preview ${hasBg ? 'has-bg-color' : ''}" style="height: ${comp.data.height}px; background-color: ${bgColor};" data-stylable="true" data-component-id="${comp.id}" data-field-key="spacer" data-field-label="Spacer" tabindex="0">
+                    <span class="spacer-preview-label">Height: ${comp.data.height}px</span>
                 </div>
             `;
         } else if (comp.type === 'sales_offer') {
@@ -1182,6 +1217,39 @@ function generateEmailHtml(): string {
                             </td>
                         </tr>
                     </table>
+                </td>
+            </tr>
+        `;
+    } else if (comp.type === 'divider') {
+        const { width, thickness, lineColor, alignment, paddingTop, paddingBottom } = d;
+        const alignValue = alignment === 'left' ? 'left' : alignment === 'right' ? 'right' : 'center';
+
+        sectionsHtml += `
+          <tr>
+            <td style="padding: ${paddingTop}px 0 ${paddingBottom}px 0;">
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td align="${alignValue}">
+                    <table role="presentation" width="${width}%" border="0" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td height="${thickness}" style="height: ${thickness}px; background-color: ${lineColor}; line-height: ${thickness}px; font-size: ${thickness}px;">&nbsp;</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        `;
+    } else if (comp.type === 'spacer') {
+        const { height, backgroundColor, matchEmailBackground } = d;
+        const bgColor = matchEmailBackground === 'true' ? 'transparent' : backgroundColor;
+        const bgStyle = bgColor !== 'transparent' ? `background-color: ${bgColor};` : '';
+        
+        sectionsHtml += `
+            <tr>
+                <td style="height: ${height}px; line-height: ${height}px; font-size: 0; ${bgStyle}">
+                    &nbsp;
                 </td>
             </tr>
         `;
@@ -1775,6 +1843,157 @@ const renderStylingPanel = () => {
                 updateComponentData(comp.id, key, value);
             });
         });
+        return;
+    } else if (comp.type === 'divider') {
+        const d = comp.data;
+        dynamicStylingContainer.innerHTML = `
+            <div class="design-option-group" style="border-top: 1px solid var(--separator-secondary); padding-top: var(--spacing-lg); margin-top: var(--spacing-lg);">
+                <h4>Field Styling</h4>
+                <p class="text-sm" style="color: var(--label-secondary); margin-bottom: var(--spacing-md);">Currently editing: <strong style="color: var(--label-primary);">Divider</strong></p>
+                
+                <div class="grid grid-cols-2">
+                    <div class="form-group">
+                        <label class="form-label">Width (%)</label>
+                        <input type="number" class="form-control style-control" data-style-key="width" value="${d.width || '100'}" min="1" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Thickness (px)</label>
+                        <input type="number" class="form-control style-control" data-style-key="thickness" value="${d.thickness || '2'}" min="1" max="20">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2">
+                     <div class="form-group">
+                        <label class="form-label">Line Color</label>
+                        <input type="color" class="form-control style-control" data-style-key="lineColor" value="${d.lineColor || '#CCCCCC'}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Alignment</label>
+                        <select class="form-control style-control" data-style-key="alignment">
+                            <option value="left" ${d.alignment === 'left' ? 'selected' : ''}>Left</option>
+                            <option value="center" ${d.alignment === 'center' ? 'selected' : ''}>Center</option>
+                            <option value="right" ${d.alignment === 'right' ? 'selected' : ''}>Right</option>
+                        </select>
+                    </div>
+                </div>
+
+                 <div class="grid grid-cols-2">
+                    <div class="form-group">
+                        <label class="form-label">Padding Top</label>
+                        <input type="number" class="form-control style-control" data-style-key="paddingTop" value="${d.paddingTop || '16'}" min="0" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Padding Bottom</label>
+                        <input type="number" class="form-control style-control" data-style-key="paddingBottom" value="${d.paddingBottom || '16'}" min="0" max="100">
+                    </div>
+                </div>
+            </div>
+        `;
+        dynamicStylingContainer.querySelectorAll('.style-control').forEach(el => {
+            const inputEl = el as HTMLInputElement | HTMLSelectElement;
+            const key = inputEl.dataset.styleKey;
+            if (!key) return;
+
+            inputEl.addEventListener('input', () => {
+                const value = inputEl.value;
+                updateComponentData(comp.id, key, value);
+
+                // Update preview in real-time
+                const previewContainer = document.querySelector(`[data-id='${comp.id}'] .divider-preview-container`);
+                const previewLine = document.querySelector(`[data-id='${comp.id}'] .divider-preview-line`) as HTMLElement;
+
+                if (previewContainer && previewLine) {
+                    switch(key) {
+                        case 'width':
+                            previewLine.style.width = `${value}%`;
+                            break;
+                        case 'thickness':
+                            previewLine.style.height = `${value}px`;
+                            break;
+                        case 'lineColor':
+                            previewLine.style.backgroundColor = value;
+                            break;
+                        case 'alignment':
+                            previewContainer.setAttribute('data-alignment', value);
+                            break;
+                        case 'paddingTop':
+                            (previewContainer as HTMLElement).style.paddingTop = `${value}px`;
+                            break;
+                        case 'paddingBottom':
+                            (previewContainer as HTMLElement).style.paddingBottom = `${value}px`;
+                            break;
+                    }
+                }
+            });
+        });
+
+        return;
+    } else if (comp.type === 'spacer') {
+        const d = comp.data;
+        const matchBg = d.matchEmailBackground === 'true';
+        dynamicStylingContainer.innerHTML = `
+            <div class="design-option-group" style="border-top: 1px solid var(--separator-secondary); padding-top: var(--spacing-lg); margin-top: var(--spacing-lg);">
+                <h4>Field Styling</h4>
+                <p class="text-sm" style="color: var(--label-secondary); margin-bottom: var(--spacing-md);">Currently editing: <strong style="color: var(--label-primary);">Spacer</strong></p>
+
+                <div class="form-group">
+                    <label class="form-label">Height (px)</label>
+                    <input type="number" class="form-control style-control" data-style-key="height" value="${d.height || '40'}" min="0" max="200">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Background Color</label>
+                    <input type="color" class="form-control style-control" data-style-key="backgroundColor" value="${d.backgroundColor || '#ffffff'}" ${matchBg ? 'disabled' : ''}>
+                </div>
+                
+                <div class="form-group" style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                    <input type="checkbox" id="match-bg-checkbox" class="style-control" data-style-key="matchEmailBackground" ${matchBg ? 'checked' : ''} style="width: auto; height: auto;">
+                    <label for="match-bg-checkbox" class="form-label" style="margin-bottom: 0;">Match Email Background</label>
+                </div>
+            </div>
+        `;
+        
+        const heightInput = dynamicStylingContainer.querySelector('[data-style-key="height"]') as HTMLInputElement;
+        const bgColorInput = dynamicStylingContainer.querySelector('[data-style-key="backgroundColor"]') as HTMLInputElement;
+        const matchBgCheckbox = dynamicStylingContainer.querySelector('[data-style-key="matchEmailBackground"]') as HTMLInputElement;
+
+        const updateSpacerPreview = () => {
+            const preview = document.querySelector(`[data-id='${comp.id}'] .spacer-preview`) as HTMLElement;
+            const label = preview?.querySelector('.spacer-preview-label') as HTMLElement;
+            if (!preview || !label) return;
+
+            const currentData = activeComponents.find(c => c.id === comp.id)?.data;
+            if(!currentData) return;
+
+            preview.style.height = `${currentData.height}px`;
+            label.textContent = `Height: ${currentData.height}px`;
+
+            const isMatch = currentData.matchEmailBackground === 'true';
+            const newBgColor = isMatch ? 'transparent' : currentData.backgroundColor;
+            preview.style.backgroundColor = newBgColor;
+            
+            if (!isMatch && newBgColor !== 'transparent') {
+                preview.classList.add('has-bg-color');
+            } else {
+                preview.classList.remove('has-bg-color');
+            }
+        };
+
+        heightInput.addEventListener('input', () => {
+            updateComponentData(comp.id, 'height', heightInput.value);
+            updateSpacerPreview();
+        });
+        bgColorInput.addEventListener('input', () => {
+            updateComponentData(comp.id, 'backgroundColor', bgColorInput.value);
+            updateSpacerPreview();
+        });
+        matchBgCheckbox.addEventListener('change', () => {
+            const isChecked = matchBgCheckbox.checked;
+            bgColorInput.disabled = isChecked;
+            updateComponentData(comp.id, 'matchEmailBackground', isChecked.toString());
+            updateSpacerPreview();
+        });
+
         return;
     } else if (
         (comp.type === 'button' && activeField.fieldKey === 'button') ||
