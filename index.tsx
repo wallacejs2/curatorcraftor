@@ -525,10 +525,6 @@ const addNewComponent = (type: string) => {
             buttonText: 'Schedule Now',
             buttonLink: '',
             // Styling
-            showBorder: 'false',
-            borderStyle: 'solid',
-            borderColor: '#CCCCCC',
-            borderRadius: '8',
             containerPaddingTop: '20',
             containerPaddingBottom: '20',
             containerPaddingLeft: '20',
@@ -1412,10 +1408,7 @@ function generateEmailHtml(): string {
             contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${d.disclaimerAlignment}" style="font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${d.disclaimerFontSize}px; color: ${d.disclaimerTextColor}; padding: ${d.disclaimerPaddingTop}px 0 ${d.disclaimerPaddingBottom}px 0; line-height: 1.4;">${d.disclaimer.replace(/\n/g, '<br>')}</td></tr></table>`;
         }
 
-        let mainTableStyle = `border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;`;
-        if (d.showBorder === 'true') {
-            mainTableStyle += ` border: 1px ${d.borderStyle} ${d.borderColor}; border-radius: ${d.borderRadius || '8'}px;`;
-        }
+        const mainTableStyle = `border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;`;
         const innerPadding = '20px'; // As per user's example
 
         sectionsHtml += `
@@ -2186,19 +2179,9 @@ const renderStylingPanel = () => {
 
         switch(activeField.fieldKey) {
             case 'serviceOfferContainer':
-                const showBorder = d.showBorder === 'true';
                 content = `
-                    <div class="form-group"><label class="form-label"><input type="checkbox" class="style-control" data-style-key="showBorder" ${showBorder ? 'checked' : ''}> Show Border</label></div>
-                    <div class="form-group"><label class="form-label">Border Style</label><select class="form-control style-control" data-style-key="borderStyle" ${!showBorder ? 'disabled' : ''}><option value="solid" ${d.borderStyle === 'solid' ? 'selected': ''}>Solid</option><option value="dashed" ${d.borderStyle === 'dashed' ? 'selected': ''}>Dashed</option><option value="dotted" ${d.borderStyle === 'dotted' ? 'selected': ''}>Dotted</option></select></div>
-                    <div class="form-group"><label class="form-label">Border Color</label><input type="color" class="form-control style-control" data-style-key="borderColor" value="${d.borderColor}" ${!showBorder ? 'disabled' : ''}></div>
-                    <div class="form-group"><label class="form-label">Border Radius (px)</label><input type="number" class="form-control style-control" data-style-key="borderRadius" value="${d.borderRadius || '8'}" ${!showBorder ? 'disabled' : ''}></div>
-                    <hr style="border: none; border-top: 1px solid var(--separator-secondary); margin: var(--spacing-lg) 0;" />
-                    <h5>Container Padding</h5>
-                    <div class="grid grid-cols-2">
-                        <div class="form-group"><label class="form-label">Top</label><input type="number" class="form-control style-control" data-style-key="containerPaddingTop" value="${d.containerPaddingTop}"></div>
-                        <div class="form-group"><label class="form-label">Bottom</label><input type="number" class="form-control style-control" data-style-key="containerPaddingBottom" value="${d.containerPaddingBottom}"></div>
-                        <div class="form-group"><label class="form-label">Left</label><input type="number" class="form-control style-control" data-style-key="containerPaddingLeft" value="${d.containerPaddingLeft}"></div>
-                        <div class="form-group"><label class="form-label">Right</label><input type="number" class="form-control style-control" data-style-key="containerPaddingRight" value="${d.containerPaddingRight}"></div>
+                    <div style="padding: 10px; text-align: center; color: var(--label-secondary); font-size: 13px;">
+                        <p>Select a specific field like the <strong>Title</strong> or <strong>Button</strong> to view its styling options.</p>
                     </div>
                 `;
                 break;
@@ -2262,20 +2245,9 @@ const renderStylingPanel = () => {
                 `;
                 break;
             default:
-                 // By default, show container styles if an unknown or non-specific field is focused
-                const showBorderDefault = d.showBorder === 'true';
                 content = `
-                    <div class="form-group"><label class="form-label"><input type="checkbox" class="style-control" data-style-key="showBorder" ${showBorderDefault ? 'checked' : ''}> Show Border</label></div>
-                    <div class="form-group"><label class="form-label">Border Style</label><select class="form-control style-control" data-style-key="borderStyle" ${!showBorderDefault ? 'disabled' : ''}><option value="solid" ${d.borderStyle === 'solid' ? 'selected': ''}>Solid</option><option value="dashed" ${d.borderStyle === 'dashed' ? 'selected': ''}>Dashed</option><option value="dotted" ${d.borderStyle === 'dotted' ? 'selected': ''}>Dotted</option></select></div>
-                    <div class="form-group"><label class="form-label">Border Color</label><input type="color" class="form-control style-control" data-style-key="borderColor" value="${d.borderColor}" ${!showBorderDefault ? 'disabled' : ''}></div>
-                    <div class="form-group"><label class="form-label">Border Radius (px)</label><input type="number" class="form-control style-control" data-style-key="borderRadius" value="${d.borderRadius || '8'}" ${!showBorderDefault ? 'disabled' : ''}></div>
-                    <hr style="border: none; border-top: 1px solid var(--separator-secondary); margin: var(--spacing-lg) 0;" />
-                    <h5>Container Padding</h5>
-                    <div class="grid grid-cols-2">
-                        <div class="form-group"><label class="form-label">Top</label><input type="number" class="form-control style-control" data-style-key="containerPaddingTop" value="${d.containerPaddingTop}"></div>
-                        <div class="form-group"><label class="form-label">Bottom</label><input type="number" class="form-control style-control" data-style-key="containerPaddingBottom" value="${d.containerPaddingBottom}"></div>
-                        <div class="form-group"><label class="form-label">Left</label><input type="number" class="form-control style-control" data-style-key="containerPaddingLeft" value="${d.containerPaddingLeft}"></div>
-                        <div class="form-group"><label class="form-label">Right</label><input type="number" class="form-control style-control" data-style-key="containerPaddingRight" value="${d.containerPaddingRight}"></div>
+                    <div style="padding: 10px; text-align: center; color: var(--label-secondary); font-size: 13px;">
+                        <p>Select a specific field like the <strong>Title</strong> or <strong>Button</strong> to view its styling options.</p>
                     </div>
                 `;
         }
@@ -2292,7 +2264,7 @@ const renderStylingPanel = () => {
                 const value = inputEl.type === 'checkbox' ? (inputEl as HTMLInputElement).checked.toString() : inputEl.value;
                 updateComponentData(comp.id, key, value);
 
-                if (key === 'showBorder' || key === 'couponShowBorder') {
+                if (key === 'couponShowBorder') {
                     renderStylingPanel();
                 }
             });
