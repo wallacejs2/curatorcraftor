@@ -3,6 +3,7 @@
  * Copyright Wallace, Jayden
  * SPDX-License-Identifier: Apache-2.0
  */
+import DOMPurify from 'dompurify';
 
 interface DesignSettings {
   fontFamily: string;
@@ -168,13 +169,16 @@ const componentsContainer = document.getElementById('form-components-container')
 const addComponentBtn = document.getElementById('add-component-btn') as HTMLButtonElement;
 
 // Sidebar & Picker elements
+const designSidebar = document.getElementById('design-sidebar');
 const dynamicStylingContainer = document.getElementById('dynamic-styling-container');
 const mergeFieldsSidebar = document.getElementById('merge-fields-sidebar');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
+const designSidebarOverlay = document.getElementById('design-sidebar-overlay');
 const componentPickerOverlay = document.getElementById('component-picker-overlay');
 const closeComponentPicker = document.getElementById('close-component-picker');
 
 // Toggle buttons
+const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
 const mergeFieldsToggle = document.getElementById('merge-fields-toggle');
 const floatingMergeBtn = document.getElementById('floating-merge-btn');
 
@@ -183,6 +187,7 @@ const desktopViewBtn = document.getElementById('desktop-view-btn');
 const mobileViewBtn = document.getElementById('mobile-view-btn');
 
 // Close buttons
+const closeDesignSidebar = document.getElementById('close-design-sidebar');
 const closeMergeSidebar = document.getElementById('close-sidebar');
 
 // Design Settings Controls
@@ -194,18 +199,48 @@ const saveTemplateBtn = document.getElementById('save-template-btn') as HTMLButt
 const savedTemplatesList = document.getElementById('saved-templates-list') as HTMLElement;
 
 // Toast Notification
-const toastContainer = document.getElementById('toast-container');
-const toastMessage = document.getElementById('toast-message');
-
-const showToast = (message: string) => {
-    if(toastMessage && toastContainer) {
-        toastMessage.textContent = message;
-        toastContainer.classList.add('visible');
-        setTimeout(() => {
-            toastContainer.classList.remove('visible');
-        }, 3000);
+const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    let toastWrapper = document.getElementById('toast-wrapper');
+    if (!toastWrapper) {
+        toastWrapper = document.createElement('div');
+        toastWrapper.id = 'toast-wrapper';
+        toastWrapper.className = 'toast-wrapper';
+        document.body.appendChild(toastWrapper);
     }
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast--${type}`;
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
+
+    const icons = {
+        success: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`,
+        error: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`,
+        info: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`
+    };
+    
+    toast.innerHTML = `
+        ${icons[type]}
+        <span>${message}</span>
+    `;
+
+    toastWrapper.appendChild(toast);
+
+    requestAnimationFrame(() => {
+        toast.classList.add('show');
+    });
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+        toast.addEventListener('transitionend', () => {
+            toast.remove();
+            if (toastWrapper && !toastWrapper.hasChildNodes()) {
+                toastWrapper.remove();
+            }
+        }, { once: true });
+    }, 3000);
 }
+
 
 // Local Storage Keys
 const LS_TEMPLATES_KEY = 'craftor_saved_templates';
@@ -273,7 +308,7 @@ const saveDraft = () => {
 fontSelect?.addEventListener('change', () => {
     designSettings.fontFamily = fontSelect.value;
     saveDraft();
-    showToast('Font updated');
+    showToast('Font updated', 'success');
 });
 
 buttonStyleOptions.forEach(opt => {
@@ -282,7 +317,7 @@ buttonStyleOptions.forEach(opt => {
         opt.classList.add('selected');
         designSettings.buttonStyle = opt.getAttribute('data-button') || 'rounded';
         saveDraft();
-        showToast('Button style updated');
+        showToast('Button style updated', 'success');
     });
 });
 
@@ -345,10 +380,10 @@ const insertMergeField = (value: string) => {
         lastFocusedInput.focus();
         
         lastFocusedInput.dispatchEvent(new Event('input', { bubbles: true }));
-        showToast(`Inserted: ${value}`);
+        showToast(`Inserted: ${value}`, 'success');
         closeSidebarFunc();
     } else {
-        showToast('Please click a text field first to insert the merge field.');
+        showToast('Please click a text field first to insert the merge field.', 'info');
     }
 };
 
@@ -394,6 +429,19 @@ const renderMergeFieldsSidebar = () => {
     });
 };
 
+// Sidebar Controls
+const openDesignSidebar = () => {
+    designSidebar?.classList.add('open');
+    designSidebarOverlay?.classList.add('visible');
+    document.body.style.overflow = 'hidden';
+}
+
+const closeDesignSidebarFunc = () => {
+    designSidebar?.classList.remove('open');
+    designSidebarOverlay?.classList.remove('visible');
+    document.body.style.overflow = '';
+}
+
 const closeSidebarFunc = () => {
   mergeFieldsSidebar?.classList.remove('open');
   sidebarOverlay?.classList.remove('visible');
@@ -423,6 +471,10 @@ pickerOptions.forEach(opt => {
     }
   });
 });
+
+mobileMenuToggle?.addEventListener('click', openDesignSidebar);
+closeDesignSidebar?.addEventListener('click', closeDesignSidebarFunc);
+designSidebarOverlay?.addEventListener('click', closeDesignSidebarFunc);
 
 closeMergeSidebar?.addEventListener('click', closeSidebarFunc);
 sidebarOverlay?.addEventListener('click', closeSidebarFunc);
@@ -647,7 +699,7 @@ const addNewComponent = (type: string) => {
     activeComponents.push({ id, type, data });
     renderComponents();
     saveDraft();
-    showToast(`${type.replace(/_/g, ' ').charAt(0).toUpperCase() + type.replace(/_/g, ' ').slice(1)} added`);
+    showToast(`${type.replace(/_/g, ' ').charAt(0).toUpperCase() + type.replace(/_/g, ' ').slice(1)} added`, 'success');
 };
 
 const removeComponent = (id: string) => {
@@ -656,7 +708,7 @@ const removeComponent = (id: string) => {
     saveCollapsedStates();
     renderComponents();
     saveDraft();
-    showToast('Section removed');
+    showToast('Section removed', 'success');
 };
 
 const updateComponentData = (id: string, key: string, value: string) => {
@@ -1000,11 +1052,11 @@ const renderComponents = () => {
                 if (file) {
                     const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
                     if (!validTypes.includes(file.type)) {
-                        showToast('Invalid file type. Use JPG, PNG, GIF, or WEBP.');
+                        showToast('Invalid file type. Use JPG, PNG, GIF, or WEBP.', 'error');
                         return;
                     }
                     if (file.size > 5 * 1024 * 1024) { // 5MB limit
-                        showToast('File is too large. Max size is 5MB.');
+                        showToast('File is too large. Max size is 5MB.', 'error');
                         return;
                     }
                     
@@ -1021,12 +1073,12 @@ const renderComponents = () => {
                         
                         updateComponentData(comp.id, keyToUpdate, result);
                         (item.querySelector(`input[data-key="${keyToUpdate}"]`) as HTMLInputElement).value = result;
-                        showToast('Image uploaded.');
+                        showToast('Image uploaded.', 'success');
                         uploadBtn.textContent = 'Upload';
                         uploadBtn.disabled = false;
                     };
                     reader.onerror = () => {
-                        showToast('Error reading file.');
+                        showToast('Error reading file.', 'error');
                         uploadBtn.textContent = 'Upload';
                         uploadBtn.disabled = false;
                     };
@@ -1243,7 +1295,7 @@ function generateEmailHtml(): string {
           `font-family: ${designSettings.fontFamily}`
       ].join(';');
       
-      const txt = d.text || '';
+      const txt = DOMPurify.sanitize(d.text || '');
       sectionsHtml += `
         <tr>
             <td align="${d.textAlign || 'left'}" bgcolor="${isTransparent ? '' : d.backgroundColor}" style="${styles}">
@@ -1257,8 +1309,8 @@ function generateEmailHtml(): string {
         const numericWidth = parseFloat((d.width || '100%').replace(/%/g, '')) || 100;
         const styleWidth = `${numericWidth}%`;
         const imgStyles = [`display: block`, `max-width: 100%`, `width: ${styleWidth}`, `height: auto`, `border: 0`, `margin: ${d.align === 'center' ? '0 auto' : '0'}`].join(';');
-        let imgTag = `<img src="${d.src || ''}" alt="${d.alt || 'Image'}" style="${imgStyles}" border="0" />`;
-        if (d.link) imgTag = `<a href="${d.link}" target="_blank" style="text-decoration: none;">${imgTag}</a>`;
+        let imgTag = `<img src="${DOMPurify.sanitize(d.src || '')}" alt="${DOMPurify.sanitize(d.alt || 'Image')}" style="${imgStyles}" border="0" />`;
+        if (d.link) imgTag = `<a href="${DOMPurify.sanitize(d.link)}" target="_blank" style="text-decoration: none;">${imgTag}</a>`;
         sectionsHtml += `
             <tr>
                 <td align="${d.align || 'center'}" bgcolor="${isTransparent ? '' : d.backgroundColor}" style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
@@ -1284,7 +1336,7 @@ function generateEmailHtml(): string {
                     <table border="0" cellspacing="0" cellpadding="0" ${tableWidthAttr ? `width="${tableWidthAttr}"` : ""} style="margin: ${d.align === 'center' ? '0 auto' : '0'};">
                         <tr>
                             <td align="center" bgcolor="${isOutlined ? 'transparent' : d.backgroundColor}" style="border-radius: ${radius};">
-                                <a href="${d.link || '#'}" target="_blank" style="${btnStyles}">${d.text || 'Button'}</a>
+                                <a href="${DOMPurify.sanitize(d.link || '#')}" target="_blank" style="${btnStyles}">${DOMPurify.sanitize(d.text || 'Button')}</a>
                             </td>
                         </tr>
                     </table>
@@ -1331,27 +1383,28 @@ function generateEmailHtml(): string {
         // Image
         if (d.showImage === 'true' && d.imageUrl) {
             const imgStyles = `display: block; width: ${d.imageWidth || '100'}%; max-width: 100%; height: auto; border: 0; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;`;
-            let imgTag = `<img src="${d.imageUrl}" alt="${d.imageAlt || ''}" style="${imgStyles}" />`;
+            let imgTag = `<img src="${DOMPurify.sanitize(d.imageUrl)}" alt="${DOMPurify.sanitize(d.imageAlt || '')}" style="${imgStyles}" />`;
             if (d.imageLink) {
-                imgTag = `<a href="${d.imageLink}" target="_blank" style="text-decoration: none;">${imgTag}</a>`;
+                imgTag = `<a href="${DOMPurify.sanitize(d.imageLink)}" target="_blank" style="text-decoration: none;">${imgTag}</a>`;
             }
             contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${d.imageAlignment}" style="padding: ${d.imagePaddingTop}px 0 ${d.imagePaddingBottom}px 0;">${imgTag}</td></tr></table>`;
         }
         
         // Title
         if (d.serviceTitle) {
-            contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${d.titleAlignment}" style="font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${d.titleFontSize}px; font-weight: ${d.titleFontWeight}; color: ${d.titleTextColor}; padding: ${d.titlePaddingTop}px 0 ${d.titlePaddingBottom}px 0; line-height: 1.2;">${d.serviceTitle}</td></tr></table>`;
+            contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${d.titleAlignment}" style="font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${d.titleFontSize}px; font-weight: ${d.titleFontWeight}; color: ${d.titleTextColor}; padding: ${d.titlePaddingTop}px 0 ${d.titlePaddingBottom}px 0; line-height: 1.2;">${DOMPurify.sanitize(d.serviceTitle)}</td></tr></table>`;
         }
 
         // Coupon
         if (d.couponCode) {
             const couponBorderStyle = d.couponShowBorder === 'true' ? `border: 1px ${d.couponBorderStyle} ${d.couponBorderColor};` : '';
-            contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${d.couponAlignment}" style="padding: 10px 0;"><table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;"><tr><td align="center" style="font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${d.couponFontSize}px; font-weight: ${d.couponFontWeight}; color: ${d.couponTextColor}; background-color: ${d.couponBgColor}; padding: ${d.couponPaddingTop}px ${d.couponPaddingLeft}px ${d.couponPaddingBottom}px ${d.couponPaddingRight}px; ${couponBorderStyle}; line-height: 1.2;">${d.couponCode}</td></tr></table></td></tr></table>`;
+            contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${d.couponAlignment}" style="padding: 10px 0;"><table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;"><tr><td align="center" style="font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${d.couponFontSize}px; font-weight: ${d.couponFontWeight}; color: ${d.couponTextColor}; background-color: ${d.couponBgColor}; padding: ${d.couponPaddingTop}px ${d.couponPaddingLeft}px ${d.couponPaddingBottom}px ${d.couponPaddingRight}px; ${couponBorderStyle}; line-height: 1.2;">${DOMPurify.sanitize(d.couponCode)}</td></tr></table></td></tr></table>`;
         }
 
         // Details
         if (d.serviceDetails) {
-            contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${d.detailsAlignment}" style="font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${d.detailsFontSize}px; color: ${d.detailsTextColor}; line-height: ${d.detailsLineHeight}; padding: ${d.detailsPaddingTop}px 0 ${d.detailsPaddingBottom}px 0;">${d.serviceDetails.replace(/\n/g, '<br>')}</td></tr></table>`;
+            const sanitizedDetails = DOMPurify.sanitize(d.serviceDetails).replace(/\n/g, '<br>');
+            contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${d.detailsAlignment}" style="font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${d.detailsFontSize}px; color: ${d.detailsTextColor}; line-height: ${d.detailsLineHeight}; padding: ${d.detailsPaddingTop}px 0 ${d.detailsPaddingBottom}px 0;">${sanitizedDetails}</td></tr></table>`;
         }
         
         // Button
@@ -1359,6 +1412,8 @@ function generateEmailHtml(): string {
             const btnRadius = designSettings.buttonStyle === 'pill' ? '9999px' : designSettings.buttonStyle === 'square' ? '0px' : '8px';
             const isOutlined = designSettings.buttonStyle === 'outlined';
             const buttonWidth = d.buttonWidth || 'auto';
+            const sanitizedButtonLink = DOMPurify.sanitize(d.buttonLink || '#');
+            const sanitizedButtonText = DOMPurify.sanitize(d.buttonText);
 
             let aStylesList = [
                 `background-color: ${isOutlined ? 'transparent' : d.buttonBgColor}`,
@@ -1392,8 +1447,8 @@ function generateEmailHtml(): string {
 
             const vmlArcSize = btnRadius.includes('px') ? `${Math.min(50, (parseInt(btnRadius) / (vmlHeight/2)) * 100)}%` : '8%';
             
-            const vmlButton = `<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${d.buttonLink || '#'}" style="height:${vmlHeight}px;v-text-anchor:middle;${vmlWidthStyle}" arcsize="${vmlArcSize}" strokecolor="${isOutlined ? d.buttonBgColor : 'none'}" strokeweight="${isOutlined ? '2px' : '0'}" fillcolor="${isOutlined ? 'transparent' : d.buttonBgColor}"><w:anchorlock/><center style="color:${isOutlined ? d.buttonBgColor : d.buttonTextColor};font-family:Arial,sans-serif;font-size:${d.buttonFontSize}px;font-weight:bold;">${d.buttonText}</center></v:roundrect><![endif]-->`;
-            const htmlButton = `<!--[if !mso]><!--><a href="${d.buttonLink || '#'}" style="${aStyles}" target="_blank">${d.buttonText}</a><!--<![endif]-->`;
+            const vmlButton = `<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${sanitizedButtonLink}" style="height:${vmlHeight}px;v-text-anchor:middle;${vmlWidthStyle}" arcsize="${vmlArcSize}" strokecolor="${isOutlined ? d.buttonBgColor : 'none'}" strokeweight="${isOutlined ? '2px' : '0'}" fillcolor="${isOutlined ? 'transparent' : d.buttonBgColor}"><w:anchorlock/><center style="color:${isOutlined ? d.buttonBgColor : d.buttonTextColor};font-family:Arial,sans-serif;font-size:${d.buttonFontSize}px;font-weight:bold;">${sanitizedButtonText}</center></v:roundrect><![endif]-->`;
+            const htmlButton = `<!--[if !mso]><!--><a href="${sanitizedButtonLink}" style="${aStyles}" target="_blank">${sanitizedButtonText}</a><!--<![endif]-->`;
             
             let buttonContent = `${vmlButton}${htmlButton}`;
              if (buttonWidth !== '100%') {
@@ -1405,7 +1460,8 @@ function generateEmailHtml(): string {
 
         // Disclaimer
         if (d.disclaimer) {
-            contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${d.disclaimerAlignment}" style="font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${d.disclaimerFontSize}px; color: ${d.disclaimerTextColor}; padding: ${d.disclaimerPaddingTop}px 0 ${d.disclaimerPaddingBottom}px 0; line-height: 1.4;">${d.disclaimer.replace(/\n/g, '<br>')}</td></tr></table>`;
+            const sanitizedDisclaimer = DOMPurify.sanitize(d.disclaimer).replace(/\n/g, '<br>');
+            contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${d.disclaimerAlignment}" style="font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${d.disclaimerFontSize}px; color: ${d.disclaimerTextColor}; padding: ${d.disclaimerPaddingTop}px 0 ${d.disclaimerPaddingBottom}px 0; line-height: 1.4;">${sanitizedDisclaimer}</td></tr></table>`;
         }
 
         const mainTableStyle = `border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;`;
@@ -1426,7 +1482,14 @@ function generateEmailHtml(): string {
         `;
     } else if (comp.type === 'sales_offer') {
         const layout = d.layout || 'center';
-        const addOffers = JSON.parse(d.additionalOffers || '[]');
+        const rawAddOffers = JSON.parse(d.additionalOffers || '[]');
+        const addOffers = rawAddOffers.map((o: any) => ({
+            ...o,
+            separator: DOMPurify.sanitize(o.separator || ''),
+            offer: DOMPurify.sanitize(o.offer || ''),
+            details: DOMPurify.sanitize(o.details || ''),
+            disclaimer: DOMPurify.sanitize(o.disclaimer || '')
+        }));
         const imageEnabled = d.imageEnabled === 'true';
         
         const renderDetails = () => {
@@ -1474,9 +1537,9 @@ function generateEmailHtml(): string {
                 return `<div style="${style}">${text.replace(/\n/g, '<br>')}</div>`;
             };
 
-            detailsHtml += renderField({ text: d.vehicleText, fontSize: d.vehicleFontSize, color: d.vehicleColor, bgColor: d.vehicleBgColor, fontWeight: 'bold', textAlign: d.vehicleTextAlign, paddingTop: d.vehiclePaddingTop, paddingBottom: d.vehiclePaddingBottom });
-            detailsHtml += renderField({ text: d.mainOfferText, fontSize: d.mainOfferFontSize, color: d.mainOfferColor, bgColor: d.mainOfferBgColor, fontWeight: '800', textAlign: d.mainOfferTextAlign, paddingTop: d.mainOfferPaddingTop, paddingBottom: d.mainOfferPaddingBottom });
-            detailsHtml += renderField({ text: d.detailsText, fontSize: d.detailsFontSize, color: d.detailsColor, bgColor: d.detailsBgColor, fontWeight: 'normal', textAlign: d.detailsTextAlign, paddingTop: d.detailsPaddingTop, paddingBottom: d.detailsPaddingBottom });
+            detailsHtml += renderField({ text: DOMPurify.sanitize(d.vehicleText), fontSize: d.vehicleFontSize, color: d.vehicleColor, bgColor: d.vehicleBgColor, fontWeight: 'bold', textAlign: d.vehicleTextAlign, paddingTop: d.vehiclePaddingTop, paddingBottom: d.vehiclePaddingBottom });
+            detailsHtml += renderField({ text: DOMPurify.sanitize(d.mainOfferText), fontSize: d.mainOfferFontSize, color: d.mainOfferColor, bgColor: d.mainOfferBgColor, fontWeight: '800', textAlign: d.mainOfferTextAlign, paddingTop: d.mainOfferPaddingTop, paddingBottom: d.mainOfferPaddingBottom });
+            detailsHtml += renderField({ text: DOMPurify.sanitize(d.detailsText), fontSize: d.detailsFontSize, color: d.detailsColor, bgColor: d.detailsBgColor, fontWeight: 'normal', textAlign: d.detailsTextAlign, paddingTop: d.detailsPaddingTop, paddingBottom: d.detailsPaddingBottom });
             
             addOffers.forEach((o: any) => {
                 detailsHtml += renderField({ text: o.separator, fontSize: o.separatorFontSize, color: o.separatorColor, bgColor: o.separatorBgColor, fontWeight: 'bold', textAlign: o.separatorTextAlign, paddingTop: o.separatorPaddingTop, paddingBottom: o.separatorPaddingBottom });
@@ -1486,14 +1549,16 @@ function generateEmailHtml(): string {
             });
             
             let finalStockVinText = '';
-            if (d.stockVinValue && d.stockVinValue.trim() !== '') {
+            const sanitizedStockVin = DOMPurify.sanitize(d.stockVinValue || '');
+            if (sanitizedStockVin.trim() !== '') {
                 const label = d.stockVinType === 'stock' ? 'Stock #:' : 'VIN:';
-                finalStockVinText = `${label} ${d.stockVinValue.trim()}`;
+                finalStockVinText = `${label} ${sanitizedStockVin.trim()}`;
             }
 
             let finalMileageText = '';
-            if (d.mileageValue && d.mileageValue.trim() !== '') {
-                finalMileageText = `Mileage: ${d.mileageValue.trim()}`;
+            const sanitizedMileage = DOMPurify.sanitize(d.mileageValue || '');
+            if (sanitizedMileage.trim() !== '') {
+                finalMileageText = `Mileage: ${sanitizedMileage.trim()}`;
             }
 
             detailsHtml += renderField({ text: finalStockVinText, fontSize: d.stockVinFontSize, color: d.stockVinColor, bgColor: d.stockVinBgColor, fontWeight: 'normal', textAlign: d.stockVinTextAlign, paddingTop: d.stockVinPaddingTop, paddingBottom: d.stockVinPaddingBottom });
@@ -1517,21 +1582,21 @@ function generateEmailHtml(): string {
                 <table border="0" cellspacing="0" cellpadding="0" ${btnTableWidthAttr ? `width="${btnTableWidthAttr}"` : ""} style="margin: ${btnMargin}; width: ${btnWidthType === 'full' ? '100%' : (btnTableWidthAttr ? btnTableWidthAttr+'px' : 'auto')}; max-width: 100%;">
                     <tr>
                         <td align="center" bgcolor="${d.btnColor || '#007aff'}" style="border-radius: ${radius};">
-                            <a href="${d.btnLink || '#'}" target="_blank" style="background-color: ${d.btnColor || '#007aff'}; color: ${d.btnTextColor || '#fff'}; padding: ${d.btnPaddingTop || '12'}px 20px ${d.btnPaddingBottom || '12'}px; text-decoration: none; display: block; font-weight: bold; border-radius: ${radius}; font-size: ${d.btnFontSize || 16}px; font-family: ${designSettings.fontFamily}; text-align: center;">${d.btnText || 'View'}</a>
+                            <a href="${DOMPurify.sanitize(d.btnLink || '#')}" target="_blank" style="background-color: ${d.btnColor || '#007aff'}; color: ${d.btnTextColor || '#fff'}; padding: ${d.btnPaddingTop || '12'}px 20px ${d.btnPaddingBottom || '12'}px; text-decoration: none; display: block; font-weight: bold; border-radius: ${radius}; font-size: ${d.btnFontSize || 16}px; font-family: ${designSettings.fontFamily}; text-align: center;">${DOMPurify.sanitize(d.btnText || 'View')}</a>
                         </td>
                     </tr>
                 </table>
             `;
             
-            detailsHtml += renderField({ text: d.disclaimerText, fontSize: d.disclaimerFontSize, color: d.disclaimerColor, bgColor: d.disclaimerBgColor, fontWeight: 'normal', textAlign: d.disclaimerTextAlign, paddingTop: d.disclaimerPaddingTop, paddingBottom: d.disclaimerPaddingBottom });
+            detailsHtml += renderField({ text: DOMPurify.sanitize(d.disclaimerText), fontSize: d.disclaimerFontSize, color: d.disclaimerColor, bgColor: d.disclaimerBgColor, fontWeight: 'normal', textAlign: d.disclaimerTextAlign, paddingTop: d.disclaimerPaddingTop, paddingBottom: d.disclaimerPaddingBottom });
             
             return detailsHtml;
         };
 
         const renderImage = (fixedWidth?: number) => {
             const imgStyles = `display: block; width: 100%; max-width: ${fixedWidth ? `${fixedWidth}px` : '100%'}; height: auto; border: 0;`;
-            let imgTag = `<img src="${d.imageSrc || ''}" alt="${d.imageAlt || 'Sales Offer'}" ${fixedWidth ? `width="${fixedWidth}"` : ''} style="${imgStyles}" border="0" />`;
-            if (d.imageLink) imgTag = `<a href="${d.imageLink}" target="_blank" style="text-decoration: none;">${imgTag}</a>`;
+            let imgTag = `<img src="${DOMPurify.sanitize(d.imageSrc || '')}" alt="${DOMPurify.sanitize(d.imageAlt || 'Sales Offer')}" ${fixedWidth ? `width="${fixedWidth}"` : ''} style="${imgStyles}" border="0" />`;
+            if (d.imageLink) imgTag = `<a href="${DOMPurify.sanitize(d.imageLink)}" target="_blank" style="text-decoration: none;">${imgTag}</a>`;
             return imgTag;
         };
 
@@ -1591,6 +1656,7 @@ function generateEmailHtml(): string {
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data: https:; font-src 'none'">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="x-apple-disable-message-reformatting">
@@ -1635,50 +1701,61 @@ function generateEmailHtml(): string {
 }
 
 emailForm.addEventListener('submit', (e: Event) => {
-  e.preventDefault();
-  const btnText = generateBtn.querySelector('.btn-text') as HTMLElement;
-  const spinner = generateBtn.querySelector('.spinner') as HTMLElement;
-  const checkmark = generateBtn.querySelector('.checkmark') as HTMLElement;
-  
-  if (!btnText || !spinner || !checkmark) return;
+    e.preventDefault();
 
-  generateBtn.disabled = true;
-  btnText.textContent = 'Generating...';
-  spinner.classList.remove('hidden');
-  
-  setTimeout(() => {
-    try {
-        outputPlaceholder.style.display = 'none';
-        outputContainer.style.display = 'grid';
-        
-        const html = generateEmailHtml();
-        const codeBlock = document.getElementById('code-block') as HTMLElement;
-        if(codeBlock) codeBlock.textContent = html;
-        if(previewPane) previewPane.srcdoc = html;
-        
-        spinner.classList.add('hidden');
-        checkmark.classList.remove('hidden');
-        btnText.textContent = 'Complete';
-        showToast('Template Generated');
-    } catch (err) {
-        console.error("Generation failed:", err);
-        showToast('Error generating template. Check console.');
-        spinner.classList.add('hidden');
-    } finally {
-        setTimeout(() => {
-            generateBtn.disabled = false;
-            checkmark.classList.add('hidden');
-            btnText.textContent = 'Generate Template';
-        }, 2000);
+    if (activeComponents.length === 0) {
+        showToast('Please add at least one section before generating.', 'info');
+        return;
     }
-  }, 600);
+
+    const btnText = generateBtn.querySelector('.btn-text') as HTMLElement;
+    const spinner = generateBtn.querySelector('.spinner') as HTMLElement;
+    const checkmark = generateBtn.querySelector('.checkmark') as HTMLElement;
+
+    if (!btnText || !spinner || !checkmark) return;
+
+    const formElements = Array.from(emailForm.querySelectorAll('input, textarea, select, button'));
+    formElements.forEach(el => (el as HTMLButtonElement).disabled = true);
+
+    btnText.textContent = 'Generating...';
+    spinner.classList.remove('hidden');
+    checkmark.classList.add('hidden');
+
+    setTimeout(() => {
+        try {
+            const html = generateEmailHtml();
+            const codeBlock = document.getElementById('code-block') as HTMLElement;
+            if (codeBlock) codeBlock.textContent = html;
+            if (previewPane) previewPane.srcdoc = html;
+
+            outputPlaceholder.style.display = 'none';
+            outputContainer.style.display = 'grid';
+            
+            spinner.classList.add('hidden');
+            checkmark.classList.remove('hidden');
+            btnText.textContent = 'Complete';
+            showToast('Template Generated', 'success');
+
+        } catch (err) {
+            console.error("Generation failed:", err);
+            showToast('Error generating template. Check console for details.', 'error');
+            spinner.classList.add('hidden');
+            btnText.textContent = 'Generate Template';
+        } finally {
+            setTimeout(() => {
+                formElements.forEach(el => (el as HTMLButtonElement).disabled = false);
+                checkmark.classList.add('hidden');
+                btnText.textContent = 'Generate Template';
+            }, 2000);
+        }
+    }, 600);
 });
 
 copyBtn?.addEventListener('click', async () => {
   const codeBlock = document.getElementById('code-block') as HTMLElement;
   try {
     await navigator.clipboard.writeText(codeBlock.textContent || '');
-    showToast('Copied to clipboard');
+    showToast('Copied to clipboard', 'success');
   } catch (err) { console.error(err); }
 });
 
@@ -1693,7 +1770,7 @@ downloadBtn?.addEventListener('click', () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast('HTML file downloaded');
+    showToast('HTML file downloaded', 'success');
 });
 
 const getSavedTemplates = (): SavedTemplate[] => {
@@ -1722,14 +1799,14 @@ const saveTemplate = () => {
     templates.unshift(newTemplate);
     localStorage.setItem(LS_TEMPLATES_KEY, JSON.stringify(templates));
     renderSavedTemplates();
-    showToast('Template saved');
+    showToast('Template saved', 'success');
 };
 
 const deleteTemplate = (id: string) => {
     const templates = getSavedTemplates().filter(t => t.id !== id);
     localStorage.setItem(LS_TEMPLATES_KEY, JSON.stringify(templates));
     renderSavedTemplates();
-    showToast('Template deleted');
+    showToast('Template deleted', 'success');
 };
 
 const loadTemplate = (id: string) => {
@@ -1744,7 +1821,7 @@ const loadTemplate = (id: string) => {
         });
         renderComponents();
         saveDraft();
-        showToast(`Loaded: ${template.name}`);
+        showToast(`Loaded: ${template.name}`, 'success');
     }
 };
 
