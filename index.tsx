@@ -197,6 +197,12 @@ const fontSelect = document.getElementById('design-font-family') as HTMLSelectEl
 const saveTemplateBtn = document.getElementById('save-template-btn') as HTMLButtonElement;
 const savedTemplatesList = document.getElementById('saved-templates-list') as HTMLElement;
 
+const ALIGNMENT_ICONS = {
+    left: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="17" y1="18" x2="3" y2="18"></line></svg>`,
+    center: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="7" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="17" y1="18" x2="7" y2="18"></line></svg>`,
+    right: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="10" x2="7" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="21" y1="18" x2="7" y2="18"></line></svg>`
+};
+
 // Toast Notification
 const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
     let toastWrapper = document.getElementById('toast-wrapper');
@@ -1400,9 +1406,20 @@ function generateEmailHtml(): string {
         
         // Button
         if (d.buttonText) {
+            const getButtonWidthForHtml = (widthType: string | undefined): string => {
+                switch(widthType) {
+                    case 'full': return '100%';
+                    case 'small': return '160px';
+                    case 'medium': return '280px';
+                    case 'large': return '400px';
+                    case 'auto': return 'auto';
+                    default: return widthType || 'auto'; // Backwards compatibility
+                }
+            };
+            const buttonWidth = getButtonWidthForHtml(d.buttonWidth);
+
             const btnRadius = designSettings.buttonStyle === 'pill' ? '9999px' : designSettings.buttonStyle === 'square' ? '0px' : '8px';
             const isOutlined = designSettings.buttonStyle === 'outlined';
-            const buttonWidth = d.buttonWidth || 'auto';
             const sanitizedButtonLink = DOMPurify.sanitize(d.buttonLink || '#');
             const sanitizedButtonText = DOMPurify.sanitize(d.buttonText);
             const buttonBgColor = d.buttonBgColor || '#0066FF';
@@ -1435,7 +1452,7 @@ function generateEmailHtml(): string {
             const vmlHeight = (parseInt(d.buttonPaddingTop) + parseInt(d.buttonPaddingBottom) + parseInt(d.buttonFontSize)) * 1.3;
             let vmlWidthStyle = '';
             if (buttonWidth !== 'auto') {
-                vmlWidthStyle = `width:${(buttonWidth === '100%') ? '100%' : buttonWidth};`;
+                vmlWidthStyle = `width:${buttonWidth};`;
             }
 
             const vmlArcSize = btnRadius.includes('px') ? `${Math.min(50, (parseInt(btnRadius) / (vmlHeight/2)) * 100)}%` : '8%';
@@ -1444,8 +1461,9 @@ function generateEmailHtml(): string {
             const htmlButton = `<!--[if !mso]><!--><a href="${sanitizedButtonLink}" style="${aStyles}" target="_blank">${sanitizedButtonText}</a><!--<![endif]-->`;
             
             let buttonContent = `${vmlButton}${htmlButton}`;
-             if (buttonWidth !== '100%') {
-                buttonContent = `<table cellpadding="0" cellspacing="0" border="0" style="width: ${buttonWidth === 'auto' ? 'auto' : buttonWidth};"><tr><td align="center">${vmlButton}${htmlButton}</td></tr></table>`;
+            if (buttonWidth !== '100%') {
+                const tableWidth = buttonWidth === 'auto' ? 'auto' : buttonWidth;
+                buttonContent = `<table cellpadding="0" cellspacing="0" border="0" style="width: ${tableWidth};"><tr><td align="center">${vmlButton}${htmlButton}</td></tr></table>`;
             }
 
             contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${d.buttonAlignment}" style="padding: 12px 0;">${buttonContent}</td></tr></table>`;
@@ -1666,46 +1684,117 @@ function generateEmailHtml(): string {
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data: https:; font-src 'none'">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="x-apple-disable-message-reformatting">
+    <title>Email</title>
     <!--[if mso]>
-    <style>
-        * {
-            font-family: Arial, sans-serif !important;
-        }
+    <style type="text/css">
+        body, table, td, a { font-family: Arial, sans-serif !important; }
+        table { border-collapse: collapse; }
+        .email-container { width: 600px !important; }
     </style>
+    <noscript>
+        <xml>
+            <o:OfficeDocumentSettings>
+                <o:AllowPNG/>
+                <o:PixelsPerInch>96</o:PixelsPerInch>
+            </o:OfficeDocumentSettings>
+        </xml>
+    </noscript>
     <![endif]-->
     <style type="text/css">
-        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
-        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
-        img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
-        body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; background-color: #f5f5f7; }
+        /* Reset styles */
+        body, table, td, a { 
+            -webkit-text-size-adjust: 100%; 
+            -ms-text-size-adjust: 100%; 
+        }
+        table, td { 
+            mso-table-lspace: 0pt; 
+            mso-table-rspace: 0pt; 
+        }
+        img { 
+            -ms-interpolation-mode: bicubic; 
+            border: 0; 
+            height: auto; 
+            line-height: 100%; 
+            outline: none; 
+            text-decoration: none; 
+        }
         
+        /* Body reset */
+        body { 
+            height: 100% !important; 
+            margin: 0 !important; 
+            padding: 0 !important; 
+            width: 100% !important; 
+            background-color: #f5f5f7;
+            font-family: Arial, sans-serif;
+        }
+        
+        /* Remove spaces around email on mobile */
+        body, #bodyTable {
+            height: 100% !important;
+            margin: 0;
+            padding: 0;
+            width: 100% !important;
+        }
+        
+        /* Force Outlook to provide a "view in browser" link */
+        #outlook a { padding: 0; }
+        
+        /* Prevent Webkit and Windows Mobile from changing font sizes */
+        body { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        
+        /* Force Hotmail to display normal line spacing */
+        .ExternalClass { width: 100%; }
+        .ExternalClass, .ExternalClass p, .ExternalClass span, .ExternalClass font, .ExternalClass td, .ExternalClass div {
+            line-height: 100%;
+        }
+        
+        /* Mobile responsive styles */
         @media screen and (max-width: 600px) {
-            .email-container { width: 100% !important; margin: auto !important; }
-            .mobile-stack { display: block !important; width: 100% !important; max-width: 100% !important; padding: 0 !important; }
-            .mobile-padding-bottom { padding-bottom: 24px !important; }
+            .email-container {
+                width: 100% !important;
+                margin: auto !important;
+            }
+            .mobile-stack {
+                display: block !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
         }
     </style>
 </head>
-<body style="margin: 0; padding: 0 !important; mso-line-height-rule: exactly; background-color: #f5f5f7;">
-    <center style="width: 100%; background-color: #f5f5f7;">
-        <!--[if (gte mso 9)|(IE)]>
-        <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
+<body style="margin: 0; padding: 0; width: 100%; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; background-color: #f5f5f7;">
+    <!-- 100% background wrapper -->
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" id="bodyTable" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; margin: 0; padding: 0; width: 100%; height: 100%; background-color: #f5f5f7;">
         <tr>
-        <td align="center" valign="top" width="600">
-        <![endif]-->
-        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; overflow: hidden;" class="email-container">
-            ${sectionsHtml || '<tr><td style="padding: 40px; text-align: center; font-family: sans-serif;">No content added yet.</td></tr>'}
-        </table>
-        <!--[if (gte mso 9)|(IE)]>
-        </td>
+            <td align="center" valign="top" style="margin: 0; padding: 20px 0; border-collapse: collapse;">
+                
+                <!-- Centering wrapper for Outlook -->
+                <!--[if (gte mso 9)|(IE)]>
+                <table align="center" border="0" cellspacing="0" cellpadding="0" width="600" style="width: 600px;">
+                <tr>
+                <td align="center" valign="top" width="600" style="width: 600px;">
+                <![endif]-->
+                
+                <!-- 600px container -->
+                <table border="0" cellpadding="0" cellspacing="0" width="100%" class="email-container" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+                    
+                    ${sectionsHtml || '<tr><td style="padding: 40px; text-align: center; font-family: sans-serif;">No content added yet.</td></tr>'}
+                    
+                </table>
+                
+                <!--[if (gte mso 9)|(IE)]>
+                </td>
+                </tr>
+                </table>
+                <![endif]-->
+                
+            </td>
         </tr>
-        </table>
-        <![endif]-->
-    </center>
+    </table>
 </body>
 </html>`.trim();
 }
@@ -1923,6 +2012,63 @@ const attachButtonStyleListeners = () => {
     });
 };
 
+const alignmentControlHtml = (dataStyleKey: string, currentValue: string, disabled: boolean = false) => {
+    const options = ['left', 'center', 'right'];
+    const buttonsHtml = options.map(opt => `
+        <button 
+            type="button" 
+            class="toggle-btn alignment-toggle style-control ${currentValue === opt ? 'active' : ''}" 
+            data-style-key="${dataStyleKey}" 
+            data-value="${opt}"
+            ${disabled ? 'disabled' : ''}
+            title="Align ${opt}"
+        >
+            ${ALIGNMENT_ICONS[opt as keyof typeof ALIGNMENT_ICONS]}
+        </button>
+    `).join('');
+
+    return `<div class="toggle-group">${buttonsHtml}</div>`;
+};
+
+const buttonWidthControlHtml = (currentValue: string, dataStyleKey: string): string => {
+    const options = [
+        { label: 'Auto', value: 'auto', indicatorWidth: '30%' },
+        { label: 'Full', value: 'full', indicatorWidth: '100%' },
+        { label: 'S', value: 'small', indicatorWidth: '25%' },
+        { label: 'M', value: 'medium', indicatorWidth: '50%' },
+        { label: 'L', value: 'large', indicatorWidth: '75%' }
+    ];
+
+    // Map old pixel/percentage values for service_offer to new keywords for UI state
+    const mapOldValues = (val: string) => {
+        if (!val) return 'auto';
+        switch(val) {
+            case '100%': return 'full';
+            case '160px': return 'small';
+            case '280px': return 'medium';
+            case '400px': return 'large';
+            default: return val; // covers auto, full, small, medium, large
+        }
+    };
+    const mappedValue = mapOldValues(currentValue);
+
+    const buttonsHtml = options.map(opt => `
+        <button type="button" 
+            class="btn-width-option style-control ${mappedValue === opt.value ? 'active' : ''}" 
+            data-style-key="${dataStyleKey}" 
+            data-value="${opt.value}"
+            title="${opt.label}"
+        >
+            <span>${opt.label}</span>
+            <div class="width-indicator-wrapper">
+                <div class="width-indicator" style="width: ${opt.indicatorWidth};"></div>
+            </div>
+        </button>
+    `).join('');
+
+    return `<div class="btn-width-group">${buttonsHtml}</div>`;
+};
+
 const renderStylingPanel = () => {
     if (!dynamicStylingContainer || !activeField) {
         if(dynamicStylingContainer) dynamicStylingContainer.innerHTML = '';
@@ -1934,6 +2080,58 @@ const renderStylingPanel = () => {
         dynamicStylingContainer.innerHTML = '';
         return;
     }
+    
+    const colorPickerHtml = (dataStyleKey: string, value: string, disabled: boolean = false) => {
+        const disabledAttr = disabled ? 'disabled' : '';
+        const onclickAttr = disabled ? '' : `onclick="this.querySelector('input[type=color]').click()"`;
+        return `
+            <div class="color-picker-wrapper">
+                <div class="color-input-container mini" ${onclickAttr}>
+                    <div class="color-swatch-display" style="background-color: ${value};"></div>
+                    <input type="color" class="color-input-hidden style-control" data-style-key="${dataStyleKey}" value="${value}" ${disabledAttr}>
+                </div>
+                <input type="text" class="form-control compact color-hex-input" value="${value.toUpperCase()}" maxlength="7" ${disabledAttr}>
+            </div>
+        `;
+    };
+
+    const attachColorPickerListeners = () => {
+        dynamicStylingContainer.querySelectorAll('.color-picker-wrapper').forEach(wrapper => {
+            const colorInput = wrapper.querySelector('.color-input-hidden') as HTMLInputElement;
+            const textInput = wrapper.querySelector('.color-hex-input') as HTMLInputElement;
+            const swatch = wrapper.querySelector('.color-swatch-display') as HTMLDivElement;
+
+            if (!colorInput || !textInput || !swatch) return;
+
+            colorInput.addEventListener('input', () => {
+                const newColor = colorInput.value.toUpperCase();
+                if (textInput.value.toUpperCase() !== newColor) {
+                    textInput.value = newColor;
+                }
+                swatch.style.backgroundColor = colorInput.value;
+            });
+
+            textInput.addEventListener('input', () => {
+                const value = textInput.value;
+                if (/^#([0-9a-f]{3}){1,2}$/i.test(value)) {
+                    if (colorInput.value.toUpperCase() !== value.toUpperCase()) {
+                        colorInput.value = value;
+                        swatch.style.backgroundColor = value;
+                        colorInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                }
+            });
+
+            textInput.addEventListener('blur', () => {
+                if (!/^#([0-9a-f]{3}){1,2}$/i.test(textInput.value)) {
+                    textInput.value = colorInput.value.toUpperCase();
+                } else {
+                    textInput.value = textInput.value.toUpperCase();
+                }
+            });
+        });
+    };
+
 
     // Path for Header Component
     if (comp.type === 'header') {
@@ -1950,28 +2148,24 @@ const renderStylingPanel = () => {
                     </div>
                     <div class="form-group">
                         <label class="form-label">Alignment</label>
-                        <select class="form-control style-control" data-style-key="textAlign">
-                            <option value="left" ${d.textAlign === 'left' ? 'selected' : ''}>Left</option>
-                            <option value="center" ${d.textAlign === 'center' ? 'selected' : ''}>Center</option>
-                            <option value="right" ${d.textAlign === 'right' ? 'selected' : ''}>Right</option>
-                        </select>
+                        ${alignmentControlHtml('textAlign', d.textAlign || 'center')}
                     </div>
                 </div>
                 <div class="grid grid-cols-2">
                     <div class="form-group">
                         <label class="form-label">Text Color</label>
-                        <input type="color" class="form-control style-control" data-style-key="textColor" value="${(d.textColor && d.textColor.startsWith('#')) ? d.textColor : '#1d1d1f'}">
+                        ${colorPickerHtml('textColor', (d.textColor && d.textColor.startsWith('#')) ? d.textColor : '#1d1d1f')}
                     </div>
                     <div class="form-group">
                         <label class="form-label">Background Color</label>
-                        <input type="color" class="form-control style-control" data-style-key="backgroundColor" value="${d.backgroundColor === 'transparent' ? '#ffffff' : d.backgroundColor || '#ffffff'}">
+                        ${colorPickerHtml('backgroundColor', d.backgroundColor === 'transparent' ? '#ffffff' : d.backgroundColor || '#ffffff')}
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Formatting</label>
-                    <div class="toggle-group">
-                        <button type="button" class="toggle-btn format-toggle style-control ${d.fontWeight === 'bold' ? 'active' : ''}" data-style-key="fontWeight" data-val-on="bold" data-val-off="normal">B</button>
-                        <button type="button" class="toggle-btn format-toggle style-control ${d.fontStyle === 'italic' ? 'active' : ''}" data-style-key="fontStyle" data-val-on="italic" data-val-off="normal">I</button>
+                    <div style="display: flex; gap: 6px;">
+                        <button type="button" class="btn btn-secondary format-toggle style-control ${d.fontWeight === 'bold' ? 'active' : ''}" data-style-key="fontWeight" data-val-on="bold" data-val-off="normal" style="font-weight: 800; font-size: 15px; width: 36px; height: 36px; padding: 0; border-radius: var(--radius-md);">B</button>
+                        <button type="button" class="btn btn-secondary format-toggle style-control ${d.fontStyle === 'italic' ? 'active' : ''}" data-style-key="fontStyle" data-val-on="italic" data-val-off="normal" style="font-style: italic; font-size: 15px; width: 36px; height: 36px; padding: 0; border-radius: var(--radius-md);">I</button>
                     </div>
                 </div>
                 <div class="grid grid-cols-3">
@@ -1996,7 +2190,15 @@ const renderStylingPanel = () => {
             const key = inputEl.dataset.styleKey;
             if (!key) return;
 
-            if (inputEl.classList.contains('format-toggle')) {
+            if (inputEl.classList.contains('alignment-toggle')) {
+                inputEl.addEventListener('click', () => {
+                    const value = inputEl.dataset.value;
+                    if (!value) return;
+                    inputEl.parentElement?.querySelectorAll('.alignment-toggle').forEach(sib => sib.classList.remove('active'));
+                    inputEl.classList.add('active');
+                    updateComponentData(comp.id, key, value);
+                });
+            } else if (inputEl.classList.contains('format-toggle')) {
                 inputEl.addEventListener('click', () => {
                     const onVal = inputEl.dataset.valOn as string;
                     const offVal = inputEl.dataset.valOff as string;
@@ -2011,6 +2213,7 @@ const renderStylingPanel = () => {
                 });
             }
         });
+        attachColorPickerListeners();
         return;
     } else if (comp.type === 'text_block') {
         const d = comp.data;
@@ -2026,28 +2229,24 @@ const renderStylingPanel = () => {
                     </div>
                     <div class="form-group">
                         <label class="form-label">Alignment</label>
-                        <select class="form-control style-control" data-style-key="textAlign">
-                            <option value="left" ${d.textAlign === 'left' ? 'selected' : ''}>Left</option>
-                            <option value="center" ${d.textAlign === 'center' ? 'selected' : ''}>Center</option>
-                            <option value="right" ${d.textAlign === 'right' ? 'selected' : ''}>Right</option>
-                        </select>
+                        ${alignmentControlHtml('textAlign', d.textAlign || 'left')}
                     </div>
                 </div>
                 <div class="grid grid-cols-2">
                     <div class="form-group">
                         <label class="form-label">Text Color</label>
-                        <input type="color" class="form-control style-control" data-style-key="textColor" value="${(d.textColor && d.textColor.startsWith('#')) ? d.textColor : '#3c3c43'}">
+                        ${colorPickerHtml('textColor', (d.textColor && d.textColor.startsWith('#')) ? d.textColor : '#3c3c43')}
                     </div>
                     <div class="form-group">
                         <label class="form-label">Background Color</label>
-                        <input type="color" class="form-control style-control" data-style-key="backgroundColor" value="${d.backgroundColor === 'transparent' ? '#ffffff' : d.backgroundColor || '#ffffff'}">
+                        ${colorPickerHtml('backgroundColor', d.backgroundColor === 'transparent' ? '#ffffff' : d.backgroundColor || '#ffffff')}
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Formatting</label>
-                    <div class="toggle-group">
-                        <button type="button" class="toggle-btn format-toggle style-control ${d.fontWeight === 'bold' ? 'active' : ''}" data-style-key="fontWeight" data-val-on="bold" data-val-off="normal">B</button>
-                        <button type="button" class="toggle-btn format-toggle style-control ${d.fontStyle === 'italic' ? 'active' : ''}" data-style-key="fontStyle" data-val-on="italic" data-val-off="normal">I</button>
+                    <div style="display: flex; gap: 6px;">
+                        <button type="button" class="btn btn-secondary format-toggle style-control ${d.fontWeight === 'bold' ? 'active' : ''}" data-style-key="fontWeight" data-val-on="bold" data-val-off="normal" style="font-weight: 800; font-size: 15px; width: 36px; height: 36px; padding: 0; border-radius: var(--radius-md);">B</button>
+                        <button type="button" class="btn btn-secondary format-toggle style-control ${d.fontStyle === 'italic' ? 'active' : ''}" data-style-key="fontStyle" data-val-on="italic" data-val-off="normal" style="font-style: italic; font-size: 15px; width: 36px; height: 36px; padding: 0; border-radius: var(--radius-md);">I</button>
                     </div>
                 </div>
                 <div class="grid grid-cols-3">
@@ -2072,7 +2271,15 @@ const renderStylingPanel = () => {
             const key = inputEl.dataset.styleKey;
             if (!key) return;
 
-            if (inputEl.classList.contains('format-toggle')) {
+             if (inputEl.classList.contains('alignment-toggle')) {
+                inputEl.addEventListener('click', () => {
+                    const value = inputEl.dataset.value;
+                    if (!value) return;
+                    inputEl.parentElement?.querySelectorAll('.alignment-toggle').forEach(sib => sib.classList.remove('active'));
+                    inputEl.classList.add('active');
+                    updateComponentData(comp.id, key, value);
+                });
+            } else if (inputEl.classList.contains('format-toggle')) {
                 inputEl.addEventListener('click', () => {
                     const onVal = inputEl.dataset.valOn as string;
                     const offVal = inputEl.dataset.valOff as string;
@@ -2087,6 +2294,7 @@ const renderStylingPanel = () => {
                 });
             }
         });
+        attachColorPickerListeners();
         return;
     } else if (comp.type === 'image') {
         const d = comp.data;
@@ -2102,11 +2310,7 @@ const renderStylingPanel = () => {
 
                 <div class="form-group">
                     <label class="form-label">Alignment</label>
-                    <select class="form-control style-control" data-style-key="align">
-                        <option value="left" ${d.align === 'left' ? 'selected' : ''}>Left</option>
-                        <option value="center" ${d.align === 'center' ? 'selected' : ''}>Center</option>
-                        <option value="right" ${d.align === 'right' ? 'selected' : ''}>Right</option>
-                    </select>
+                    ${alignmentControlHtml('align', d.align || 'center')}
                 </div>
 
                 <div class="grid grid-cols-3">
@@ -2127,17 +2331,27 @@ const renderStylingPanel = () => {
         `;
 
         dynamicStylingContainer.querySelectorAll('.style-control').forEach(el => {
-            const inputEl = el as HTMLInputElement | HTMLSelectElement;
+            const inputEl = el as HTMLInputElement | HTMLSelectElement | HTMLButtonElement;
             const key = inputEl.dataset.styleKey;
             if (!key) return;
             
-            inputEl.addEventListener('input', () => {
-                let value = inputEl.value;
-                if (key === 'width') {
-                    value = `${value}%`;
-                }
-                updateComponentData(comp.id, key, value);
-            });
+            if (inputEl.classList.contains('alignment-toggle')) {
+                inputEl.addEventListener('click', () => {
+                    const value = inputEl.dataset.value;
+                    if (!value) return;
+                    inputEl.parentElement?.querySelectorAll('.alignment-toggle').forEach(sib => sib.classList.remove('active'));
+                    inputEl.classList.add('active');
+                    updateComponentData(comp.id, key, value);
+                });
+            } else {
+                 inputEl.addEventListener('input', () => {
+                    let value = inputEl.value;
+                    if (key === 'width') {
+                        value = `${value}%`;
+                    }
+                    updateComponentData(comp.id, key, value);
+                });
+            }
         });
         return;
     } else if (comp.type === 'divider') {
@@ -2161,15 +2375,11 @@ const renderStylingPanel = () => {
                 <div class="grid grid-cols-2">
                      <div class="form-group">
                         <label class="form-label">Line Color</label>
-                        <input type="color" class="form-control style-control" data-style-key="lineColor" value="${d.lineColor || '#CCCCCC'}">
+                        ${colorPickerHtml('lineColor', d.lineColor || '#CCCCCC')}
                     </div>
                     <div class="form-group">
                         <label class="form-label">Alignment</label>
-                        <select class="form-control style-control" data-style-key="alignment">
-                            <option value="left" ${d.alignment === 'left' ? 'selected' : ''}>Left</option>
-                            <option value="center" ${d.alignment === 'center' ? 'selected' : ''}>Center</option>
-                            <option value="right" ${d.alignment === 'right' ? 'selected' : ''}>Right</option>
-                        </select>
+                        ${alignmentControlHtml('alignment', d.alignment || 'center')}
                     </div>
                 </div>
 
@@ -2186,12 +2396,21 @@ const renderStylingPanel = () => {
             </div>
         `;
         dynamicStylingContainer.querySelectorAll('.style-control').forEach(el => {
-            const inputEl = el as HTMLInputElement | HTMLSelectElement;
+            const inputEl = el as HTMLInputElement | HTMLButtonElement;
             const key = inputEl.dataset.styleKey;
             if (!key) return;
+            
+            const isAlignment = inputEl.classList.contains('alignment-toggle');
 
-            inputEl.addEventListener('input', () => {
-                const value = inputEl.value;
+            const handler = () => {
+                const value = isAlignment ? inputEl.dataset.value : (inputEl as HTMLInputElement).value;
+                if(value === undefined) return;
+                
+                if (isAlignment) {
+                    inputEl.parentElement?.querySelectorAll('.alignment-toggle').forEach(sib => sib.classList.remove('active'));
+                    inputEl.classList.add('active');
+                }
+                
                 updateComponentData(comp.id, key, value);
 
                 // Update preview in real-time
@@ -2200,29 +2419,23 @@ const renderStylingPanel = () => {
 
                 if (previewContainer && previewLine) {
                     switch(key) {
-                        case 'width':
-                            previewLine.style.width = `${value}%`;
-                            break;
-                        case 'thickness':
-                            previewLine.style.height = `${value}px`;
-                            break;
-                        case 'lineColor':
-                            previewLine.style.backgroundColor = value;
-                            break;
-                        case 'alignment':
-                            previewContainer.setAttribute('data-alignment', value);
-                            break;
-                        case 'paddingTop':
-                            (previewContainer as HTMLElement).style.paddingTop = `${value}px`;
-                            break;
-                        case 'paddingBottom':
-                            (previewContainer as HTMLElement).style.paddingBottom = `${value}px`;
-                            break;
+                        case 'width': previewLine.style.width = `${value}%`; break;
+                        case 'thickness': previewLine.style.height = `${value}px`; break;
+                        case 'lineColor': previewLine.style.backgroundColor = value; break;
+                        case 'alignment': previewContainer.setAttribute('data-alignment', value); break;
+                        case 'paddingTop': (previewContainer as HTMLElement).style.paddingTop = `${value}px`; break;
+                        case 'paddingBottom': (previewContainer as HTMLElement).style.paddingBottom = `${value}px`; break;
                     }
                 }
-            });
+            };
+            
+            if (isAlignment) {
+                inputEl.addEventListener('click', handler);
+            } else {
+                inputEl.addEventListener('input', handler);
+            }
         });
-
+        attachColorPickerListeners();
         return;
     } else if (comp.type === 'spacer') {
         const d = comp.data;
@@ -2239,7 +2452,7 @@ const renderStylingPanel = () => {
 
                 <div class="form-group">
                     <label class="form-label">Background Color</label>
-                    <input type="color" class="form-control style-control" data-style-key="backgroundColor" value="${d.backgroundColor || '#ffffff'}" ${matchBg ? 'disabled' : ''}>
+                    ${colorPickerHtml('backgroundColor', d.backgroundColor || '#ffffff', matchBg)}
                 </div>
                 
                 <div class="form-group" style="display: flex; align-items: center; gap: var(--spacing-sm);">
@@ -2250,7 +2463,7 @@ const renderStylingPanel = () => {
         `;
         
         const heightInput = dynamicStylingContainer.querySelector('[data-style-key="height"]') as HTMLInputElement;
-        const bgColorInput = dynamicStylingContainer.querySelector('[data-style-key="backgroundColor"]') as HTMLInputElement;
+        const bgColorPicker = dynamicStylingContainer.querySelector('.color-picker-wrapper') as HTMLElement;
         const matchBgCheckbox = dynamicStylingContainer.querySelector('[data-style-key="matchEmailBackground"]') as HTMLInputElement;
 
         const updateSpacerPreview = () => {
@@ -2279,17 +2492,16 @@ const renderStylingPanel = () => {
             updateComponentData(comp.id, 'height', heightInput.value);
             updateSpacerPreview();
         });
-        bgColorInput.addEventListener('input', () => {
-            updateComponentData(comp.id, 'backgroundColor', bgColorInput.value);
+        bgColorPicker.querySelector('.color-input-hidden')?.addEventListener('input', () => {
+            updateComponentData(comp.id, 'backgroundColor', (bgColorPicker.querySelector('.color-input-hidden') as HTMLInputElement).value);
             updateSpacerPreview();
         });
         matchBgCheckbox.addEventListener('change', () => {
             const isChecked = matchBgCheckbox.checked;
-            bgColorInput.disabled = isChecked;
             updateComponentData(comp.id, 'matchEmailBackground', isChecked.toString());
-            updateSpacerPreview();
+            renderStylingPanel(); // Re-render to update disabled state
         });
-
+        attachColorPickerListeners();
         return;
     } else if (comp.type === 'service_offer') {
         const d = comp.data;
@@ -2313,15 +2525,15 @@ const renderStylingPanel = () => {
             case 'serviceOfferImage':
                  content = `
                     <div class="form-group"><label class="form-label">Width (%)</label><input type="number" class="form-control style-control" data-style-key="imageWidth" value="${d.imageWidth}"></div>
-                    <div class="form-group"><label class="form-label">Alignment</label><select class="form-control style-control" data-style-key="imageAlignment"><option value="left" ${d.imageAlignment === 'left' ? 'selected' : ''}>Left</option><option value="center" ${d.imageAlignment === 'center' ? 'selected' : ''}>Center</option><option value="right" ${d.imageAlignment === 'right' ? 'selected' : ''}>Right</option></select></div>
+                    <div class="form-group"><label class="form-label">Alignment</label>${alignmentControlHtml('imageAlignment', d.imageAlignment || 'center')}</div>
                     <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Padding Top</label><input type="number" class="form-control style-control" data-style-key="imagePaddingTop" value="${d.imagePaddingTop}"></div><div class="form-group"><label class="form-label">Padding Bottom</label><input type="number" class="form-control style-control" data-style-key="imagePaddingBottom" value="${d.imagePaddingBottom}"></div></div>
                  `;
                 break;
             case 'serviceOfferTitle':
                 content = `
                     <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Font Size</label><input type="number" class="form-control style-control" data-style-key="titleFontSize" value="${d.titleFontSize}"></div><div class="form-group"><label class="form-label">Font Weight</label><select class="form-control style-control" data-style-key="titleFontWeight"><option value="normal" ${d.titleFontWeight === 'normal' ? 'selected' : ''}>Normal</option><option value="bold" ${d.titleFontWeight === 'bold' ? 'selected' : ''}>Bold</option></select></div></div>
-                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Text Color</label><input type="color" class="form-control style-control" data-style-key="titleTextColor" value="${d.titleTextColor}"></div><div class="form-group"><label class="form-label">BG Color</label><input type="color" class="form-control style-control" data-style-key="titleBgColor" value="${d.titleBgColor}"></div></div>
-                    <div class="form-group"><label class="form-label">Alignment</label><select class="form-control style-control" data-style-key="titleAlignment"><option value="left" ${d.titleAlignment === 'left' ? 'selected' : ''}>Left</option><option value="center" ${d.titleAlignment === 'center' ? 'selected' : ''}>Center</option><option value="right" ${d.titleAlignment === 'right' ? 'selected' : ''}>Right</option></select></div>
+                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Text Color</label>${colorPickerHtml('titleTextColor', d.titleTextColor)}</div><div class="form-group"><label class="form-label">BG Color</label>${colorPickerHtml('titleBgColor', d.titleBgColor)}</div></div>
+                    <div class="form-group"><label class="form-label">Alignment</label>${alignmentControlHtml('titleAlignment', d.titleAlignment || 'center')}</div>
                     <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Padding Top</label><input type="number" class="form-control style-control" data-style-key="titlePaddingTop" value="${d.titlePaddingTop}"></div><div class="form-group"><label class="form-label">Padding Bottom</label><input type="number" class="form-control style-control" data-style-key="titlePaddingBottom" value="${d.titlePaddingBottom}"></div></div>
                 `;
                 break;
@@ -2329,43 +2541,37 @@ const renderStylingPanel = () => {
                 const couponShowBorder = d.couponShowBorder === 'true';
                 content = `
                     <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Font Size</label><input type="number" class="form-control style-control" data-style-key="couponFontSize" value="${d.couponFontSize}"></div><div class="form-group"><label class="form-label">Font Weight</label><select class="form-control style-control" data-style-key="couponFontWeight"><option value="normal" ${d.couponFontWeight === 'normal' ? 'selected' : ''}>Normal</option><option value="bold" ${d.couponFontWeight === 'bold' ? 'selected' : ''}>Bold</option></select></div></div>
-                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Text Color</label><input type="color" class="form-control style-control" data-style-key="couponTextColor" value="${d.couponTextColor}"></div><div class="form-group"><label class="form-label">BG Color</label><input type="color" class="form-control style-control" data-style-key="couponBgColor" value="${d.couponBgColor}"></div></div>
-                    <div class="form-group"><label class="form-label">Alignment</label><select class="form-control style-control" data-style-key="couponAlignment"><option value="left" ${d.couponAlignment === 'left' ? 'selected' : ''}>Left</option><option value="center" ${d.couponAlignment === 'center' ? 'selected' : ''}>Center</option><option value="right" ${d.couponAlignment === 'right' ? 'selected' : ''}>Right</option></select></div>
+                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Text Color</label>${colorPickerHtml('couponTextColor', d.couponTextColor)}</div><div class="form-group"><label class="form-label">BG Color</label>${colorPickerHtml('couponBgColor', d.couponBgColor)}</div></div>
+                    <div class="form-group"><label class="form-label">Alignment</label>${alignmentControlHtml('couponAlignment', d.couponAlignment || 'center')}</div>
                     <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Padding T/B</label><input type="number" class="form-control style-control" data-style-key="couponPaddingTop" value="${d.couponPaddingTop}"><input type="number" class="form-control style-control mt-2" data-style-key="couponPaddingBottom" value="${d.couponPaddingBottom}"></div><div class="form-group"><label class="form-label">Padding L/R</label><input type="number" class="form-control style-control" data-style-key="couponPaddingLeft" value="${d.couponPaddingLeft}"><input type="number" class="form-control style-control mt-2" data-style-key="couponPaddingRight" value="${d.couponPaddingRight}"></div></div>
                     <div class="form-group"><label class="form-label"><input type="checkbox" class="style-control" data-style-key="couponShowBorder" ${couponShowBorder ? 'checked' : ''}> Show Coupon Border</label></div>
-                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Border Style</label><select class="form-control style-control" data-style-key="couponBorderStyle" ${!couponShowBorder ? 'disabled' : ''}><option value="solid" ${d.couponBorderStyle === 'solid' ? 'selected': ''}>Solid</option><option value="dashed" ${d.couponBorderStyle === 'dashed' ? 'selected': ''}>Dashed</option><option value="dotted" ${d.couponBorderStyle === 'dotted' ? 'selected': ''}>Dotted</option></select></div><div class="form-group"><label class="form-label">Border Color</label><input type="color" class="form-control style-control" data-style-key="couponBorderColor" value="${d.couponBorderColor}" ${!couponShowBorder ? 'disabled' : ''}></div></div>
+                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Border Style</label><select class="form-control style-control" data-style-key="couponBorderStyle" ${!couponShowBorder ? 'disabled' : ''}><option value="solid" ${d.couponBorderStyle === 'solid' ? 'selected': ''}>Solid</option><option value="dashed" ${d.couponBorderStyle === 'dashed' ? 'selected': ''}>Dashed</option><option value="dotted" ${d.couponBorderStyle === 'dotted' ? 'selected': ''}>Dotted</option></select></div><div class="form-group"><label class="form-label">Border Color</label>${colorPickerHtml('couponBorderColor', d.couponBorderColor, !couponShowBorder)}</div></div>
                 `;
                 break;
             case 'serviceOfferDetails':
                 content = `
                     <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Font Size</label><input type="number" class="form-control style-control" data-style-key="detailsFontSize" value="${d.detailsFontSize}"></div><div class="form-group"><label class="form-label">Line Height</label><input type="number" step="0.1" class="form-control style-control" data-style-key="detailsLineHeight" value="${d.detailsLineHeight}"></div></div>
-                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Text Color</label><input type="color" class="form-control style-control" data-style-key="detailsTextColor" value="${d.detailsTextColor}"></div><div class="form-group"><label class="form-label">BG Color</label><input type="color" class="form-control style-control" data-style-key="detailsBgColor" value="${d.detailsBgColor}"></div></div>
-                    <div class="form-group"><label class="form-label">Alignment</label><select class="form-control style-control" data-style-key="detailsAlignment"><option value="left" ${d.detailsAlignment === 'left' ? 'selected' : ''}>Left</option><option value="center" ${d.detailsAlignment === 'center' ? 'selected' : ''}>Center</option><option value="right" ${d.detailsAlignment === 'right' ? 'selected' : ''}>Right</option></select></div>
+                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Text Color</label>${colorPickerHtml('detailsTextColor', d.detailsTextColor)}</div><div class="form-group"><label class="form-label">BG Color</label>${colorPickerHtml('detailsBgColor', d.detailsBgColor)}</div></div>
+                    <div class="form-group"><label class="form-label">Alignment</label>${alignmentControlHtml('detailsAlignment', d.detailsAlignment || 'center')}</div>
                     <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Padding Top</label><input type="number" class="form-control style-control" data-style-key="detailsPaddingTop" value="${d.detailsPaddingTop}"></div><div class="form-group"><label class="form-label">Padding Bottom</label><input type="number" class="form-control style-control" data-style-key="detailsPaddingBottom" value="${d.detailsPaddingBottom}"></div></div>
                 `;
                 break;
             case 'serviceOfferDisclaimer':
                 content = `
                     <div class="form-group"><label class="form-label">Font Size</label><input type="number" class="form-control style-control" data-style-key="disclaimerFontSize" value="${d.disclaimerFontSize}"></div>
-                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Text Color</label><input type="color" class="form-control style-control" data-style-key="disclaimerTextColor" value="${d.disclaimerTextColor}"></div><div class="form-group"><label class="form-label">BG Color</label><input type="color" class="form-control style-control" data-style-key="disclaimerBgColor" value="${d.disclaimerBgColor}"></div></div>
-                    <div class="form-group"><label class="form-label">Alignment</label><select class="form-control style-control" data-style-key="disclaimerAlignment"><option value="left" ${d.disclaimerAlignment === 'left' ? 'selected' : ''}>Left</option><option value="center" ${d.disclaimerAlignment === 'center' ? 'selected' : ''}>Center</option><option value="right" ${d.disclaimerAlignment === 'right' ? 'selected' : ''}>Right</option></select></div>
+                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Text Color</label>${colorPickerHtml('disclaimerTextColor', d.disclaimerTextColor)}</div><div class="form-group"><label class="form-label">BG Color</label>${colorPickerHtml('disclaimerBgColor', d.disclaimerBgColor)}</div></div>
+                    <div class="form-group"><label class="form-label">Alignment</label>${alignmentControlHtml('disclaimerAlignment', d.disclaimerAlignment || 'center')}</div>
                     <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Padding Top</label><input type="number" class="form-control style-control" data-style-key="disclaimerPaddingTop" value="${d.disclaimerPaddingTop}"></div><div class="form-group"><label class="form-label">Padding Bottom</label><input type="number" class="form-control style-control" data-style-key="disclaimerPaddingBottom" value="${d.disclaimerPaddingBottom}"></div></div>
                 `;
                 break;
             case 'serviceOfferButton':
                 content = `
-                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Font Size</label><input type="number" class="form-control style-control" data-style-key="buttonFontSize" value="${d.buttonFontSize}"></div><div class="form-group"><label class="form-label">Alignment</label><select class="form-control style-control" data-style-key="buttonAlignment"><option value="left" ${d.buttonAlignment === 'left' ? 'selected' : ''}>Left</option><option value="center" ${d.buttonAlignment === 'center' ? 'selected' : ''}>Center</option><option value="right" ${d.buttonAlignment === 'right' ? 'selected' : ''}>Right</option></select></div></div>
-                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Button Color</label><input type="color" class="form-control style-control" data-style-key="buttonBgColor" value="${d.buttonBgColor}"></div><div class="form-group"><label class="form-label">Text Color</label><input type="color" class="form-control style-control" data-style-key="buttonTextColor" value="${d.buttonTextColor}"></div></div>
+                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Font Size</label><input type="number" class="form-control style-control" data-style-key="buttonFontSize" value="${d.buttonFontSize}"></div><div class="form-group"><label class="form-label">Alignment</label>${alignmentControlHtml('buttonAlignment', d.buttonAlignment || 'center')}</div></div>
+                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Button Color</label>${colorPickerHtml('buttonBgColor', d.buttonBgColor)}</div><div class="form-group"><label class="form-label">Text Color</label>${colorPickerHtml('buttonTextColor', d.buttonTextColor)}</div></div>
                     <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Padding T</label><input type="number" class="form-control style-control" data-style-key="buttonPaddingTop" value="${d.buttonPaddingTop}"></div><div class="form-group"><label class="form-label">Padding B</label><input type="number" class="form-control style-control" data-style-key="buttonPaddingBottom" value="${d.buttonPaddingBottom}"></div></div>
                     <div class="form-group">
                         <label class="form-label">Button Width</label>
-                        <select class="form-control style-control" data-style-key="buttonWidth">
-                            <option value="auto" ${d.buttonWidth === 'auto' ? 'selected' : ''}>Auto-Sized</option>
-                            <option value="100%" ${d.buttonWidth === '100%' ? 'selected' : ''}>Full Width (100%)</option>
-                            <option value="160px" ${d.buttonWidth === '160px' ? 'selected' : ''}>Fixed: Small (160px)</option>
-                            <option value="280px" ${d.buttonWidth === '280px' ? 'selected' : ''}>Fixed: Medium (280px)</option>
-                            <option value="400px" ${d.buttonWidth === '400px' ? 'selected' : ''}>Fixed: Large (400px)</option>
-                        </select>
+                        ${buttonWidthControlHtml(d.buttonWidth, 'buttonWidth')}
                     </div>
                 `;
                 break;
@@ -2386,24 +2592,43 @@ const renderStylingPanel = () => {
         dynamicStylingContainer.innerHTML = finalHtml;
 
         dynamicStylingContainer.querySelectorAll('.style-control').forEach(el => {
-            const inputEl = el as HTMLInputElement | HTMLSelectElement;
+            const inputEl = el as HTMLInputElement | HTMLSelectElement | HTMLButtonElement;
             const key = inputEl.dataset.styleKey;
             if (!key) return;
-            const eventType = inputEl.type === 'checkbox' ? 'change' : 'input';
-            
-            inputEl.addEventListener(eventType, () => {
-                const value = inputEl.type === 'checkbox' ? (inputEl as HTMLInputElement).checked.toString() : inputEl.value;
-                updateComponentData(comp.id, key, value);
 
-                if (key === 'couponShowBorder') {
-                    renderStylingPanel();
-                }
-            });
+            if (inputEl.classList.contains('btn-width-option')) {
+                inputEl.addEventListener('click', () => {
+                    const value = inputEl.dataset.value;
+                    if (!value) return;
+                    inputEl.parentElement?.querySelectorAll('.btn-width-option').forEach(sib => sib.classList.remove('active'));
+                    inputEl.classList.add('active');
+                    updateComponentData(comp.id, key, value);
+                });
+            } else if (inputEl.classList.contains('alignment-toggle')) {
+                inputEl.addEventListener('click', () => {
+                    const value = inputEl.dataset.value;
+                    if (!value) return;
+                    inputEl.parentElement?.querySelectorAll('.alignment-toggle').forEach(sib => sib.classList.remove('active'));
+                    inputEl.classList.add('active');
+                    updateComponentData(comp.id, key, value);
+                });
+            } else {
+                 const eventType = inputEl.type === 'checkbox' ? 'change' : 'input';
+                inputEl.addEventListener(eventType, () => {
+                    const value = inputEl.type === 'checkbox' ? (inputEl as HTMLInputElement).checked.toString() : inputEl.value;
+                    updateComponentData(comp.id, key, value);
+    
+                    if (key === 'couponShowBorder') {
+                        renderStylingPanel();
+                    }
+                });
+            }
         });
 
         if (activeField.fieldKey === 'serviceOfferButton') {
             attachButtonStyleListeners();
         }
+        attachColorPickerListeners();
         return;
 
     } else if (
@@ -2435,20 +2660,16 @@ const renderStylingPanel = () => {
                 </div>
                 <div class="form-group">
                     <label class="form-label">Alignment</label>
-                    <select class="form-control style-control" data-style-key="align">
-                        <option value="left" ${align === 'left' ? 'selected' : ''}>Left</option>
-                        <option value="center" ${align === 'center' ? 'selected' : ''}>Center</option>
-                        <option value="right" ${align === 'right' ? 'selected' : ''}>Right</option>
-                    </select>
+                    ${alignmentControlHtml('align', align)}
                 </div>
                 <div class="grid grid-cols-2">
                     <div class="form-group">
                         <label class="form-label">Button Color</label>
-                        <input type="color" class="form-control style-control" data-style-key="backgroundColor" value="${bgColor}">
+                        ${colorPickerHtml('backgroundColor', bgColor)}
                     </div>
                     <div class="form-group">
                         <label class="form-label">Text Color</label>
-                        <input type="color" class="form-control style-control" data-style-key="textColor" value="${textColor}">
+                        ${colorPickerHtml('textColor', textColor)}
                     </div>
                 </div>
                 <div class="grid grid-cols-2">
@@ -2463,13 +2684,7 @@ const renderStylingPanel = () => {
                 </div>
                 <div class="form-group">
                     <label class="form-label">Button Width</label>
-                    <select class="form-control style-control" data-style-key="widthType">
-                        <option value="full" ${widthType === 'full' ? 'selected' : ''}>Full Width (100%)</option>
-                        <option value="auto" ${widthType === 'auto' ? 'selected' : ''}>Auto-Sized</option>
-                        <option value="small" ${widthType === 'small' ? 'selected' : ''}>Fixed: Small (160px)</option>
-                        <option value="medium" ${widthType === 'medium' ? 'selected' : ''}>Fixed: Medium (280px)</option>
-                        <option value="large" ${widthType === 'large' ? 'selected' : ''}>Fixed: Large (400px)</option>
-                    </select>
+                     ${buttonWidthControlHtml(widthType, 'widthType')}
                 </div>
             </div>
         `;
@@ -2478,18 +2693,37 @@ const renderStylingPanel = () => {
         dynamicStylingContainer.innerHTML = finalHtml;
         
         dynamicStylingContainer.querySelectorAll('.style-control').forEach(el => {
-            const inputEl = el as HTMLInputElement | HTMLSelectElement;
+            const inputEl = el as HTMLInputElement | HTMLSelectElement | HTMLButtonElement;
             let key = inputEl.dataset.styleKey;
             if (!key) return;
 
             let finalKey = p ? `${p}${key.charAt(0).toUpperCase() + key.slice(1)}` : key;
             if(isSalesOffer && key === 'backgroundColor') finalKey = 'btnColor';
             
-            inputEl.addEventListener('input', () => {
-                updateComponentData(comp.id, finalKey, inputEl.value);
-            });
+            if (inputEl.classList.contains('btn-width-option')) {
+                inputEl.addEventListener('click', () => {
+                    const value = inputEl.dataset.value;
+                    if (!value) return;
+                    inputEl.parentElement?.querySelectorAll('.btn-width-option').forEach(sib => sib.classList.remove('active'));
+                    inputEl.classList.add('active');
+                    updateComponentData(comp.id, finalKey, value);
+                });
+            } else if (inputEl.classList.contains('alignment-toggle')) {
+                 inputEl.addEventListener('click', () => {
+                    const value = inputEl.dataset.value;
+                    if (!value) return;
+                    inputEl.parentElement?.querySelectorAll('.alignment-toggle').forEach(sib => sib.classList.remove('active'));
+                    inputEl.classList.add('active');
+                    updateComponentData(comp.id, finalKey, value);
+                });
+            } else {
+                inputEl.addEventListener('input', () => {
+                    updateComponentData(comp.id, finalKey, inputEl.value);
+                });
+            }
         });
-
+        
+        attachColorPickerListeners();
         attachButtonStyleListeners();
         return;
     }
@@ -2523,21 +2757,17 @@ const renderStylingPanel = () => {
                 
                 <div class="form-group">
                     <label class="form-label">Alignment</label>
-                    <select class="form-control" data-style-key="TextAlign">
-                        <option value="left" ${textAlign === 'left' ? 'selected' : ''}>Left</option>
-                        <option value="center" ${textAlign === 'center' ? 'selected' : ''}>Center</option>
-                        <option value="right" ${textAlign === 'right' ? 'selected' : ''}>Right</option>
-                    </select>
+                    ${alignmentControlHtml('TextAlign', textAlign)}
                 </div>
                 
                 <div class="grid grid-cols-2">
                     <div class="form-group">
                         <label class="form-label">Text Color</label>
-                        <input type="color" class="form-control" data-style-key="Color" value="${textColor}">
+                        ${colorPickerHtml('Color', textColor)}
                     </div>
                     <div class="form-group">
                         <label class="form-label">Background Color</label>
-                        <input type="color" class="form-control" data-style-key="BgColor" value="${bgColor === 'transparent' ? '#ffffff' : bgColor}">
+                        ${colorPickerHtml('BgColor', bgColor === 'transparent' ? '#ffffff' : bgColor)}
                     </div>
                 </div>
                 
@@ -2554,21 +2784,38 @@ const renderStylingPanel = () => {
             </div>
         `;
 
-        dynamicStylingContainer.querySelectorAll('input, select').forEach(el => {
-            const inputEl = el as HTMLInputElement | HTMLSelectElement;
+        dynamicStylingContainer.querySelectorAll('input, select, button').forEach(el => {
+            const inputEl = el as HTMLInputElement | HTMLSelectElement | HTMLButtonElement;
             const styleKey = inputEl.dataset.styleKey;
             if (!styleKey) return;
             
             const fullKey = `${fieldKey}${styleKey}`;
 
-            inputEl.addEventListener('input', () => {
-                 if (activeField.subOfferIndex !== undefined) {
-                    updateSubOfferData(activeField.componentId, activeField.subOfferIndex, fullKey, inputEl.value);
-                } else {
-                    updateComponentData(activeField.componentId, fullKey, inputEl.value);
-                }
-            });
+            if(inputEl.classList.contains('alignment-toggle')) {
+                inputEl.addEventListener('click', () => {
+                    const value = inputEl.dataset.value;
+                    if (!value) return;
+
+                    inputEl.parentElement?.querySelectorAll('.alignment-toggle').forEach(sib => sib.classList.remove('active'));
+                    inputEl.classList.add('active');
+
+                    if (activeField.subOfferIndex !== undefined) {
+                        updateSubOfferData(activeField.componentId, activeField.subOfferIndex, fullKey, value);
+                    } else {
+                        updateComponentData(activeField.componentId, fullKey, value);
+                    }
+                });
+            } else {
+                inputEl.addEventListener('input', () => {
+                     if (activeField.subOfferIndex !== undefined) {
+                        updateSubOfferData(activeField.componentId, activeField.subOfferIndex, fullKey, inputEl.value);
+                    } else {
+                        updateComponentData(activeField.componentId, fullKey, inputEl.value);
+                    }
+                });
+            }
         });
+        attachColorPickerListeners();
         return;
     }
     
