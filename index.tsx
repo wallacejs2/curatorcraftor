@@ -192,7 +192,6 @@ const closeMergeSidebar = document.getElementById('close-sidebar');
 
 // Design Settings Controls
 const fontSelect = document.getElementById('design-font-family') as HTMLSelectElement;
-const buttonStyleOptions = document.querySelectorAll('.button-style-option');
 
 // Saved Template Elements
 const saveTemplateBtn = document.getElementById('save-template-btn') as HTMLButtonElement;
@@ -309,16 +308,6 @@ fontSelect?.addEventListener('change', () => {
     designSettings.fontFamily = fontSelect.value;
     saveDraft();
     showToast('Font updated', 'success');
-});
-
-buttonStyleOptions.forEach(opt => {
-    opt.addEventListener('click', () => {
-        buttonStyleOptions.forEach(o => o.classList.remove('selected'));
-        opt.classList.add('selected');
-        designSettings.buttonStyle = opt.getAttribute('data-button') || 'rounded';
-        saveDraft();
-        showToast('Button style updated', 'success');
-    });
 });
 
 // View Toggles
@@ -1330,10 +1319,12 @@ function generateEmailHtml(): string {
         
         const btnStyles = [`background-color: ${isOutlined ? 'transparent' : d.backgroundColor}`, `color: ${isOutlined ? d.backgroundColor : d.textColor}`, `padding: ${d.paddingTop || 12}px 24px ${d.paddingBottom || 12}px`, `text-decoration: none`, `display: block`, `font-weight: bold`, `border-radius: ${radius}`, `font-size: ${d.fontSize}px`, `font-family: ${designSettings.fontFamily}`, `text-align: center`, isOutlined ? `border: 2px solid ${d.backgroundColor}` : 'border: 0'].join(';');
         
+        const widthStyle = widthType === 'full' ? '100%' : (tableWidthAttr ? `${tableWidthAttr}px` : 'auto');
+
         sectionsHtml += `
             <tr>
                 <td align="${d.align || 'center'}" style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
-                    <table border="0" cellspacing="0" cellpadding="0" ${tableWidthAttr ? `width="${tableWidthAttr}"` : ""} style="margin: ${d.align === 'center' ? '0 auto' : '0'};">
+                    <table border="0" cellspacing="0" cellpadding="0" ${tableWidthAttr ? `width="${tableWidthAttr}"` : ""} style="margin: ${d.align === 'center' ? '0 auto' : '0'}; width: ${widthStyle}; max-width: 100%;">
                         <tr>
                             <td align="center" bgcolor="${isOutlined ? 'transparent' : d.backgroundColor}" style="border-radius: ${radius};">
                                 <a href="${DOMPurify.sanitize(d.link || '#')}" target="_blank" style="${btnStyles}">${DOMPurify.sanitize(d.text || 'Button')}</a>
@@ -1414,17 +1405,19 @@ function generateEmailHtml(): string {
             const buttonWidth = d.buttonWidth || 'auto';
             const sanitizedButtonLink = DOMPurify.sanitize(d.buttonLink || '#');
             const sanitizedButtonText = DOMPurify.sanitize(d.buttonText);
+            const buttonBgColor = d.buttonBgColor || '#0066FF';
+            const buttonTextColor = d.buttonTextColor || '#FFFFFF';
 
             let aStylesList = [
-                `background-color: ${isOutlined ? 'transparent' : d.buttonBgColor}`,
-                `color: ${isOutlined ? d.buttonBgColor : d.buttonTextColor}`,
+                `background-color: ${isOutlined ? 'transparent' : buttonBgColor}`,
+                `color: ${isOutlined ? buttonBgColor : buttonTextColor}`,
                 `display: block`,
                 `font-family: ${designSettings.fontFamily}, Arial, sans-serif`,
                 `font-size: ${d.buttonFontSize}px`,
                 `font-weight: bold`,
                 `text-decoration: none`,
                 `border-radius: ${btnRadius}`,
-                isOutlined ? `border: 2px solid ${d.buttonBgColor}` : 'border: 0',
+                isOutlined ? `border: 2px solid ${buttonBgColor}` : 'border: 0',
                 `text-align: center`,
                 `line-height: 1.2`,
                 `box-sizing: border-box`,
@@ -1447,7 +1440,7 @@ function generateEmailHtml(): string {
 
             const vmlArcSize = btnRadius.includes('px') ? `${Math.min(50, (parseInt(btnRadius) / (vmlHeight/2)) * 100)}%` : '8%';
             
-            const vmlButton = `<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${sanitizedButtonLink}" style="height:${vmlHeight}px;v-text-anchor:middle;${vmlWidthStyle}" arcsize="${vmlArcSize}" strokecolor="${isOutlined ? d.buttonBgColor : 'none'}" strokeweight="${isOutlined ? '2px' : '0'}" fillcolor="${isOutlined ? 'transparent' : d.buttonBgColor}"><w:anchorlock/><center style="color:${isOutlined ? d.buttonBgColor : d.buttonTextColor};font-family:Arial,sans-serif;font-size:${d.buttonFontSize}px;font-weight:bold;">${sanitizedButtonText}</center></v:roundrect><![endif]-->`;
+            const vmlButton = `<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${sanitizedButtonLink}" style="height:${vmlHeight}px;v-text-anchor:middle;${vmlWidthStyle}" arcsize="${vmlArcSize}" strokecolor="${isOutlined ? buttonBgColor : 'none'}" strokeweight="${isOutlined ? '2px' : '0'}" fillcolor="${isOutlined ? 'transparent' : buttonBgColor}"><w:anchorlock/><center style="color:${isOutlined ? buttonBgColor : buttonTextColor};font-family:Arial,sans-serif;font-size:${d.buttonFontSize}px;font-weight:bold;">${sanitizedButtonText}</center></v:roundrect><![endif]-->`;
             const htmlButton = `<!--[if !mso]><!--><a href="${sanitizedButtonLink}" style="${aStyles}" target="_blank">${sanitizedButtonText}</a><!--<![endif]-->`;
             
             let buttonContent = `${vmlButton}${htmlButton}`;
@@ -1565,7 +1558,10 @@ function generateEmailHtml(): string {
             detailsHtml += renderField({ text: finalMileageText, fontSize: d.mileageFontSize, color: d.mileageColor, bgColor: d.mileageBgColor, fontWeight: 'normal', textAlign: d.mileageTextAlign, paddingTop: d.mileagePaddingTop, paddingBottom: d.mileagePaddingBottom });
             
             const radius = designSettings.buttonStyle === 'pill' ? '50px' : designSettings.buttonStyle === 'square' ? '0px' : '8px';
-            
+            const isOutlined = designSettings.buttonStyle === 'outlined';
+            const btnBgColor = d.btnColor || '#007aff';
+            const btnTextColor = d.btnTextColor || '#ffffff';
+
             const btnAlign = d.btnAlign || 'center';
             let btnTableWidthAttr = "100%";
             const btnWidthType = d.btnWidthType || 'full';
@@ -1578,11 +1574,25 @@ function generateEmailHtml(): string {
             if (btnAlign === 'center') btnMargin = '16px auto 0';
             else if (btnAlign === 'right') btnMargin = '16px 0 0 auto';
 
+            const btnStyles = [
+                `background-color: ${isOutlined ? 'transparent' : btnBgColor}`,
+                `color: ${isOutlined ? btnBgColor : btnTextColor}`,
+                `padding: ${d.btnPaddingTop || '12'}px 20px ${d.btnPaddingBottom || '12'}px`,
+                `text-decoration: none`,
+                `display: block`,
+                `font-weight: bold`,
+                `border-radius: ${radius}`,
+                `font-size: ${d.btnFontSize || 16}px`,
+                `font-family: ${designSettings.fontFamily}`,
+                `text-align: center`,
+                isOutlined ? `border: 2px solid ${btnBgColor}` : 'border: 0'
+            ].join('; ');
+
             detailsHtml += `
                 <table border="0" cellspacing="0" cellpadding="0" ${btnTableWidthAttr ? `width="${btnTableWidthAttr}"` : ""} style="margin: ${btnMargin}; width: ${btnWidthType === 'full' ? '100%' : (btnTableWidthAttr ? btnTableWidthAttr+'px' : 'auto')}; max-width: 100%;">
                     <tr>
-                        <td align="center" bgcolor="${d.btnColor || '#007aff'}" style="border-radius: ${radius};">
-                            <a href="${DOMPurify.sanitize(d.btnLink || '#')}" target="_blank" style="background-color: ${d.btnColor || '#007aff'}; color: ${d.btnTextColor || '#fff'}; padding: ${d.btnPaddingTop || '12'}px 20px ${d.btnPaddingBottom || '12'}px; text-decoration: none; display: block; font-weight: bold; border-radius: ${radius}; font-size: ${d.btnFontSize || 16}px; font-family: ${designSettings.fontFamily}; text-align: center;">${DOMPurify.sanitize(d.btnText || 'View')}</a>
+                        <td align="center" bgcolor="${isOutlined ? 'transparent' : btnBgColor}" style="border-radius: ${radius};">
+                            <a href="${DOMPurify.sanitize(d.btnLink || '#')}" target="_blank" style="${btnStyles}">${DOMPurify.sanitize(d.btnText || 'View')}</a>
                         </td>
                     </tr>
                 </table>
@@ -1816,9 +1826,6 @@ const loadTemplate = (id: string) => {
         designSettings = { ...template.designSettings };
         activeComponents = [...template.components];
         if (fontSelect) fontSelect.value = designSettings.fontFamily;
-        buttonStyleOptions.forEach(opt => {
-            opt.classList.toggle('selected', opt.getAttribute('data-button') === designSettings.buttonStyle);
-        });
         renderComponents();
         saveDraft();
         showToast(`Loaded: ${template.name}`, 'success');
@@ -1864,15 +1871,56 @@ const loadDraft = () => {
                 designSettings = draft.designSettings;
                 activeComponents = draft.activeComponents;
                 if (fontSelect) fontSelect.value = designSettings.fontFamily;
-                buttonStyleOptions.forEach(opt => {
-                    opt.classList.toggle('selected', opt.getAttribute('data-button') === designSettings.buttonStyle);
-                });
                 renderComponents();
             }
         }
     } catch (e) {
         console.error("Failed to load draft", e);
     }
+};
+
+const getButtonStyleSectionHtml = (): string => {
+    return `
+        <div class="design-option-group" id="button-style-section" style="border-top: 1px solid var(--separator-secondary); margin-top: var(--spacing-lg); padding-top: var(--spacing-lg);">
+          <h4>Button Styles</h4>
+          <div class="button-style-grid">
+            <div class="button-style-option ${designSettings.buttonStyle === 'rounded' ? 'selected' : ''}" data-button="rounded">
+              <div class="button-preview" style="background: #007aff; border-radius: 8px;">Rounded Button</div>
+              <div class="text-xs" style="color: var(--label-secondary);">Modern rounded corners</div>
+            </div>
+            
+            <div class="button-style-option ${designSettings.buttonStyle === 'pill' ? 'selected' : ''}" data-button="pill">
+              <div class="button-preview" style="background: #007aff; border-radius: 20px;">Pill Button</div>
+              <div class="text-xs" style="color: var(--label-secondary);">Fully rounded pill shape</div>
+            </div>
+            
+            <div class="button-style-option ${designSettings.buttonStyle === 'square' ? 'selected' : ''}" data-button="square">
+              <div class="button-preview" style="background: #007aff; border-radius: 0px;">Square Button</div>
+              <div class="text-xs" style="color: var(--label-secondary);">Classic square edges</div>
+            </div>
+            
+            <div class="button-style-option ${designSettings.buttonStyle === 'outlined' ? 'selected' : ''}" data-button="outlined">
+              <div class="button-preview" style="background: transparent; border: 2px solid #007aff; color: #007aff; border-radius: 8px;">Outlined Button</div>
+              <div class="text-xs" style="color: var(--label-secondary);">Outline style with border</div>
+            </div>
+          </div>
+        </div>
+    `;
+};
+
+const attachButtonStyleListeners = () => {
+    const options = dynamicStylingContainer?.querySelectorAll('.button-style-option');
+    if (!options) return;
+    
+    options.forEach(opt => {
+        opt.addEventListener('click', () => {
+            options.forEach(o => o.classList.remove('selected'));
+            opt.classList.add('selected');
+            designSettings.buttonStyle = opt.getAttribute('data-button') || 'rounded';
+            saveDraft();
+            showToast('Button style updated', 'success');
+        });
+    });
 };
 
 const renderStylingPanel = () => {
@@ -2329,7 +2377,13 @@ const renderStylingPanel = () => {
                 `;
         }
         
-        dynamicStylingContainer.innerHTML = header + content + footer;
+        let finalHtml = header + content + footer;
+
+        if (activeField.fieldKey === 'serviceOfferButton') {
+            finalHtml += getButtonStyleSectionHtml();
+        }
+
+        dynamicStylingContainer.innerHTML = finalHtml;
 
         dynamicStylingContainer.querySelectorAll('.style-control').forEach(el => {
             const inputEl = el as HTMLInputElement | HTMLSelectElement;
@@ -2346,6 +2400,10 @@ const renderStylingPanel = () => {
                 }
             });
         });
+
+        if (activeField.fieldKey === 'serviceOfferButton') {
+            attachButtonStyleListeners();
+        }
         return;
 
     } else if (
@@ -2366,7 +2424,7 @@ const renderStylingPanel = () => {
         const paddingBottom = get('paddingBottom', '12');
         const widthType = get('widthType', 'auto');
         
-        dynamicStylingContainer.innerHTML = `
+        let finalHtml = `
             <div class="design-option-group" style="border-top: 1px solid var(--separator-secondary); padding-top: var(--spacing-lg); margin-top: var(--spacing-lg);">
                 <h4>Field Styling</h4>
                 <p class="text-sm" style="color: var(--label-secondary); margin-bottom: var(--spacing-md);">Currently editing: <strong style="color: var(--label-primary);">${activeField.fieldLabel}</strong></p>
@@ -2415,6 +2473,9 @@ const renderStylingPanel = () => {
                 </div>
             </div>
         `;
+
+        finalHtml += getButtonStyleSectionHtml();
+        dynamicStylingContainer.innerHTML = finalHtml;
         
         dynamicStylingContainer.querySelectorAll('.style-control').forEach(el => {
             const inputEl = el as HTMLInputElement | HTMLSelectElement;
@@ -2428,6 +2489,8 @@ const renderStylingPanel = () => {
                 updateComponentData(comp.id, finalKey, inputEl.value);
             });
         });
+
+        attachButtonStyleListeners();
         return;
     }
 
