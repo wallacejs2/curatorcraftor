@@ -124,7 +124,14 @@ main {
 
 .component-item {
   transition: transform 0.2s ease, opacity 0.2s ease;
+  position: relative; /* For selected state outline */
 }
+
+.component-item.selected {
+  border-color: var(--system-blue);
+  box-shadow: 0 0 0 2px var(--system-blue);
+}
+
 
 .component-item .card-body {
   overflow: hidden;
@@ -1018,6 +1025,202 @@ textarea.form-control.compact {
     flex: 0 1 160px;
 }
 
+/* Grid Layout for Offer Forms */
+.offer-columns-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+  margin-top: var(--spacing-lg);
+}
+
+.offer-columns-container[data-layout="grid"] {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-lg);
+}
+
+.offer-column {
+  border: 1px solid var(--separator-secondary);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  background-color: var(--background-secondary);
+}
+
+.offer-column-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--label-secondary);
+  padding-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--separator-secondary);
+}
+
+.offer-column-2 { display: none; }
+.offer-columns-container[data-layout="grid"] .offer-column-2 { display: block; }
+.offer-columns-container[data-layout="single"] .offer-column {
+  border: none;
+  padding: 0;
+  background-color: transparent;
+}
+
+
+/* Keyboard Shortcuts Modal */
+.shortcuts-modal {
+  background: white;
+  width: 90vw;
+  max-width: 600px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+.shortcuts-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--separator-secondary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.shortcuts-content {
+  padding: 16px;
+  overflow-y: auto;
+  max-height: 70vh;
+}
+.shortcut-category {
+  margin-bottom: 24px;
+}
+.shortcut-category h4 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--label-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--separator-secondary);
+}
+.shortcut-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 14px;
+}
+.shortcut-item span {
+  color: var(--label-primary);
+}
+.shortcut-keys {
+  display: flex;
+  gap: 4px;
+}
+.shortcut-keys kbd {
+  font-family: var(--font-family);
+  background: var(--background-secondary);
+  border: 1px solid var(--separator-primary);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 13px;
+  color: var(--label-secondary);
+}
+
+/* Autocomplete Dropdown */
+#autocomplete-dropdown {
+  position: absolute;
+  z-index: 2500;
+  background: var(--background-primary);
+  border: 1px solid var(--separator-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  max-height: 350px;
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+  pointer-events: none;
+}
+
+#autocomplete-dropdown.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.autocomplete-list {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: var(--spacing-sm);
+}
+
+.autocomplete-group-header {
+  position: sticky;
+  top: 0;
+  background: var(--background-secondary);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--label-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.autocomplete-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 14px;
+}
+.autocomplete-item:hover {
+  background-color: var(--background-secondary);
+}
+.autocomplete-item.selected {
+  background-color: var(--system-blue);
+  color: white;
+}
+.autocomplete-item-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.autocomplete-item .match-highlight {
+  background-color: rgba(0, 122, 255, 0.2);
+  border-radius: 2px;
+}
+.autocomplete-item.selected .match-highlight {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.autocomplete-footer {
+  border-top: 1px solid var(--separator-secondary);
+  padding: 8px 12px;
+  background: var(--background-secondary);
+  font-size: 12px;
+  color: var(--label-tertiary);
+  display: flex;
+  gap: 12px;
+}
+.autocomplete-footer span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.autocomplete-footer kbd {
+  font-family: inherit;
+  font-size: 11px;
+  background: var(--background-primary);
+  border: 1px solid var(--separator-primary);
+  border-radius: 4px;
+  padding: 1px 4px;
+}
+
 
 /* Mobile Responsiveness */
 .mobile-header { display: none; }
@@ -1094,6 +1297,10 @@ textarea.form-control.compact {
   .vehicle-section-inline {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .offer-columns-container[data-layout="grid"] {
+    grid-template-columns: 1fr;
   }
 }
 
