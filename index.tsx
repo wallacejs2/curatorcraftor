@@ -550,7 +550,8 @@ const addNewComponent = (type: string) => {
             lineColor: '#CCCCCC',
             alignment: 'center',
             paddingTop: '16',
-            paddingBottom: '16'
+            paddingBottom: '16',
+            paddingLeftRight: '0'
         };
     } else if (type === 'spacer') {
         data = {
@@ -582,42 +583,51 @@ const addNewComponent = (type: string) => {
             imagePaddingBottom: '10',
             titleFontSize: '24',
             titleFontWeight: 'bold',
+            titleFontStyle: 'normal',
             titleTextColor: '#000000',
             titleBgColor: 'transparent',
             titleAlignment: 'center',
             titlePaddingTop: '10',
             titlePaddingBottom: '10',
+            titlePaddingLeftRight: '0',
             couponFontSize: '20',
             couponFontWeight: 'bold',
+            couponFontStyle: 'normal',
             couponTextColor: '#0066FF',
             couponBgColor: '#F0F7FF',
             couponAlignment: 'center',
             couponPaddingTop: '8',
             couponPaddingBottom: '8',
-            couponPaddingLeft: '16',
-            couponPaddingRight: '16',
+            couponPaddingLeftRight: '16',
             couponShowBorder: 'false',
             couponBorderStyle: 'dashed',
             couponBorderColor: '#0066FF',
             detailsFontSize: '16',
+            detailsFontWeight: 'normal',
+            detailsFontStyle: 'normal',
             detailsTextColor: '#333333',
             detailsBgColor: 'transparent',
             detailsAlignment: 'center',
             detailsLineHeight: '1.5',
             detailsPaddingTop: '12',
             detailsPaddingBottom: '12',
+            detailsPaddingLeftRight: '0',
             disclaimerFontSize: '12',
+            disclaimerFontWeight: 'normal',
+            disclaimerFontStyle: 'normal',
             disclaimerTextColor: '#666666',
             disclaimerBgColor: 'transparent',
             disclaimerAlignment: 'center',
             disclaimerPaddingTop: '8',
             disclaimerPaddingBottom: '8',
+            disclaimerPaddingLeftRight: '0',
             buttonFontSize: '16',
             buttonAlignment: 'center',
             buttonBgColor: '#0066FF',
             buttonTextColor: '#FFFFFF',
             buttonPaddingTop: '12',
             buttonPaddingBottom: '12',
+            buttonPaddingLeftRight: '20',
             buttonWidth: 'auto'
         };
     } else if (type === 'sales_offer') {
@@ -631,46 +641,70 @@ const addNewComponent = (type: string) => {
             
             vehicleText: 'New {{customer.last_transaction.vehicle.year}} {{customer.last_transaction.vehicle.make}} {{customer.last_transaction.vehicle.model}}',
             vehicleFontSize: '14',
+            vehicleFontWeight: 'normal',
+            vehicleFontStyle: 'normal',
             vehicleColor: '#1d1d1f',
             vehicleBgColor: 'transparent',
             vehicleTextAlign: 'center',
-            vehiclePaddingTop: '0', vehiclePaddingBottom: '8',
+            vehiclePaddingTop: '0',
+            vehiclePaddingBottom: '8',
+            vehiclePaddingLeftRight: '0',
 
             mainOfferText: '$2,500 Trade-In Bonus',
             mainOfferFontSize: '18',
+            mainOfferFontWeight: 'normal',
+            mainOfferFontStyle: 'normal',
             mainOfferColor: '#007aff',
             mainOfferBgColor: 'transparent',
             mainOfferTextAlign: 'center',
-            mainOfferPaddingTop: '0', mainOfferPaddingBottom: '8',
+            mainOfferPaddingTop: '0',
+            mainOfferPaddingBottom: '8',
+            mainOfferPaddingLeftRight: '0',
 
             detailsText: 'Upgrade your current ride today with our exclusive seasonal offer.',
             detailsFontSize: '10',
+            detailsFontWeight: 'normal',
+            detailsFontStyle: 'normal',
             detailsColor: '#6e6e73',
             detailsBgColor: 'transparent',
             detailsTextAlign: 'center',
-            detailsPaddingTop: '0', detailsPaddingBottom: '12',
+            detailsPaddingTop: '0',
+            detailsPaddingBottom: '12',
+            detailsPaddingLeftRight: '0',
 
             stockVinType: 'stock',
             stockVinValue: '{{customer.last_transaction.vehicle.vin}}',
             stockVinFontSize: '11',
+            stockVinFontWeight: 'normal',
+            stockVinFontStyle: 'normal',
             stockVinColor: '#86868b',
             stockVinBgColor: 'transparent',
             stockVinTextAlign: 'center',
-            stockVinPaddingTop: '10', stockVinPaddingBottom: '0',
+            stockVinPaddingTop: '10',
+            stockVinPaddingBottom: '0',
+            stockVinPaddingLeftRight: '0',
 
             mileageValue: '{{customer.last_transaction.vehicle.mileage}}',
             mileageFontSize: '11',
+            mileageFontWeight: 'normal',
+            mileageFontStyle: 'normal',
             mileageColor: '#86868b',
             mileageBgColor: 'transparent',
             mileageTextAlign: 'center',
-            mileagePaddingTop: '4', mileagePaddingBottom: '0',
+            mileagePaddingTop: '4',
+            mileagePaddingBottom: '0',
+            mileagePaddingLeftRight: '0',
 
             disclaimerText: '*Terms and conditions apply. Offer valid through end of month.',
             disclaimerFontSize: '10',
+            disclaimerFontWeight: 'normal',
+            disclaimerFontStyle: 'normal',
             disclaimerColor: '#86868b',
             disclaimerBgColor: 'transparent',
             disclaimerTextAlign: 'center',
-            disclaimerPaddingTop: '16', disclaimerPaddingBottom: '0',
+            disclaimerPaddingTop: '16',
+            disclaimerPaddingBottom: '0',
+            disclaimerPaddingLeftRight: '0',
             
             additionalOffers: '[]',
             
@@ -679,6 +713,7 @@ const addNewComponent = (type: string) => {
             btnFontSize: '14',
             btnPaddingTop: '12',
             btnPaddingBottom: '12',
+            btnPaddingLeftRight: '20',
             btnColor: '#007aff',
             btnTextColor: '#ffffff',
             btnAlign: 'center',
@@ -704,6 +739,32 @@ const removeComponent = (id: string) => {
     renderComponents();
     saveDraft();
     showToast('Section removed', 'success');
+};
+
+const duplicateComponent = (id: string) => {
+    const originalIndex = activeComponents.findIndex(c => c.id === id);
+    if (originalIndex === -1) {
+        console.error("Component to duplicate not found");
+        return;
+    }
+
+    const originalComponent = activeComponents[originalIndex];
+    const newComponent = JSON.parse(JSON.stringify(originalComponent)) as EmailComponent;
+    const newId = Date.now().toString();
+    newComponent.id = newId;
+
+    activeComponents.splice(originalIndex + 1, 0, newComponent);
+    
+    renderComponents();
+    saveDraft();
+    showToast('Section duplicated', 'success');
+
+    setTimeout(() => {
+        const newElement = document.querySelector(`.component-item[data-id='${newId}']`);
+        if (newElement) {
+            newElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, 100);
 };
 
 const updateComponentData = (id: string, key: string, value: string) => {
@@ -1009,9 +1070,14 @@ const renderComponents = () => {
                     <span class="collapse-icon">▼</span>
                     <span id="component-title-${comp.id}" class="component-title text-xs font-bold uppercase" style="color: var(--label-secondary);">${index + 1} - ${dynamicTitle}</span>
                 </div>
-                <button type="button" class="btn btn-ghost btn-sm remove-comp-btn">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                </button>
+                <div class="flex items-center" style="gap: 4px;">
+                    <button type="button" class="btn btn-ghost btn-sm duplicate-comp-btn" title="Duplicate section">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    </button>
+                    <button type="button" class="btn btn-ghost btn-sm remove-comp-btn">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    </button>
+                </div>
             </div>
             <div class="card-body">
                 ${componentFormHtml}
@@ -1088,22 +1154,34 @@ const renderComponents = () => {
                 current.push({
                     separator: 'AND',
                     separatorFontSize: '11',
+                    separatorFontWeight: 'normal',
+                    separatorFontStyle: 'normal',
                     separatorColor: '#86868b',
                     separatorBgColor: 'transparent',
                     separatorTextAlign: 'center',
-                    separatorPaddingTop: '12', separatorPaddingBottom: '12',
+                    separatorPaddingTop: '12',
+                    separatorPaddingBottom: '12',
+                    separatorPaddingLeftRight: '0',
                     offer: 'Additional Offer Title',
                     offerFontSize: '14',
+                    offerFontWeight: 'normal',
+                    offerFontStyle: 'normal',
                     offerColor: comp.data.mainOfferColor || '#007aff',
                     offerBgColor: 'transparent',
                     offerTextAlign: 'center',
-                    offerPaddingTop: '0', offerPaddingBottom: '4',
+                    offerPaddingTop: '0',
+                    offerPaddingBottom: '4',
+                    offerPaddingLeftRight: '0',
                     details: 'Details for the additional offer.',
                     detailsFontSize: '10',
+                    detailsFontWeight: 'normal',
+                    detailsFontStyle: 'normal',
                     detailsColor: comp.data.detailsColor || '#6e6e73',
                     detailsBgColor: 'transparent',
                     detailsTextAlign: 'center',
-                    detailsPaddingTop: '0', detailsPaddingBottom: '4',
+                    detailsPaddingTop: '0',
+                    detailsPaddingBottom: '4',
+                    detailsPaddingLeftRight: '0',
                 });
                 updateComponentData(comp.id, 'additionalOffers', JSON.stringify(current));
                 renderComponents();
@@ -1203,6 +1281,11 @@ const renderComponents = () => {
                 updateComponentData(comp.id, key, newVal);
                 btn.classList.toggle('active');
             });
+        });
+
+        item.querySelector('.duplicate-comp-btn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            duplicateComponent(comp.id);
         });
 
         item.querySelector('.remove-comp-btn')?.addEventListener('click', (e) => {
@@ -1323,7 +1406,7 @@ function generateEmailHtml(): string {
         else if (widthType === 'medium') tableWidthAttr = "280";
         else if (widthType === 'large') tableWidthAttr = "400";
         
-        const btnStyles = [`background-color: ${isOutlined ? 'transparent' : d.backgroundColor}`, `color: ${isOutlined ? d.backgroundColor : d.textColor}`, `padding: ${d.paddingTop || 12}px 24px ${d.paddingBottom || 12}px`, `text-decoration: none`, `display: block`, `font-weight: bold`, `border-radius: ${radius}`, `font-size: ${d.fontSize}px`, `font-family: ${designSettings.fontFamily}`, `text-align: center`, isOutlined ? `border: 2px solid ${d.backgroundColor}` : 'border: 0'].join(';');
+        const btnStyles = [`background-color: ${isOutlined ? 'transparent' : d.backgroundColor}`, `color: ${isOutlined ? d.backgroundColor : d.textColor}`, `padding: ${d.paddingTop || 12}px ${d.paddingLeftRight || '20'}px ${d.paddingBottom || 12}px`, `text-decoration: none`, `display: block`, `font-weight: bold`, `border-radius: ${radius}`, `font-size: ${d.fontSize}px`, `font-family: ${designSettings.fontFamily}`, `text-align: center`, isOutlined ? `border: 2px solid ${d.backgroundColor}` : 'border: 0'].join(';');
         
         const widthStyle = widthType === 'full' ? '100%' : (tableWidthAttr ? `${tableWidthAttr}px` : 'auto');
 
@@ -1341,12 +1424,12 @@ function generateEmailHtml(): string {
             </tr>
         `;
     } else if (comp.type === 'divider') {
-        const { width, thickness, lineColor, alignment, paddingTop, paddingBottom } = d;
+        const { width, thickness, lineColor, alignment, paddingTop, paddingBottom, paddingLeftRight } = d;
         const alignValue = alignment === 'left' ? 'left' : alignment === 'right' ? 'right' : 'center';
 
         sectionsHtml += `
           <tr>
-            <td style="padding: ${paddingTop}px 0 ${paddingBottom}px 0;">
+            <td style="padding: ${paddingTop}px ${paddingLeftRight || '0'}px ${paddingBottom}px ${paddingLeftRight || '0'}px;">
               <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
                 <tr>
                   <td align="${alignValue}">
@@ -1389,19 +1472,20 @@ function generateEmailHtml(): string {
         
         // Title
         if (d.serviceTitle) {
-            contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${d.titleAlignment}" style="font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${d.titleFontSize}px; font-weight: ${d.titleFontWeight}; color: ${d.titleTextColor}; padding: ${d.titlePaddingTop}px 0 ${d.titlePaddingBottom}px 0; line-height: 1.2;">${DOMPurify.sanitize(d.serviceTitle)}</td></tr></table>`;
+            contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${d.titleAlignment}" style="padding: ${d.titlePaddingTop}px ${d.titlePaddingLeftRight || '0'}px ${d.titlePaddingBottom}px ${d.titlePaddingLeftRight || '0'}px; font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${d.titleFontSize}px; font-weight: ${d.titleFontWeight}; font-style: ${d.titleFontStyle || 'normal'}; color: ${d.titleTextColor}; line-height: 1.2;">${DOMPurify.sanitize(d.serviceTitle)}</td></tr></table>`;
         }
 
         // Coupon
         if (d.couponCode) {
             const couponBorderStyle = d.couponShowBorder === 'true' ? `border: 1px ${d.couponBorderStyle} ${d.couponBorderColor};` : '';
-            contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${d.couponAlignment}" style="padding: 10px 0;"><table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;"><tr><td align="center" style="font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${d.couponFontSize}px; font-weight: ${d.couponFontWeight}; color: ${d.couponTextColor}; background-color: ${d.couponBgColor}; padding: ${d.couponPaddingTop}px ${d.couponPaddingLeft}px ${d.couponPaddingBottom}px ${d.couponPaddingRight}px; ${couponBorderStyle}; line-height: 1.2;">${DOMPurify.sanitize(d.couponCode)}</td></tr></table></td></tr></table>`;
+            const couponPaddingLR = d.couponPaddingLeftRight || d.couponPaddingLeft || '16';
+            contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${d.couponAlignment}" style="padding: 10px 0;"><table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;"><tr><td align="center" style="font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${d.couponFontSize}px; font-weight: ${d.couponFontWeight}; font-style: ${d.couponFontStyle || 'normal'}; color: ${d.couponTextColor}; background-color: ${d.couponBgColor}; padding: ${d.couponPaddingTop}px ${couponPaddingLR}px ${d.couponPaddingBottom}px ${couponPaddingLR}px; ${couponBorderStyle}; line-height: 1.2;">${DOMPurify.sanitize(d.couponCode)}</td></tr></table></td></tr></table>`;
         }
 
         // Details
         if (d.serviceDetails) {
             const sanitizedDetails = DOMPurify.sanitize(d.serviceDetails).replace(/\n/g, '<br>');
-            contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${d.detailsAlignment}" style="font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${d.detailsFontSize}px; color: ${d.detailsTextColor}; line-height: ${d.detailsLineHeight}; padding: ${d.detailsPaddingTop}px 0 ${d.detailsPaddingBottom}px 0;">${sanitizedDetails}</td></tr></table>`;
+            contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${d.detailsAlignment}" style="padding: ${d.detailsPaddingTop}px ${d.detailsPaddingLeftRight || '0'}px ${d.detailsPaddingBottom}px ${d.detailsPaddingLeftRight || '0'}px; font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${d.detailsFontSize}px; font-weight: ${d.detailsFontWeight || 'normal'}; font-style: ${d.detailsFontStyle || 'normal'}; color: ${d.detailsTextColor}; line-height: ${d.detailsLineHeight};">${sanitizedDetails}</td></tr></table>`;
         }
         
         // Button
@@ -1442,7 +1526,7 @@ function generateEmailHtml(): string {
             ];
 
             if (buttonWidth === 'auto') {
-                aStylesList.push(`padding: ${d.buttonPaddingTop}px 24px ${d.buttonPaddingBottom}px 24px`);
+                aStylesList.push(`padding: ${d.buttonPaddingTop}px ${d.buttonPaddingLeftRight || '24'}px ${d.buttonPaddingBottom}px`);
             } else {
                 aStylesList.push(`padding: ${d.buttonPaddingTop}px 0 ${d.buttonPaddingBottom}px 0`);
                 aStylesList.push(`width: 100%`);
@@ -1472,7 +1556,7 @@ function generateEmailHtml(): string {
         // Disclaimer
         if (d.disclaimer) {
             const sanitizedDisclaimer = DOMPurify.sanitize(d.disclaimer).replace(/\n/g, '<br>');
-            contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${d.disclaimerAlignment}" style="font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${d.disclaimerFontSize}px; color: ${d.disclaimerTextColor}; padding: ${d.disclaimerPaddingTop}px 0 ${d.disclaimerPaddingBottom}px 0; line-height: 1.4;">${sanitizedDisclaimer}</td></tr></table>`;
+            contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${d.disclaimerAlignment}" style="padding: ${d.disclaimerPaddingTop}px ${d.disclaimerPaddingLeftRight || '0'}px ${d.disclaimerPaddingBottom}px ${d.disclaimerPaddingLeftRight || '0'}px; font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${d.disclaimerFontSize}px; font-weight: ${d.disclaimerFontWeight || 'normal'}; font-style: ${d.disclaimerFontStyle || 'normal'}; color: ${d.disclaimerTextColor}; line-height: 1.4;">${sanitizedDisclaimer}</td></tr></table>`;
         }
 
         const mainTableStyle = `border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;`;
@@ -1512,11 +1596,11 @@ function generateEmailHtml(): string {
                 color?: string;
                 bgColor?: string;
                 fontWeight?: string;
+                fontStyle?: string;
                 textAlign?: string;
                 paddingTop?: string;
-                paddingRight?: string;
                 paddingBottom?: string;
-                paddingLeft?: string;
+                paddingLeftRight?: string;
             }
             const renderField = (options: FieldStyleOptions) => {
                 if (!options.text) return '';
@@ -1526,14 +1610,14 @@ function generateEmailHtml(): string {
                     color = '#000',
                     bgColor = 'transparent',
                     fontWeight = 'normal',
+                    fontStyle = 'normal',
                     textAlign = 'center',
                     paddingTop = '0',
-                    paddingRight = '0',
                     paddingBottom = '0',
-                    paddingLeft = '0'
+                    paddingLeftRight = '0'
                 } = options;
 
-                const padding = `padding: ${paddingTop}px ${paddingRight}px ${paddingBottom}px ${paddingLeft}px;`;
+                const padding = `padding: ${paddingTop}px ${paddingLeftRight}px ${paddingBottom}px ${paddingLeftRight}px;`;
 
                 const style = [
                     `font-family: ${designSettings.fontFamily}`,
@@ -1541,6 +1625,7 @@ function generateEmailHtml(): string {
                     `font-size: ${fontSize}px`,
                     `background-color: ${bgColor === 'transparent' ? 'transparent' : bgColor}`,
                     `font-weight: ${fontWeight}`,
+                    `font-style: ${fontStyle}`,
                     `text-align: ${textAlign}`,
                     padding,
                     `line-height: 1.2`
@@ -1548,15 +1633,15 @@ function generateEmailHtml(): string {
                 return `<div style="${style}">${text.replace(/\n/g, '<br>')}</div>`;
             };
 
-            detailsHtml += renderField({ text: DOMPurify.sanitize(d.vehicleText), fontSize: d.vehicleFontSize, color: d.vehicleColor, bgColor: d.vehicleBgColor, fontWeight: 'bold', textAlign: d.vehicleTextAlign, paddingTop: d.vehiclePaddingTop, paddingBottom: d.vehiclePaddingBottom });
-            detailsHtml += renderField({ text: DOMPurify.sanitize(d.mainOfferText), fontSize: d.mainOfferFontSize, color: d.mainOfferColor, bgColor: d.mainOfferBgColor, fontWeight: '800', textAlign: d.mainOfferTextAlign, paddingTop: d.mainOfferPaddingTop, paddingBottom: d.mainOfferPaddingBottom });
-            detailsHtml += renderField({ text: DOMPurify.sanitize(d.detailsText), fontSize: d.detailsFontSize, color: d.detailsColor, bgColor: d.detailsBgColor, fontWeight: 'normal', textAlign: d.detailsTextAlign, paddingTop: d.detailsPaddingTop, paddingBottom: d.detailsPaddingBottom });
+            detailsHtml += renderField({ text: DOMPurify.sanitize(d.vehicleText), fontSize: d.vehicleFontSize, color: d.vehicleColor, bgColor: d.vehicleBgColor, fontWeight: 'bold', fontStyle: d.vehicleFontStyle, textAlign: d.vehicleTextAlign, paddingTop: d.vehiclePaddingTop, paddingBottom: d.vehiclePaddingBottom, paddingLeftRight: d.vehiclePaddingLeftRight });
+            detailsHtml += renderField({ text: DOMPurify.sanitize(d.mainOfferText), fontSize: d.mainOfferFontSize, color: d.mainOfferColor, bgColor: d.mainOfferBgColor, fontWeight: '800', fontStyle: d.mainOfferFontStyle, textAlign: d.mainOfferTextAlign, paddingTop: d.mainOfferPaddingTop, paddingBottom: d.mainOfferPaddingBottom, paddingLeftRight: d.mainOfferPaddingLeftRight });
+            detailsHtml += renderField({ text: DOMPurify.sanitize(d.detailsText), fontSize: d.detailsFontSize, color: d.detailsColor, bgColor: d.detailsBgColor, fontWeight: d.detailsFontWeight, fontStyle: d.detailsFontStyle, textAlign: d.detailsTextAlign, paddingTop: d.detailsPaddingTop, paddingBottom: d.detailsPaddingBottom, paddingLeftRight: d.detailsPaddingLeftRight });
             
             addOffers.forEach((o: any) => {
-                detailsHtml += renderField({ text: o.separator, fontSize: o.separatorFontSize, color: o.separatorColor, bgColor: o.separatorBgColor, fontWeight: 'bold', textAlign: o.separatorTextAlign, paddingTop: o.separatorPaddingTop, paddingBottom: o.separatorPaddingBottom });
-                detailsHtml += renderField({ text: o.offer, fontSize: o.offerFontSize, color: o.offerColor, bgColor: o.offerBgColor, fontWeight: 'bold', textAlign: o.offerTextAlign, paddingTop: o.offerPaddingTop, paddingBottom: o.offerPaddingBottom });
-                detailsHtml += renderField({ text: o.details, fontSize: o.detailsFontSize, color: o.detailsColor, bgColor: o.detailsBgColor, fontWeight: 'normal', textAlign: o.detailsTextAlign, paddingTop: o.detailsPaddingTop, paddingBottom: o.detailsPaddingBottom });
-                detailsHtml += renderField({ text: o.disclaimer, fontSize: o.disclaimerFontSize, color: o.disclaimerColor, bgColor: o.disclaimerBgColor, fontWeight: 'normal', textAlign: o.disclaimerTextAlign, paddingTop: o.disclaimerPaddingTop, paddingBottom: o.disclaimerPaddingBottom });
+                detailsHtml += renderField({ text: o.separator, fontSize: o.separatorFontSize, color: o.separatorColor, bgColor: o.separatorBgColor, fontWeight: o.separatorFontWeight, fontStyle: o.separatorFontStyle, textAlign: o.separatorTextAlign, paddingTop: o.separatorPaddingTop, paddingBottom: o.separatorPaddingBottom, paddingLeftRight: o.separatorPaddingLeftRight });
+                detailsHtml += renderField({ text: o.offer, fontSize: o.offerFontSize, color: o.offerColor, bgColor: o.offerBgColor, fontWeight: o.offerFontWeight, fontStyle: o.offerFontStyle, textAlign: o.offerTextAlign, paddingTop: o.offerPaddingTop, paddingBottom: o.offerPaddingBottom, paddingLeftRight: o.offerPaddingLeftRight });
+                detailsHtml += renderField({ text: o.details, fontSize: o.detailsFontSize, color: o.detailsColor, bgColor: o.detailsBgColor, fontWeight: o.detailsFontWeight, fontStyle: o.detailsFontStyle, textAlign: o.detailsTextAlign, paddingTop: o.detailsPaddingTop, paddingBottom: o.detailsPaddingBottom, paddingLeftRight: o.detailsPaddingLeftRight });
+                detailsHtml += renderField({ text: o.disclaimer, fontSize: o.disclaimerFontSize, color: o.disclaimerColor, bgColor: o.disclaimerBgColor, fontWeight: o.disclaimerFontWeight, fontStyle: o.disclaimerFontStyle, textAlign: o.disclaimerTextAlign, paddingTop: o.disclaimerPaddingTop, paddingBottom: o.disclaimerPaddingBottom, paddingLeftRight: o.disclaimerPaddingLeftRight });
             });
             
             let finalStockVinText = '';
@@ -1572,8 +1657,8 @@ function generateEmailHtml(): string {
                 finalMileageText = `Mileage: ${sanitizedMileage.trim()}`;
             }
 
-            detailsHtml += renderField({ text: finalStockVinText, fontSize: d.stockVinFontSize, color: d.stockVinColor, bgColor: d.stockVinBgColor, fontWeight: 'normal', textAlign: d.stockVinTextAlign, paddingTop: d.stockVinPaddingTop, paddingBottom: d.stockVinPaddingBottom });
-            detailsHtml += renderField({ text: finalMileageText, fontSize: d.mileageFontSize, color: d.mileageColor, bgColor: d.mileageBgColor, fontWeight: 'normal', textAlign: d.mileageTextAlign, paddingTop: d.mileagePaddingTop, paddingBottom: d.mileagePaddingBottom });
+            detailsHtml += renderField({ text: finalStockVinText, fontSize: d.stockVinFontSize, color: d.stockVinColor, bgColor: d.stockVinBgColor, fontWeight: d.stockVinFontWeight, fontStyle: d.stockVinFontStyle, textAlign: d.stockVinTextAlign, paddingTop: d.stockVinPaddingTop, paddingBottom: d.stockVinPaddingBottom, paddingLeftRight: d.stockVinPaddingLeftRight });
+            detailsHtml += renderField({ text: finalMileageText, fontSize: d.mileageFontSize, color: d.mileageColor, bgColor: d.mileageBgColor, fontWeight: d.mileageFontWeight, fontStyle: d.mileageFontStyle, textAlign: d.mileageTextAlign, paddingTop: d.mileagePaddingTop, paddingBottom: d.mileagePaddingBottom, paddingLeftRight: d.mileagePaddingLeftRight });
             
             const radius = designSettings.buttonStyle === 'pill' ? '50px' : designSettings.buttonStyle === 'square' ? '0px' : '8px';
             const isOutlined = designSettings.buttonStyle === 'outlined';
@@ -1595,7 +1680,7 @@ function generateEmailHtml(): string {
             const btnStyles = [
                 `background-color: ${isOutlined ? 'transparent' : btnBgColor}`,
                 `color: ${isOutlined ? btnBgColor : btnTextColor}`,
-                `padding: ${d.btnPaddingTop || '12'}px 20px ${d.btnPaddingBottom || '12'}px`,
+                `padding: ${d.btnPaddingTop || '12'}px ${d.btnPaddingLeftRight || '20'}px ${d.btnPaddingBottom || '12'}px`,
                 `text-decoration: none`,
                 `display: block`,
                 `font-weight: bold`,
@@ -1616,7 +1701,7 @@ function generateEmailHtml(): string {
                 </table>
             `;
             
-            detailsHtml += renderField({ text: DOMPurify.sanitize(d.disclaimerText), fontSize: d.disclaimerFontSize, color: d.disclaimerColor, bgColor: d.disclaimerBgColor, fontWeight: 'normal', textAlign: d.disclaimerTextAlign, paddingTop: d.disclaimerPaddingTop, paddingBottom: d.disclaimerPaddingBottom });
+            detailsHtml += renderField({ text: DOMPurify.sanitize(d.disclaimerText), fontSize: d.disclaimerFontSize, color: d.disclaimerColor, bgColor: d.disclaimerBgColor, fontWeight: d.disclaimerFontWeight, fontStyle: d.disclaimerFontStyle, textAlign: d.disclaimerTextAlign, paddingTop: d.disclaimerPaddingTop, paddingBottom: d.disclaimerPaddingBottom, paddingLeftRight: d.disclaimerPaddingLeftRight });
             
             return detailsHtml;
         };
@@ -2069,6 +2154,210 @@ const buttonWidthControlHtml = (currentValue: string, dataStyleKey: string): str
     return `<div class="btn-width-group">${buttonsHtml}</div>`;
 };
 
+// Moved colorPickerHtml to a higher scope to be accessible by colorControlsHtml.
+const colorPickerHtml = (dataStyleKey: string, value: string, disabled: boolean = false) => {
+    const disabledAttr = disabled ? 'disabled' : '';
+    const onclickAttr = disabled ? '' : `onclick="this.querySelector('input[type=color]').click()"`;
+    return `
+        <div class="color-picker-wrapper">
+            <div class="color-input-container mini" ${onclickAttr}>
+                <div class="color-swatch-display" style="background-color: ${value};"></div>
+                <input type="color" class="color-input-hidden style-control" data-style-key="${dataStyleKey}" value="${value}" ${disabledAttr}>
+            </div>
+            <input type="text" class="form-control compact color-hex-input" value="${value.toUpperCase()}" maxlength="7" ${disabledAttr}>
+        </div>
+    `;
+};
+
+const typographyControlsHtml = (data: Record<string, string>, keys: Record<string, string>) => {
+    let html = '';
+    const hasFontSize = keys.fontSize && data[keys.fontSize];
+    const hasFormatting = (keys.fontWeight && data[keys.fontWeight]) || (keys.fontStyle && data[keys.fontStyle]);
+
+    if(hasFontSize || hasFormatting) {
+        html += `<div class="grid grid-cols-2">`;
+        if (hasFontSize) {
+            html += `
+                <div class="form-group">
+                    <label class="form-label">Font Size (px)</label>
+                    <input type="number" class="form-control style-control" data-style-key="${keys.fontSize}" value="${data[keys.fontSize] || ''}">
+                </div>
+            `;
+        }
+        if (hasFormatting) {
+             html += `
+                <div class="form-group">
+                    <label class="form-label">Formatting</label>
+                    <div style="display: flex; gap: 6px;">
+                        ${keys.fontWeight ? `<button type="button" class="btn btn-secondary format-toggle style-control ${data[keys.fontWeight] === 'bold' ? 'active' : ''}" data-style-key="${keys.fontWeight}" data-val-on="bold" data-val-off="normal" style="font-weight: 800; font-size: 15px; width: 36px; height: 36px; padding: 0; border-radius: var(--radius-md);">B</button>` : ''}
+                        ${keys.fontStyle ? `<button type="button" class="btn btn-secondary format-toggle style-control ${data[keys.fontStyle] === 'italic' ? 'active' : ''}" data-style-key="${keys.fontStyle}" data-val-on="italic" data-val-off="normal" style="font-style: italic; font-size: 15px; width: 36px; height: 36px; padding: 0; border-radius: var(--radius-md);">I</button>`: ''}
+                    </div>
+                </div>
+            `;
+        }
+        html += `</div>`;
+    }
+    return html;
+};
+
+const colorControlsHtml = (data: Record<string, string>, colorConfigs: { key: string, label: string }[], disabledFields: Record<string, boolean> = {}) => {
+    if (!colorConfigs || colorConfigs.length === 0) return '';
+    
+    const colorsHtml = colorConfigs.map(config => {
+        const isDisabled = disabledFields[config.key] || false;
+        const value = data[config.key] === 'transparent' ? '#ffffff' : data[config.key] || '#000000';
+        return `
+            <div class="form-group">
+                <label class="form-label">${config.label}</label>
+                ${colorPickerHtml(config.key, value, isDisabled)}
+            </div>
+        `;
+    }).join('');
+
+    return `<div class="grid grid-cols-2">${colorsHtml}</div>`;
+}
+
+const paddingControlsHtml = (data: Record<string, string>, paddingConfigs: { key: string, label: string }[]) => {
+    if (!paddingConfigs || paddingConfigs.length === 0) return '';
+    const controls = paddingConfigs.map(c => `
+        <div class="form-group">
+            <label class="form-label">${c.label}</label>
+            <input type="number" class="form-control style-control" data-style-key="${c.key}" value="${data[c.key] || 0}">
+        </div>
+    `).join('');
+    return `<div class="grid grid-cols-3">${controls}</div>`;
+};
+
+const renderStandardStylingPanel = (
+    data: Record<string, string>,
+    config: Record<string, any>,
+    updateFn: (key: string, value: string) => void,
+    disabledFields: Record<string, boolean> = {}
+) => {
+    if (!dynamicStylingContainer || !activeField) return;
+
+    const comp = activeComponents.find(c => c.id === activeField.componentId);
+    if (!comp) return;
+
+    const formattedCompType = comp.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+    let html = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg);">
+            <div style="display: flex; align-items: center; gap: 4px;">
+                <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--label-tertiary);">${formattedCompType}</span>
+                <span style="color: var(--label-tertiary); font-size: 12px; padding-bottom: 2px;">›</span>
+                <span style="font-size: 13px; font-weight: 600; color: var(--label-primary);">${activeField.fieldLabel}</span>
+            </div>
+            <button type="button" id="close-styling-panel-btn" class="btn btn-ghost" style="width: 24px; height: 24px; padding: 0; border-radius: 50%; line-height: 1;">&times;</button>
+        </div>
+        <div class="design-option-group" style="border-top: 1px solid var(--separator-secondary); padding-top: var(--spacing-lg);">
+    `;
+
+    // Typography
+    if (config.typography) {
+        html += typographyControlsHtml(data, config.typography);
+    }
+
+    // Colors
+    if (config.colors) {
+        html += colorControlsHtml(data, config.colors, disabledFields);
+    }
+    
+    // Alignment
+    if (config.alignment) {
+        const key = Object.keys(config.alignment)[0];
+        html += `
+            <div class="form-group">
+                <label class="form-label">Alignment</label>
+                ${alignmentControlHtml(key, data[key] || 'center')}
+            </div>
+        `;
+    }
+
+    // Sizing (Width, Button Width, etc.)
+    if(config.sizing) {
+        let sizingGridHtml = '';
+        if(config.sizing.width) {
+             sizingGridHtml += `<div class="form-group"><label class="form-label">Width (%)</label><input type="number" class="form-control style-control" data-style-key="${config.sizing.width}" value="${parseInt(data[config.sizing.width] || '100', 10)}"></div>`;
+        }
+        if(config.sizing.thickness) {
+            sizingGridHtml += `<div class="form-group"><label class="form-label">Thickness (px)</label><input type="number" class="form-control style-control" data-style-key="${config.sizing.thickness}" value="${data[config.sizing.thickness] || '2'}"></div>`;
+        }
+        if(config.sizing.height) {
+            sizingGridHtml += `<div class="form-group"><label class="form-label">Height (px)</label><input type="number" class="form-control style-control" data-style-key="${config.sizing.height}" value="${data[config.sizing.height] || '40'}"></div>`;
+        }
+        if (sizingGridHtml) {
+            html += `<div class="grid grid-cols-2">${sizingGridHtml}</div>`;
+        }
+        
+        if(config.sizing.buttonWidth) {
+             html += `<div class="form-group"><label class="form-label">Button Width</label>${buttonWidthControlHtml(data[config.sizing.buttonWidth], config.sizing.buttonWidth)}</div>`;
+        }
+    }
+    
+    // Padding
+    if (config.padding) {
+        html += paddingControlsHtml(data, config.padding);
+    }
+
+    if (config.customHtml) {
+        html += config.customHtml(data);
+    }
+
+    html += `</div>`;
+
+    if (config.showButtonStyle) {
+        html += getButtonStyleSectionHtml();
+    }
+    
+    dynamicStylingContainer.innerHTML = html;
+
+    dynamicStylingContainer.querySelector('#close-styling-panel-btn')?.addEventListener('click', () => {
+        if (activeField?.element) {
+            activeField.element.classList.remove('field-active');
+        }
+        activeField = null;
+        renderStylingPanel();
+    });
+
+    // Attach Listeners
+    dynamicStylingContainer.querySelectorAll('.style-control').forEach(el => {
+        const inputEl = el as HTMLInputElement | HTMLButtonElement;
+        const key = inputEl.dataset.styleKey;
+        if (!key) return;
+
+        if (inputEl.classList.contains('format-toggle')) {
+            inputEl.addEventListener('click', () => {
+                const onVal = inputEl.dataset.valOn as string;
+                const offVal = inputEl.dataset.valOff as string;
+                const newVal = data[key] === onVal ? offVal : onVal;
+                updateFn(key, newVal);
+                renderStylingPanel();
+            });
+        } else if (inputEl.classList.contains('alignment-toggle') || inputEl.classList.contains('btn-width-option')) {
+            inputEl.addEventListener('click', () => {
+                const value = inputEl.dataset.value;
+                if(value) updateFn(key, value);
+                renderStylingPanel();
+            });
+        } else {
+             const eventType = (inputEl as HTMLInputElement).type === 'checkbox' ? 'change' : 'input';
+             inputEl.addEventListener(eventType, () => {
+                let value = (inputEl as HTMLInputElement).type === 'checkbox' ? (inputEl as HTMLInputElement).checked.toString() : inputEl.value;
+                if (key.toLowerCase().includes('width') && !key.toLowerCase().includes('widthtype')) {
+                    value = `${value}%`;
+                }
+                updateFn(key, value);
+             });
+        }
+    });
+
+    if (config.showButtonStyle) {
+        attachButtonStyleListeners();
+    }
+}
+
+
 const renderStylingPanel = () => {
     if (!dynamicStylingContainer || !activeField) {
         if(dynamicStylingContainer) dynamicStylingContainer.innerHTML = '';
@@ -2081,20 +2370,6 @@ const renderStylingPanel = () => {
         return;
     }
     
-    const colorPickerHtml = (dataStyleKey: string, value: string, disabled: boolean = false) => {
-        const disabledAttr = disabled ? 'disabled' : '';
-        const onclickAttr = disabled ? '' : `onclick="this.querySelector('input[type=color]').click()"`;
-        return `
-            <div class="color-picker-wrapper">
-                <div class="color-input-container mini" ${onclickAttr}>
-                    <div class="color-swatch-display" style="background-color: ${value};"></div>
-                    <input type="color" class="color-input-hidden style-control" data-style-key="${dataStyleKey}" value="${value}" ${disabledAttr}>
-                </div>
-                <input type="text" class="form-control compact color-hex-input" value="${value.toUpperCase()}" maxlength="7" ${disabledAttr}>
-            </div>
-        `;
-    };
-
     const attachColorPickerListeners = () => {
         dynamicStylingContainer.querySelectorAll('.color-picker-wrapper').forEach(wrapper => {
             const colorInput = wrapper.querySelector('.color-input-hidden') as HTMLInputElement;
@@ -2109,6 +2384,7 @@ const renderStylingPanel = () => {
                     textInput.value = newColor;
                 }
                 swatch.style.backgroundColor = colorInput.value;
+                colorInput.dispatchEvent(new Event('input', { bubbles: true }));
             });
 
             textInput.addEventListener('input', () => {
@@ -2132,695 +2408,228 @@ const renderStylingPanel = () => {
         });
     };
 
+    const baseUpdateFn = (key: string, value: string) => updateComponentData(comp.id, key, value);
 
-    // Path for Header Component
-    if (comp.type === 'header') {
-        const d = comp.data;
-        dynamicStylingContainer.innerHTML = `
-            <div class="design-option-group" style="border-top: 1px solid var(--separator-secondary); padding-top: var(--spacing-lg); margin-top: var(--spacing-lg);">
-                <h4>Field Styling</h4>
-                <p class="text-sm" style="color: var(--label-secondary); margin-bottom: var(--spacing-md);">Currently editing: <strong style="color: var(--label-primary);">${activeField.fieldLabel}</strong></p>
-                
-                <div class="grid grid-cols-2">
-                    <div class="form-group">
-                        <label class="form-label">Font Size (px)</label>
-                        <input type="number" class="form-control style-control" data-style-key="fontSize" value="${d.fontSize || 24}">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Alignment</label>
-                        ${alignmentControlHtml('textAlign', d.textAlign || 'center')}
-                    </div>
-                </div>
-                <div class="grid grid-cols-2">
-                    <div class="form-group">
-                        <label class="form-label">Text Color</label>
-                        ${colorPickerHtml('textColor', (d.textColor && d.textColor.startsWith('#')) ? d.textColor : '#1d1d1f')}
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Background Color</label>
-                        ${colorPickerHtml('backgroundColor', d.backgroundColor === 'transparent' ? '#ffffff' : d.backgroundColor || '#ffffff')}
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Formatting</label>
-                    <div style="display: flex; gap: 6px;">
-                        <button type="button" class="btn btn-secondary format-toggle style-control ${d.fontWeight === 'bold' ? 'active' : ''}" data-style-key="fontWeight" data-val-on="bold" data-val-off="normal" style="font-weight: 800; font-size: 15px; width: 36px; height: 36px; padding: 0; border-radius: var(--radius-md);">B</button>
-                        <button type="button" class="btn btn-secondary format-toggle style-control ${d.fontStyle === 'italic' ? 'active' : ''}" data-style-key="fontStyle" data-val-on="italic" data-val-off="normal" style="font-style: italic; font-size: 15px; width: 36px; height: 36px; padding: 0; border-radius: var(--radius-md);">I</button>
-                    </div>
-                </div>
-                <div class="grid grid-cols-3">
-                    <div class="form-group">
-                        <label class="form-label">Padding T</label>
-                        <input type="number" class="form-control style-control" data-style-key="paddingTop" value="${d.paddingTop || 0}">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Padding B</label>
-                        <input type="number" class="form-control style-control" data-style-key="paddingBottom" value="${d.paddingBottom || 0}">
-                    </div>
-                     <div class="form-group">
-                        <label class="form-label">Padding L/R</label>
-                        <input type="number" class="form-control style-control" data-style-key="paddingLeftRight" value="${d.paddingLeftRight || 0}">
-                    </div>
-                </div>
-            </div>
-        `;
+    switch (comp.type) {
+        case 'header':
+        case 'text_block':
+            renderStandardStylingPanel(comp.data, {
+                typography: { fontSize: 'fontSize', fontWeight: 'fontWeight', fontStyle: 'fontStyle'},
+                colors: [
+                    { key: 'textColor', label: 'Text Color' },
+                    { key: 'backgroundColor', label: 'Background' }
+                ],
+                alignment: { textAlign: 'textAlign'},
+                padding: [
+                    {key: 'paddingTop', label: 'Padding T'}, 
+                    {key: 'paddingBottom', label: 'Padding B'},
+                    {key: 'paddingLeftRight', label: 'Padding L/R'}
+                ]
+            }, baseUpdateFn);
+            break;
 
-        dynamicStylingContainer.querySelectorAll('.style-control').forEach(el => {
-            const inputEl = el as HTMLInputElement | HTMLSelectElement | HTMLButtonElement;
-            const key = inputEl.dataset.styleKey;
-            if (!key) return;
-
-            if (inputEl.classList.contains('alignment-toggle')) {
-                inputEl.addEventListener('click', () => {
-                    const value = inputEl.dataset.value;
-                    if (!value) return;
-                    inputEl.parentElement?.querySelectorAll('.alignment-toggle').forEach(sib => sib.classList.remove('active'));
-                    inputEl.classList.add('active');
-                    updateComponentData(comp.id, key, value);
-                });
-            } else if (inputEl.classList.contains('format-toggle')) {
-                inputEl.addEventListener('click', () => {
-                    const onVal = inputEl.dataset.valOn as string;
-                    const offVal = inputEl.dataset.valOff as string;
-                    const currentVal = comp.data[key];
-                    const newVal = currentVal === onVal ? offVal : onVal;
-                    updateComponentData(comp.id, key, newVal);
-                    inputEl.classList.toggle('active');
-                });
+        case 'button':
+             renderStandardStylingPanel(comp.data, {
+                typography: { fontSize: 'fontSize' },
+                colors: [
+                    { key: 'backgroundColor', label: 'Button Color' },
+                    { key: 'textColor', label: 'Text Color' }
+                ],
+                alignment: { align: 'align'},
+                sizing: { buttonWidth: 'widthType' },
+                padding: [
+                    { key: 'paddingTop', label: 'Padding T' },
+                    { key: 'paddingBottom', label: 'Padding B' },
+                    { key: 'paddingLeftRight', label: 'Padding L/R' }
+                ],
+                showButtonStyle: true
+            }, baseUpdateFn);
+            break;
+        
+        case 'sales_offer':
+            if(activeField.fieldKey === 'salesOfferButton') {
+                renderStandardStylingPanel(comp.data, {
+                    typography: { fontSize: 'btnFontSize' },
+                    colors: [
+                        { key: 'btnColor', label: 'Button Color' },
+                        { key: 'btnTextColor', label: 'Text Color' }
+                    ],
+                    alignment: { align: 'btnAlign'},
+                    sizing: { buttonWidth: 'btnWidthType' },
+                    padding: [
+                        { key: 'btnPaddingTop', label: 'Padding T' },
+                        { key: 'btnPaddingBottom', label: 'Padding B' },
+                        { key: 'btnPaddingLeftRight', label: 'Padding L/R' }
+                    ],
+                    showButtonStyle: true
+                }, baseUpdateFn);
             } else {
-                inputEl.addEventListener('input', () => {
-                    updateComponentData(comp.id, key, inputEl.value);
-                });
-            }
-        });
-        attachColorPickerListeners();
-        return;
-    } else if (comp.type === 'text_block') {
-        const d = comp.data;
-        dynamicStylingContainer.innerHTML = `
-            <div class="design-option-group" style="border-top: 1px solid var(--separator-secondary); padding-top: var(--spacing-lg); margin-top: var(--spacing-lg);">
-                <h4>Field Styling</h4>
-                <p class="text-sm" style="color: var(--label-secondary); margin-bottom: var(--spacing-md);">Currently editing: <strong style="color: var(--label-primary);">${activeField.fieldLabel}</strong></p>
-                
-                <div class="grid grid-cols-2">
-                    <div class="form-group">
-                        <label class="form-label">Font Size (px)</label>
-                        <input type="number" class="form-control style-control" data-style-key="fontSize" value="${d.fontSize || 16}">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Alignment</label>
-                        ${alignmentControlHtml('textAlign', d.textAlign || 'left')}
-                    </div>
-                </div>
-                <div class="grid grid-cols-2">
-                    <div class="form-group">
-                        <label class="form-label">Text Color</label>
-                        ${colorPickerHtml('textColor', (d.textColor && d.textColor.startsWith('#')) ? d.textColor : '#3c3c43')}
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Background Color</label>
-                        ${colorPickerHtml('backgroundColor', d.backgroundColor === 'transparent' ? '#ffffff' : d.backgroundColor || '#ffffff')}
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Formatting</label>
-                    <div style="display: flex; gap: 6px;">
-                        <button type="button" class="btn btn-secondary format-toggle style-control ${d.fontWeight === 'bold' ? 'active' : ''}" data-style-key="fontWeight" data-val-on="bold" data-val-off="normal" style="font-weight: 800; font-size: 15px; width: 36px; height: 36px; padding: 0; border-radius: var(--radius-md);">B</button>
-                        <button type="button" class="btn btn-secondary format-toggle style-control ${d.fontStyle === 'italic' ? 'active' : ''}" data-style-key="fontStyle" data-val-on="italic" data-val-off="normal" style="font-style: italic; font-size: 15px; width: 36px; height: 36px; padding: 0; border-radius: var(--radius-md);">I</button>
-                    </div>
-                </div>
-                <div class="grid grid-cols-3">
-                    <div class="form-group">
-                        <label class="form-label">Padding T</label>
-                        <input type="number" class="form-control style-control" data-style-key="paddingTop" value="${d.paddingTop || 0}">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Padding B</label>
-                        <input type="number" class="form-control style-control" data-style-key="paddingBottom" value="${d.paddingBottom || 0}">
-                    </div>
-                     <div class="form-group">
-                        <label class="form-label">Padding L/R</label>
-                        <input type="number" class="form-control style-control" data-style-key="paddingLeftRight" value="${d.paddingLeftRight || 0}">
-                    </div>
-                </div>
-            </div>
-        `;
+                let dataObject = comp.data;
+                let updateFn = baseUpdateFn;
+                const prefix = activeField.fieldKey;
 
-        dynamicStylingContainer.querySelectorAll('.style-control').forEach(el => {
-            const inputEl = el as HTMLInputElement | HTMLSelectElement | HTMLButtonElement;
-            const key = inputEl.dataset.styleKey;
-            if (!key) return;
-
-             if (inputEl.classList.contains('alignment-toggle')) {
-                inputEl.addEventListener('click', () => {
-                    const value = inputEl.dataset.value;
-                    if (!value) return;
-                    inputEl.parentElement?.querySelectorAll('.alignment-toggle').forEach(sib => sib.classList.remove('active'));
-                    inputEl.classList.add('active');
-                    updateComponentData(comp.id, key, value);
-                });
-            } else if (inputEl.classList.contains('format-toggle')) {
-                inputEl.addEventListener('click', () => {
-                    const onVal = inputEl.dataset.valOn as string;
-                    const offVal = inputEl.dataset.valOff as string;
-                    const currentVal = comp.data[key];
-                    const newVal = currentVal === onVal ? offVal : onVal;
-                    updateComponentData(comp.id, key, newVal);
-                    inputEl.classList.toggle('active');
-                });
-            } else {
-                inputEl.addEventListener('input', () => {
-                    updateComponentData(comp.id, key, inputEl.value);
-                });
-            }
-        });
-        attachColorPickerListeners();
-        return;
-    } else if (comp.type === 'image') {
-        const d = comp.data;
-        dynamicStylingContainer.innerHTML = `
-            <div class="design-option-group" style="border-top: 1px solid var(--separator-secondary); padding-top: var(--spacing-lg); margin-top: var(--spacing-lg);">
-                <h4>Field Styling</h4>
-                <p class="text-sm" style="color: var(--label-secondary); margin-bottom: var(--spacing-md);">Currently editing: <strong style="color: var(--label-primary);">Image</strong></p>
-
-                <div class="form-group">
-                    <label class="form-label">Width (%)</label>
-                    <input type="number" class="form-control style-control" data-style-key="width" value="${parseInt(d.width || '100', 10)}">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Alignment</label>
-                    ${alignmentControlHtml('align', d.align || 'center')}
-                </div>
-
-                <div class="grid grid-cols-3">
-                    <div class="form-group">
-                        <label class="form-label">Padding T</label>
-                        <input type="number" class="form-control style-control" data-style-key="paddingTop" value="${d.paddingTop || 0}">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Padding B</label>
-                        <input type="number" class="form-control style-control" data-style-key="paddingBottom" value="${d.paddingBottom || 0}">
-                    </div>
-                     <div class="form-group">
-                        <label class="form-label">Padding L/R</label>
-                        <input type="number" class="form-control style-control" data-style-key="paddingLeftRight" value="${d.paddingLeftRight || 0}">
-                    </div>
-                </div>
-            </div>
-        `;
-
-        dynamicStylingContainer.querySelectorAll('.style-control').forEach(el => {
-            const inputEl = el as HTMLInputElement | HTMLSelectElement | HTMLButtonElement;
-            const key = inputEl.dataset.styleKey;
-            if (!key) return;
-            
-            if (inputEl.classList.contains('alignment-toggle')) {
-                inputEl.addEventListener('click', () => {
-                    const value = inputEl.dataset.value;
-                    if (!value) return;
-                    inputEl.parentElement?.querySelectorAll('.alignment-toggle').forEach(sib => sib.classList.remove('active'));
-                    inputEl.classList.add('active');
-                    updateComponentData(comp.id, key, value);
-                });
-            } else {
-                 inputEl.addEventListener('input', () => {
-                    let value = inputEl.value;
-                    if (key === 'width') {
-                        value = `${value}%`;
-                    }
-                    updateComponentData(comp.id, key, value);
-                });
-            }
-        });
-        return;
-    } else if (comp.type === 'divider') {
-        const d = comp.data;
-        dynamicStylingContainer.innerHTML = `
-            <div class="design-option-group" style="border-top: 1px solid var(--separator-secondary); padding-top: var(--spacing-lg); margin-top: var(--spacing-lg);">
-                <h4>Field Styling</h4>
-                <p class="text-sm" style="color: var(--label-secondary); margin-bottom: var(--spacing-md);">Currently editing: <strong style="color: var(--label-primary);">Divider</strong></p>
-                
-                <div class="grid grid-cols-2">
-                    <div class="form-group">
-                        <label class="form-label">Width (%)</label>
-                        <input type="number" class="form-control style-control" data-style-key="width" value="${d.width || '100'}" min="1" max="100">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Thickness (px)</label>
-                        <input type="number" class="form-control style-control" data-style-key="thickness" value="${d.thickness || '2'}" min="1" max="20">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2">
-                     <div class="form-group">
-                        <label class="form-label">Line Color</label>
-                        ${colorPickerHtml('lineColor', d.lineColor || '#CCCCCC')}
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Alignment</label>
-                        ${alignmentControlHtml('alignment', d.alignment || 'center')}
-                    </div>
-                </div>
-
-                 <div class="grid grid-cols-2">
-                    <div class="form-group">
-                        <label class="form-label">Padding Top</label>
-                        <input type="number" class="form-control style-control" data-style-key="paddingTop" value="${d.paddingTop || '16'}" min="0" max="100">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Padding Bottom</label>
-                        <input type="number" class="form-control style-control" data-style-key="paddingBottom" value="${d.paddingBottom || '16'}" min="0" max="100">
-                    </div>
-                </div>
-            </div>
-        `;
-        dynamicStylingContainer.querySelectorAll('.style-control').forEach(el => {
-            const inputEl = el as HTMLInputElement | HTMLButtonElement;
-            const key = inputEl.dataset.styleKey;
-            if (!key) return;
-            
-            const isAlignment = inputEl.classList.contains('alignment-toggle');
-
-            const handler = () => {
-                const value = isAlignment ? inputEl.dataset.value : (inputEl as HTMLInputElement).value;
-                if(value === undefined) return;
-                
-                if (isAlignment) {
-                    inputEl.parentElement?.querySelectorAll('.alignment-toggle').forEach(sib => sib.classList.remove('active'));
-                    inputEl.classList.add('active');
+                if (activeField.subOfferIndex !== undefined) {
+                    const offers = JSON.parse(comp.data.additionalOffers || '[]');
+                    dataObject = offers[activeField.subOfferIndex] || {};
+                    updateFn = (key: string, value: string) => updateSubOfferData(comp.id, activeField.subOfferIndex as number, key, value);
                 }
-                
-                updateComponentData(comp.id, key, value);
 
-                // Update preview in real-time
+                renderStandardStylingPanel(dataObject, {
+                    typography: { fontSize: `${prefix}FontSize`, fontWeight: `${prefix}FontWeight`, fontStyle: `${prefix}FontStyle` },
+                    colors: [
+                        { key: `${prefix}Color`, label: 'Text Color'},
+                        { key: `${prefix}BgColor`, label: 'Background'}
+                    ],
+                    alignment: { textAlign: `${prefix}TextAlign`},
+                    padding: [
+                        { key: `${prefix}PaddingTop`, label: 'Padding T'},
+                        { key: `${prefix}PaddingBottom`, label: 'Padding B'},
+                        { key: `${prefix}PaddingLeftRight`, label: 'Padding L/R' }
+                    ]
+                }, updateFn);
+            }
+            break;
+        
+        case 'service_offer':
+             const serviceFieldKey = activeField.fieldKey;
+             let serviceConfig = {};
+             switch(serviceFieldKey) {
+                case 'serviceOfferTitle':
+                case 'serviceOfferDetails':
+                case 'serviceOfferDisclaimer': {
+                    const prefix = serviceFieldKey.replace('serviceOffer', '').toLowerCase();
+                    serviceConfig = {
+                        typography: { fontSize: `${prefix}FontSize`, fontWeight: `${prefix}FontWeight`, fontStyle: `${prefix}FontStyle`},
+                        colors: [{key: `${prefix}TextColor`, label: 'Text Color'}, {key: `${prefix}BgColor`, label: 'Background'}],
+                        alignment: { textAlign: `${prefix}Alignment`},
+                        padding: [
+                            {key: `${prefix}PaddingTop`, label: 'Padding T'}, {key: `${prefix}PaddingBottom`, label: 'Padding B'},
+                            {key: `${prefix}PaddingLeftRight`, label: 'Padding L/R'}
+                        ]
+                    };
+                    break;
+                }
+                case 'serviceOfferCoupon': {
+                    const prefix = 'coupon';
+                    serviceConfig = {
+                        typography: { fontSize: `${prefix}FontSize`, fontWeight: `${prefix}FontWeight`, fontStyle: `${prefix}FontStyle`},
+                        colors: [{key: `${prefix}TextColor`, label: 'Text Color'}, {key: `${prefix}BgColor`, label: 'Background'}],
+                        alignment: { textAlign: `${prefix}Alignment`},
+                        padding: [
+                            {key: `${prefix}PaddingTop`, label: 'Padding T'}, {key: `${prefix}PaddingBottom`, label: 'Padding B'},
+                            {key: `${prefix}PaddingLeftRight`, label: 'Padding L/R'}
+                        ]
+                    };
+                    break;
+                }
+                case 'serviceOfferButton':
+                    serviceConfig = {
+                         typography: { fontSize: 'buttonFontSize' },
+                         colors: [{key: 'buttonBgColor', label: 'Button Color'}, {key: 'buttonTextColor', label: 'Text Color'}],
+                         alignment: { align: 'buttonAlignment'},
+                         sizing: { buttonWidth: 'buttonWidth' },
+                         padding: [
+                            {key: 'buttonPaddingTop', label: 'Padding T'}, {key: 'buttonPaddingBottom', label: 'Padding B'},
+                            {key: 'buttonPaddingLeftRight', label: 'Padding L/R'}
+                        ],
+                         showButtonStyle: true
+                    };
+                    break;
+                case 'serviceOfferImage':
+                     serviceConfig = {
+                        sizing: { width: 'imageWidth' },
+                        alignment: { align: 'imageAlignment' },
+                        padding: [{key: 'imagePaddingTop', label: 'Padding T'}, {key: 'imagePaddingBottom', label: 'Padding B'}]
+                    };
+                    break;
+                default:
+                    dynamicStylingContainer.innerHTML = `<div class="design-option-group" style="padding: 10px; text-align: center; color: var(--label-secondary); font-size: 13px;">Select a specific field to see its styling options.</div>`;
+                    return;
+             }
+             renderStandardStylingPanel(comp.data, serviceConfig, baseUpdateFn);
+             break;
+        
+        case 'image':
+             renderStandardStylingPanel(comp.data, {
+                sizing: { width: 'width'},
+                alignment: { align: 'align' },
+                padding: [{key: 'paddingTop', label: 'Padding T'}, {key: 'paddingBottom', label: 'Padding B'}, {key: 'paddingLeftRight', label: 'Padding L/R'}]
+            }, baseUpdateFn);
+            break;
+        
+        case 'divider': {
+            const config = {
+                sizing: { width: 'width', thickness: 'thickness' },
+                colors: [{ key: 'lineColor', label: 'Line Color' }],
+                alignment: { alignment: 'alignment' },
+                padding: [
+                    {key: 'paddingTop', label: 'Padding T'}, {key: 'paddingBottom', label: 'Padding B'},
+                    {key: 'paddingLeftRight', label: 'Padding L/R'}
+                ]
+            };
+            const updateFn = (key: string, value: string) => {
+                baseUpdateFn(key, value);
+                
+                // Update live preview in form
                 const previewContainer = document.querySelector(`[data-id='${comp.id}'] .divider-preview-container`);
                 const previewLine = document.querySelector(`[data-id='${comp.id}'] .divider-preview-line`) as HTMLElement;
 
                 if (previewContainer && previewLine) {
-                    switch(key) {
-                        case 'width': previewLine.style.width = `${value}%`; break;
-                        case 'thickness': previewLine.style.height = `${value}px`; break;
-                        case 'lineColor': previewLine.style.backgroundColor = value; break;
-                        case 'alignment': previewContainer.setAttribute('data-alignment', value); break;
-                        case 'paddingTop': (previewContainer as HTMLElement).style.paddingTop = `${value}px`; break;
-                        case 'paddingBottom': (previewContainer as HTMLElement).style.paddingBottom = `${value}px`; break;
-                    }
+                    const currentData = activeComponents.find(c => c.id === comp.id)?.data;
+                    if (!currentData) return;
+                    previewLine.style.width = `${currentData.width}%`;
+                    previewLine.style.height = `${currentData.thickness}px`;
+                    previewLine.style.backgroundColor = currentData.lineColor;
+                    previewContainer.setAttribute('data-alignment', currentData.alignment);
+                    (previewContainer as HTMLElement).style.paddingTop = `${currentData.paddingTop}px`;
+                    (previewContainer as HTMLElement).style.paddingBottom = `${currentData.paddingBottom}px`;
                 }
             };
-            
-            if (isAlignment) {
-                inputEl.addEventListener('click', handler);
-            } else {
-                inputEl.addEventListener('input', handler);
-            }
-        });
-        attachColorPickerListeners();
-        return;
-    } else if (comp.type === 'spacer') {
-        const d = comp.data;
-        const matchBg = d.matchEmailBackground === 'true';
-        dynamicStylingContainer.innerHTML = `
-            <div class="design-option-group" style="border-top: 1px solid var(--separator-secondary); padding-top: var(--spacing-lg); margin-top: var(--spacing-lg);">
-                <h4>Field Styling</h4>
-                <p class="text-sm" style="color: var(--label-secondary); margin-bottom: var(--spacing-md);">Currently editing: <strong style="color: var(--label-primary);">Spacer</strong></p>
-
-                <div class="form-group">
-                    <label class="form-label">Height (px)</label>
-                    <input type="number" class="form-control style-control" data-style-key="height" value="${d.height || '40'}" min="0" max="200">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Background Color</label>
-                    ${colorPickerHtml('backgroundColor', d.backgroundColor || '#ffffff', matchBg)}
-                </div>
-                
-                <div class="form-group" style="display: flex; align-items: center; gap: var(--spacing-sm);">
-                    <input type="checkbox" id="match-bg-checkbox" class="style-control" data-style-key="matchEmailBackground" ${matchBg ? 'checked' : ''} style="width: auto; height: auto;">
-                    <label for="match-bg-checkbox" class="form-label" style="margin-bottom: 0;">Match Email Background</label>
-                </div>
-            </div>
-        `;
-        
-        const heightInput = dynamicStylingContainer.querySelector('[data-style-key="height"]') as HTMLInputElement;
-        const bgColorPicker = dynamicStylingContainer.querySelector('.color-picker-wrapper') as HTMLElement;
-        const matchBgCheckbox = dynamicStylingContainer.querySelector('[data-style-key="matchEmailBackground"]') as HTMLInputElement;
-
-        const updateSpacerPreview = () => {
-            const preview = document.querySelector(`[data-id='${comp.id}'] .spacer-preview`) as HTMLElement;
-            const label = preview?.querySelector('.spacer-preview-label') as HTMLElement;
-            if (!preview || !label) return;
-
-            const currentData = activeComponents.find(c => c.id === comp.id)?.data;
-            if(!currentData) return;
-
-            preview.style.height = `${currentData.height}px`;
-            label.textContent = `Height: ${currentData.height}px`;
-
-            const isMatch = currentData.matchEmailBackground === 'true';
-            const newBgColor = isMatch ? 'transparent' : currentData.backgroundColor;
-            preview.style.backgroundColor = newBgColor;
-            
-            if (!isMatch && newBgColor !== 'transparent') {
-                preview.classList.add('has-bg-color');
-            } else {
-                preview.classList.remove('has-bg-color');
-            }
-        };
-
-        heightInput.addEventListener('input', () => {
-            updateComponentData(comp.id, 'height', heightInput.value);
-            updateSpacerPreview();
-        });
-        bgColorPicker.querySelector('.color-input-hidden')?.addEventListener('input', () => {
-            updateComponentData(comp.id, 'backgroundColor', (bgColorPicker.querySelector('.color-input-hidden') as HTMLInputElement).value);
-            updateSpacerPreview();
-        });
-        matchBgCheckbox.addEventListener('change', () => {
-            const isChecked = matchBgCheckbox.checked;
-            updateComponentData(comp.id, 'matchEmailBackground', isChecked.toString());
-            renderStylingPanel(); // Re-render to update disabled state
-        });
-        attachColorPickerListeners();
-        return;
-    } else if (comp.type === 'service_offer') {
-        const d = comp.data;
-        let content = '';
-
-        const header = `
-            <div class="design-option-group" style="border-top: 1px solid var(--separator-secondary); padding-top: var(--spacing-lg); margin-top: var(--spacing-lg);">
-                <h4>Field Styling</h4>
-                <p class="text-sm" style="color: var(--label-secondary); margin-bottom: var(--spacing-md);">Currently editing: <strong style="color: var(--label-primary);">${activeField.fieldLabel}</strong></p>
-        `;
-        const footer = `</div>`;
-
-        switch(activeField.fieldKey) {
-            case 'serviceOfferContainer':
-                content = `
-                    <div style="padding: 10px; text-align: center; color: var(--label-secondary); font-size: 13px;">
-                        <p>Select a specific field like the <strong>Title</strong> or <strong>Button</strong> to view its styling options.</p>
-                    </div>
-                `;
-                break;
-            case 'serviceOfferImage':
-                 content = `
-                    <div class="form-group"><label class="form-label">Width (%)</label><input type="number" class="form-control style-control" data-style-key="imageWidth" value="${d.imageWidth}"></div>
-                    <div class="form-group"><label class="form-label">Alignment</label>${alignmentControlHtml('imageAlignment', d.imageAlignment || 'center')}</div>
-                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Padding Top</label><input type="number" class="form-control style-control" data-style-key="imagePaddingTop" value="${d.imagePaddingTop}"></div><div class="form-group"><label class="form-label">Padding Bottom</label><input type="number" class="form-control style-control" data-style-key="imagePaddingBottom" value="${d.imagePaddingBottom}"></div></div>
-                 `;
-                break;
-            case 'serviceOfferTitle':
-                content = `
-                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Font Size</label><input type="number" class="form-control style-control" data-style-key="titleFontSize" value="${d.titleFontSize}"></div><div class="form-group"><label class="form-label">Font Weight</label><select class="form-control style-control" data-style-key="titleFontWeight"><option value="normal" ${d.titleFontWeight === 'normal' ? 'selected' : ''}>Normal</option><option value="bold" ${d.titleFontWeight === 'bold' ? 'selected' : ''}>Bold</option></select></div></div>
-                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Text Color</label>${colorPickerHtml('titleTextColor', d.titleTextColor)}</div><div class="form-group"><label class="form-label">BG Color</label>${colorPickerHtml('titleBgColor', d.titleBgColor)}</div></div>
-                    <div class="form-group"><label class="form-label">Alignment</label>${alignmentControlHtml('titleAlignment', d.titleAlignment || 'center')}</div>
-                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Padding Top</label><input type="number" class="form-control style-control" data-style-key="titlePaddingTop" value="${d.titlePaddingTop}"></div><div class="form-group"><label class="form-label">Padding Bottom</label><input type="number" class="form-control style-control" data-style-key="titlePaddingBottom" value="${d.titlePaddingBottom}"></div></div>
-                `;
-                break;
-            case 'serviceOfferCoupon':
-                const couponShowBorder = d.couponShowBorder === 'true';
-                content = `
-                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Font Size</label><input type="number" class="form-control style-control" data-style-key="couponFontSize" value="${d.couponFontSize}"></div><div class="form-group"><label class="form-label">Font Weight</label><select class="form-control style-control" data-style-key="couponFontWeight"><option value="normal" ${d.couponFontWeight === 'normal' ? 'selected' : ''}>Normal</option><option value="bold" ${d.couponFontWeight === 'bold' ? 'selected' : ''}>Bold</option></select></div></div>
-                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Text Color</label>${colorPickerHtml('couponTextColor', d.couponTextColor)}</div><div class="form-group"><label class="form-label">BG Color</label>${colorPickerHtml('couponBgColor', d.couponBgColor)}</div></div>
-                    <div class="form-group"><label class="form-label">Alignment</label>${alignmentControlHtml('couponAlignment', d.couponAlignment || 'center')}</div>
-                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Padding T/B</label><input type="number" class="form-control style-control" data-style-key="couponPaddingTop" value="${d.couponPaddingTop}"><input type="number" class="form-control style-control mt-2" data-style-key="couponPaddingBottom" value="${d.couponPaddingBottom}"></div><div class="form-group"><label class="form-label">Padding L/R</label><input type="number" class="form-control style-control" data-style-key="couponPaddingLeft" value="${d.couponPaddingLeft}"><input type="number" class="form-control style-control mt-2" data-style-key="couponPaddingRight" value="${d.couponPaddingRight}"></div></div>
-                    <div class="form-group"><label class="form-label"><input type="checkbox" class="style-control" data-style-key="couponShowBorder" ${couponShowBorder ? 'checked' : ''}> Show Coupon Border</label></div>
-                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Border Style</label><select class="form-control style-control" data-style-key="couponBorderStyle" ${!couponShowBorder ? 'disabled' : ''}><option value="solid" ${d.couponBorderStyle === 'solid' ? 'selected': ''}>Solid</option><option value="dashed" ${d.couponBorderStyle === 'dashed' ? 'selected': ''}>Dashed</option><option value="dotted" ${d.couponBorderStyle === 'dotted' ? 'selected': ''}>Dotted</option></select></div><div class="form-group"><label class="form-label">Border Color</label>${colorPickerHtml('couponBorderColor', d.couponBorderColor, !couponShowBorder)}</div></div>
-                `;
-                break;
-            case 'serviceOfferDetails':
-                content = `
-                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Font Size</label><input type="number" class="form-control style-control" data-style-key="detailsFontSize" value="${d.detailsFontSize}"></div><div class="form-group"><label class="form-label">Line Height</label><input type="number" step="0.1" class="form-control style-control" data-style-key="detailsLineHeight" value="${d.detailsLineHeight}"></div></div>
-                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Text Color</label>${colorPickerHtml('detailsTextColor', d.detailsTextColor)}</div><div class="form-group"><label class="form-label">BG Color</label>${colorPickerHtml('detailsBgColor', d.detailsBgColor)}</div></div>
-                    <div class="form-group"><label class="form-label">Alignment</label>${alignmentControlHtml('detailsAlignment', d.detailsAlignment || 'center')}</div>
-                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Padding Top</label><input type="number" class="form-control style-control" data-style-key="detailsPaddingTop" value="${d.detailsPaddingTop}"></div><div class="form-group"><label class="form-label">Padding Bottom</label><input type="number" class="form-control style-control" data-style-key="detailsPaddingBottom" value="${d.detailsPaddingBottom}"></div></div>
-                `;
-                break;
-            case 'serviceOfferDisclaimer':
-                content = `
-                    <div class="form-group"><label class="form-label">Font Size</label><input type="number" class="form-control style-control" data-style-key="disclaimerFontSize" value="${d.disclaimerFontSize}"></div>
-                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Text Color</label>${colorPickerHtml('disclaimerTextColor', d.disclaimerTextColor)}</div><div class="form-group"><label class="form-label">BG Color</label>${colorPickerHtml('disclaimerBgColor', d.disclaimerBgColor)}</div></div>
-                    <div class="form-group"><label class="form-label">Alignment</label>${alignmentControlHtml('disclaimerAlignment', d.disclaimerAlignment || 'center')}</div>
-                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Padding Top</label><input type="number" class="form-control style-control" data-style-key="disclaimerPaddingTop" value="${d.disclaimerPaddingTop}"></div><div class="form-group"><label class="form-label">Padding Bottom</label><input type="number" class="form-control style-control" data-style-key="disclaimerPaddingBottom" value="${d.disclaimerPaddingBottom}"></div></div>
-                `;
-                break;
-            case 'serviceOfferButton':
-                content = `
-                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Font Size</label><input type="number" class="form-control style-control" data-style-key="buttonFontSize" value="${d.buttonFontSize}"></div><div class="form-group"><label class="form-label">Alignment</label>${alignmentControlHtml('buttonAlignment', d.buttonAlignment || 'center')}</div></div>
-                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Button Color</label>${colorPickerHtml('buttonBgColor', d.buttonBgColor)}</div><div class="form-group"><label class="form-label">Text Color</label>${colorPickerHtml('buttonTextColor', d.buttonTextColor)}</div></div>
-                    <div class="grid grid-cols-2"><div class="form-group"><label class="form-label">Padding T</label><input type="number" class="form-control style-control" data-style-key="buttonPaddingTop" value="${d.buttonPaddingTop}"></div><div class="form-group"><label class="form-label">Padding B</label><input type="number" class="form-control style-control" data-style-key="buttonPaddingBottom" value="${d.buttonPaddingBottom}"></div></div>
-                    <div class="form-group">
-                        <label class="form-label">Button Width</label>
-                        ${buttonWidthControlHtml(d.buttonWidth, 'buttonWidth')}
-                    </div>
-                `;
-                break;
-            default:
-                content = `
-                    <div style="padding: 10px; text-align: center; color: var(--label-secondary); font-size: 13px;">
-                        <p>Select a specific field like the <strong>Title</strong> or <strong>Button</strong> to view its styling options.</p>
-                    </div>
-                `;
-        }
-        
-        let finalHtml = header + content + footer;
-
-        if (activeField.fieldKey === 'serviceOfferButton') {
-            finalHtml += getButtonStyleSectionHtml();
+            renderStandardStylingPanel(comp.data, config, updateFn);
+            break;
         }
 
-        dynamicStylingContainer.innerHTML = finalHtml;
-
-        dynamicStylingContainer.querySelectorAll('.style-control').forEach(el => {
-            const inputEl = el as HTMLInputElement | HTMLSelectElement | HTMLButtonElement;
-            const key = inputEl.dataset.styleKey;
-            if (!key) return;
-
-            if (inputEl.classList.contains('btn-width-option')) {
-                inputEl.addEventListener('click', () => {
-                    const value = inputEl.dataset.value;
-                    if (!value) return;
-                    inputEl.parentElement?.querySelectorAll('.btn-width-option').forEach(sib => sib.classList.remove('active'));
-                    inputEl.classList.add('active');
-                    updateComponentData(comp.id, key, value);
-                });
-            } else if (inputEl.classList.contains('alignment-toggle')) {
-                inputEl.addEventListener('click', () => {
-                    const value = inputEl.dataset.value;
-                    if (!value) return;
-                    inputEl.parentElement?.querySelectorAll('.alignment-toggle').forEach(sib => sib.classList.remove('active'));
-                    inputEl.classList.add('active');
-                    updateComponentData(comp.id, key, value);
-                });
-            } else {
-                 const eventType = inputEl.type === 'checkbox' ? 'change' : 'input';
-                inputEl.addEventListener(eventType, () => {
-                    const value = inputEl.type === 'checkbox' ? (inputEl as HTMLInputElement).checked.toString() : inputEl.value;
-                    updateComponentData(comp.id, key, value);
-    
-                    if (key === 'couponShowBorder') {
-                        renderStylingPanel();
-                    }
-                });
-            }
-        });
-
-        if (activeField.fieldKey === 'serviceOfferButton') {
-            attachButtonStyleListeners();
-        }
-        attachColorPickerListeners();
-        return;
-
-    } else if (
-        (comp.type === 'button' && activeField.fieldKey === 'button') ||
-        (comp.type === 'sales_offer' && activeField.fieldKey === 'salesOfferButton')
-    ) {
-        const isSalesOffer = comp.type === 'sales_offer';
-        const p = isSalesOffer ? 'btn' : ''; // prefix
-        const d = comp.data;
-
-        const get = (key: string, def: string) => d[p ? `${p}${key.charAt(0).toUpperCase() + key.slice(1)}` : key] || def;
-        
-        const fontSize = get('fontSize', '16');
-        const align = get('align', 'center');
-        const bgColor = d[isSalesOffer ? 'btnColor' : 'backgroundColor'] || '#007aff';
-        const textColor = get('textColor', '#ffffff');
-        const paddingTop = get('paddingTop', '12');
-        const paddingBottom = get('paddingBottom', '12');
-        const widthType = get('widthType', 'auto');
-        
-        let finalHtml = `
-            <div class="design-option-group" style="border-top: 1px solid var(--separator-secondary); padding-top: var(--spacing-lg); margin-top: var(--spacing-lg);">
-                <h4>Field Styling</h4>
-                <p class="text-sm" style="color: var(--label-secondary); margin-bottom: var(--spacing-md);">Currently editing: <strong style="color: var(--label-primary);">${activeField.fieldLabel}</strong></p>
-                
-                 <div class="form-group">
-                    <label class="form-label">Font Size (px)</label>
-                    <input type="number" class="form-control style-control" data-style-key="fontSize" value="${fontSize}">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Alignment</label>
-                    ${alignmentControlHtml('align', align)}
-                </div>
-                <div class="grid grid-cols-2">
-                    <div class="form-group">
-                        <label class="form-label">Button Color</label>
-                        ${colorPickerHtml('backgroundColor', bgColor)}
+        case 'spacer': {
+            const matchBg = comp.data.matchEmailBackground === 'true';
+            const config = {
+                sizing: { height: 'height' },
+                colors: [{ key: 'backgroundColor', label: 'Background'}],
+                customHtml: (d: Record<string,string>) => `
+                    <div class="form-group" style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                        <input type="checkbox" id="match-bg-checkbox" class="style-control" data-style-key="matchEmailBackground" ${d.matchEmailBackground === 'true' ? 'checked' : ''} style="width: auto; height: auto;">
+                        <label for="match-bg-checkbox" class="form-label" style="margin-bottom: 0;">Match Email Background</label>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Text Color</label>
-                        ${colorPickerHtml('textColor', textColor)}
-                    </div>
-                </div>
-                <div class="grid grid-cols-2">
-                    <div class="form-group">
-                        <label class="form-label">Padding Top</label>
-                        <input type="number" class="form-control style-control" data-style-key="paddingTop" value="${paddingTop}">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Padding Bottom</label>
-                        <input type="number" class="form-control style-control" data-style-key="paddingBottom" value="${paddingBottom}">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Button Width</label>
-                     ${buttonWidthControlHtml(widthType, 'widthType')}
-                </div>
-            </div>
-        `;
+                `
+            };
+            const updateFn = (key: string, value: string) => {
+                baseUpdateFn(key, value);
+                if (key === 'matchEmailBackground') {
+                    renderStylingPanel();
+                }
+                const preview = document.querySelector(`[data-id='${comp.id}'] .spacer-preview`) as HTMLElement;
+                const label = preview?.querySelector('.spacer-preview-label') as HTMLElement;
+                if (!preview || !label) return;
 
-        finalHtml += getButtonStyleSectionHtml();
-        dynamicStylingContainer.innerHTML = finalHtml;
-        
-        dynamicStylingContainer.querySelectorAll('.style-control').forEach(el => {
-            const inputEl = el as HTMLInputElement | HTMLSelectElement | HTMLButtonElement;
-            let key = inputEl.dataset.styleKey;
-            if (!key) return;
+                const currentData = activeComponents.find(c => c.id === comp.id)?.data;
+                if(!currentData) return;
 
-            let finalKey = p ? `${p}${key.charAt(0).toUpperCase() + key.slice(1)}` : key;
-            if(isSalesOffer && key === 'backgroundColor') finalKey = 'btnColor';
-            
-            if (inputEl.classList.contains('btn-width-option')) {
-                inputEl.addEventListener('click', () => {
-                    const value = inputEl.dataset.value;
-                    if (!value) return;
-                    inputEl.parentElement?.querySelectorAll('.btn-width-option').forEach(sib => sib.classList.remove('active'));
-                    inputEl.classList.add('active');
-                    updateComponentData(comp.id, finalKey, value);
-                });
-            } else if (inputEl.classList.contains('alignment-toggle')) {
-                 inputEl.addEventListener('click', () => {
-                    const value = inputEl.dataset.value;
-                    if (!value) return;
-                    inputEl.parentElement?.querySelectorAll('.alignment-toggle').forEach(sib => sib.classList.remove('active'));
-                    inputEl.classList.add('active');
-                    updateComponentData(comp.id, finalKey, value);
-                });
-            } else {
-                inputEl.addEventListener('input', () => {
-                    updateComponentData(comp.id, finalKey, inputEl.value);
-                });
-            }
-        });
-        
-        attachColorPickerListeners();
-        attachButtonStyleListeners();
-        return;
-    }
-
-    // Path for Sales Offer Fields
-    if (comp.type === 'sales_offer') {
-        let dataObject = comp.data;
-        if (activeField.subOfferIndex !== undefined) {
-            const offers = JSON.parse(comp.data.additionalOffers || '[]');
-            dataObject = offers[activeField.subOfferIndex] || {};
+                preview.style.height = `${currentData.height}px`;
+                label.textContent = `Height: ${currentData.height}px`;
+                const isMatch = currentData.matchEmailBackground === 'true';
+                const newBgColor = isMatch ? 'transparent' : currentData.backgroundColor;
+                preview.style.backgroundColor = newBgColor;
+                preview.classList.toggle('has-bg-color', !isMatch && newBgColor !== 'transparent');
+            };
+            renderStandardStylingPanel(comp.data, config, updateFn, { backgroundColor: matchBg });
+            break;
         }
 
-        const fieldKey = activeField.fieldKey;
-        
-        const fontSize = dataObject[`${fieldKey}FontSize`] || '14';
-        const textAlign = dataObject[`${fieldKey}TextAlign`] || 'center';
-        const textColor = dataObject[`${fieldKey}Color`] || '#000000';
-        const bgColor = dataObject[`${fieldKey}BgColor`] || 'transparent';
-        const paddingTop = dataObject[`${fieldKey}PaddingTop`] || '0';
-        const paddingBottom = dataObject[`${fieldKey}PaddingBottom`] || '0';
-
-        dynamicStylingContainer.innerHTML = `
-            <div class="design-option-group" style="border-top: 1px solid var(--separator-secondary); padding-top: var(--spacing-lg); margin-top: var(--spacing-lg);">
-                <h4>Field Styling</h4>
-                <p class="text-sm" style="color: var(--label-secondary); margin-bottom: var(--spacing-md);">Currently editing: <strong style="color: var(--label-primary);">${activeField.fieldLabel}</strong></p>
-                
-                <div class="form-group">
-                    <label class="form-label">Font Size (px)</label>
-                    <input type="number" class="form-control" data-style-key="FontSize" value="${fontSize}">
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Alignment</label>
-                    ${alignmentControlHtml('TextAlign', textAlign)}
-                </div>
-                
-                <div class="grid grid-cols-2">
-                    <div class="form-group">
-                        <label class="form-label">Text Color</label>
-                        ${colorPickerHtml('Color', textColor)}
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Background Color</label>
-                        ${colorPickerHtml('BgColor', bgColor === 'transparent' ? '#ffffff' : bgColor)}
-                    </div>
-                </div>
-                
-                 <div class="grid grid-cols-2">
-                    <div class="form-group">
-                        <label class="form-label">Padding Top</label>
-                        <input type="number" class="form-control" data-style-key="PaddingTop" value="${paddingTop}">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Padding Bottom</label>
-                        <input type="number" class="form-control" data-style-key="PaddingBottom" value="${paddingBottom}">
-                    </div>
-                </div>
-            </div>
-        `;
-
-        dynamicStylingContainer.querySelectorAll('input, select, button').forEach(el => {
-            const inputEl = el as HTMLInputElement | HTMLSelectElement | HTMLButtonElement;
-            const styleKey = inputEl.dataset.styleKey;
-            if (!styleKey) return;
-            
-            const fullKey = `${fieldKey}${styleKey}`;
-
-            if(inputEl.classList.contains('alignment-toggle')) {
-                inputEl.addEventListener('click', () => {
-                    const value = inputEl.dataset.value;
-                    if (!value) return;
-
-                    inputEl.parentElement?.querySelectorAll('.alignment-toggle').forEach(sib => sib.classList.remove('active'));
-                    inputEl.classList.add('active');
-
-                    if (activeField.subOfferIndex !== undefined) {
-                        updateSubOfferData(activeField.componentId, activeField.subOfferIndex, fullKey, value);
-                    } else {
-                        updateComponentData(activeField.componentId, fullKey, value);
-                    }
-                });
-            } else {
-                inputEl.addEventListener('input', () => {
-                     if (activeField.subOfferIndex !== undefined) {
-                        updateSubOfferData(activeField.componentId, activeField.subOfferIndex, fullKey, inputEl.value);
-                    } else {
-                        updateComponentData(activeField.componentId, fullKey, inputEl.value);
-                    }
-                });
-            }
-        });
-        attachColorPickerListeners();
-        return;
+        default:
+             dynamicStylingContainer.innerHTML = '';
+             break;
     }
     
-    // Clear panel if no specific handler
-    dynamicStylingContainer.innerHTML = '';
+    attachColorPickerListeners();
 };
 
 
@@ -2830,3 +2639,12 @@ renderMergeFieldsSidebar();
 loadDraft();
 renderComponents();
 renderSavedTemplates();
+
+document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'd') {
+        if (activeField && activeField.componentId) {
+            e.preventDefault();
+            duplicateComponent(activeField.componentId);
+        }
+    }
+});
