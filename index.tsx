@@ -227,9 +227,9 @@ const saveTemplateBtn = document.getElementById('save-template-btn') as HTMLButt
 const savedTemplatesList = document.getElementById('saved-templates-list') as HTMLElement;
 
 const ALIGNMENT_ICONS = {
-    left: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="17" y1="18" x2="3" y2="18"></line></svg>`,
-    center: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="7" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="17" y1="18" x2="7" y2="18"></line></svg>`,
-    right: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="10" x2="7" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="21" y1="18" x2="7" y2="18"></line></svg>`
+    left: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="17" y1="18" x2="3" y2="18"></line></svg>`,
+    center: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="7" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="17" y1="18" x2="7" y2="18"></line></svg>`,
+    right: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="10" x2="7" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="21" y1="18" x2="7" y2="18"></line></svg>`
 };
 
 // Toast Notification
@@ -248,9 +248,9 @@ const showToast = (message: string, type: 'success' | 'error' | 'info' = 'succes
     toast.setAttribute('aria-live', 'polite');
 
     const icons = {
-        success: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`,
-        error: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`,
-        info: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`
+        success: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`,
+        error: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`,
+        info: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`
     };
     
     toast.innerHTML = `
@@ -446,7 +446,7 @@ const renderMergeFieldsSidebar = () => {
         if (group.subgroups) {
             group.subgroups.forEach(sub => {
                 const subHeader = document.createElement('div');
-                subHeader.style.cssText = 'font-size: 11px; font-weight: 700; color: var(--label-tertiary); margin-top: 12px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em;';
+                subHeader.style.cssText = 'font-size: 9px; font-weight: 700; color: var(--label-tertiary); margin-top: 9px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em;';
                 subHeader.textContent = sub.title;
                 content.appendChild(subHeader);
                 sub.items.forEach(item => content.appendChild(createItemEl(item)));
@@ -526,30 +526,30 @@ const addNewComponent = (type: string) => {
     if (type === 'header') {
         data = {
             text: 'Your Header Title',
-            fontSize: '24',
+            fontSize: '18',
             textColor: '#1d1d1f',
             backgroundColor: 'transparent',
             fontWeight: 'bold',
             fontStyle: 'normal',
             textDecoration: 'none',
             textAlign: 'center',
-            paddingTop: '20',
-            paddingBottom: '20',
-            paddingLeftRight: '20'
+            paddingTop: '15',
+            paddingBottom: '15',
+            paddingLeftRight: '15'
         };
     } else if (type === 'text_block') {
         data = {
             text: 'This is a sample text block. You can use merge fields here.',
-            fontSize: '16',
+            fontSize: '12',
             textColor: '#3c3c43',
             backgroundColor: 'transparent',
             fontWeight: 'normal',
             fontStyle: 'normal',
             textDecoration: 'none',
             textAlign: 'left',
-            paddingTop: '10',
-            paddingBottom: '10',
-            paddingLeftRight: '20'
+            paddingTop: '8',
+            paddingBottom: '8',
+            paddingLeftRight: '15'
         };
     } else if (type === 'image') {
         data = {
@@ -567,28 +567,28 @@ const addNewComponent = (type: string) => {
         data = {
             text: 'Click Here',
             link: 'https://example.com',
-            fontSize: '16',
+            fontSize: '12',
             textColor: '#ffffff',
             backgroundColor: '#007aff',
             align: 'center',
-            paddingTop: '12',
-            paddingBottom: '12',
-            paddingLeftRight: '20',
+            paddingTop: '9',
+            paddingBottom: '9',
+            paddingLeftRight: '15',
             widthType: 'auto'
         };
     } else if (type === 'divider') {
         data = {
             width: '100',
-            thickness: '2',
+            thickness: '1',
             lineColor: '#CCCCCC',
             alignment: 'center',
-            paddingTop: '16',
-            paddingBottom: '16',
+            paddingTop: '12',
+            paddingBottom: '12',
             paddingLeftRight: '0'
         };
     } else if (type === 'spacer') {
         data = {
-            height: '40',
+            height: '30',
             backgroundColor: 'transparent',
             matchEmailBackground: 'true',
         };
@@ -618,20 +618,20 @@ const addNewComponent = (type: string) => {
             buttonText2: 'Book Service',
             buttonLink2: '',
             // Styling Offer 1
-            containerPaddingTop: '20', containerPaddingBottom: '20', containerPaddingLeft: '20', containerPaddingRight: '20',
-            imageWidth: '100', imageAlignment: 'center', imagePaddingTop: '10', imagePaddingBottom: '10',
-            titleFontSize: '24', titleFontWeight: 'bold', titleFontStyle: 'normal', titleTextColor: '#000000', titleBgColor: 'transparent', titleAlignment: 'center', titlePaddingTop: '10', titlePaddingBottom: '10', titlePaddingLeftRight: '0',
-            couponFontSize: '20', couponFontWeight: 'bold', couponFontStyle: 'normal', couponTextColor: '#0066FF', couponBgColor: '#F0F7FF', couponAlignment: 'center', couponPaddingTop: '8', couponPaddingBottom: '8', couponPaddingLeftRight: '16', couponShowBorder: 'false', couponBorderStyle: 'dashed', couponBorderColor: '#0066FF',
-            detailsFontSize: '16', detailsFontWeight: 'normal', detailsFontStyle: 'normal', detailsTextColor: '#333333', detailsBgColor: 'transparent', detailsAlignment: 'center', detailsLineHeight: '1.5', detailsPaddingTop: '12', detailsPaddingBottom: '12', detailsPaddingLeftRight: '0',
-            disclaimerFontSize: '12', disclaimerFontWeight: 'normal', disclaimerFontStyle: 'normal', disclaimerTextColor: '#666666', disclaimerBgColor: 'transparent', disclaimerAlignment: 'center', disclaimerPaddingTop: '8', disclaimerPaddingBottom: '8', disclaimerPaddingLeftRight: '0',
-            buttonFontSize: '16', buttonAlignment: 'center', buttonBgColor: '#0066FF', buttonTextColor: '#FFFFFF', buttonPaddingTop: '12', buttonPaddingBottom: '12', buttonPaddingLeftRight: '20', buttonWidth: 'auto',
+            containerPaddingTop: '15', containerPaddingBottom: '15', containerPaddingLeft: '15', containerPaddingRight: '15',
+            imageWidth: '100', imageAlignment: 'center', imagePaddingTop: '8', imagePaddingBottom: '8',
+            titleFontSize: '18', titleFontWeight: 'bold', titleFontStyle: 'normal', titleTextColor: '#000000', titleBgColor: 'transparent', titleAlignment: 'center', titlePaddingTop: '8', titlePaddingBottom: '8', titlePaddingLeftRight: '0',
+            couponFontSize: '15', couponFontWeight: 'bold', couponFontStyle: 'normal', couponTextColor: '#0066FF', couponBgColor: '#F0F7FF', couponAlignment: 'center', couponPaddingTop: '6', couponPaddingBottom: '6', couponPaddingLeftRight: '12', couponShowBorder: 'false', couponBorderStyle: 'dashed', couponBorderColor: '#0066FF',
+            detailsFontSize: '12', detailsFontWeight: 'normal', detailsFontStyle: 'normal', detailsTextColor: '#333333', detailsBgColor: 'transparent', detailsAlignment: 'center', detailsLineHeight: '1.5', detailsPaddingTop: '9', detailsPaddingBottom: '9', detailsPaddingLeftRight: '0',
+            disclaimerFontSize: '9', disclaimerFontWeight: 'normal', disclaimerFontStyle: 'normal', disclaimerTextColor: '#666666', disclaimerBgColor: 'transparent', disclaimerAlignment: 'center', disclaimerPaddingTop: '6', disclaimerPaddingBottom: '6', disclaimerPaddingLeftRight: '0',
+            buttonFontSize: '12', buttonAlignment: 'center', buttonBgColor: '#0066FF', buttonTextColor: '#FFFFFF', buttonPaddingTop: '9', buttonPaddingBottom: '9', buttonPaddingLeftRight: '15', buttonWidth: 'auto',
             // Styling Offer 2
-            imageWidth2: '100', imageAlignment2: 'center', imagePaddingTop2: '10', imagePaddingBottom2: '10',
-            titleFontSize2: '24', titleFontWeight2: 'bold', titleFontStyle2: 'normal', titleTextColor2: '#000000', titleBgColor2: 'transparent', titleAlignment2: 'center', titlePaddingTop2: '10', titlePaddingBottom2: '10', titlePaddingLeftRight2: '0',
-            couponFontSize2: '20', couponFontWeight2: 'bold', couponFontStyle2: 'normal', couponTextColor2: '#0066FF', couponBgColor2: '#F0F7FF', couponAlignment2: 'center', couponPaddingTop2: '8', couponPaddingBottom2: '8', couponPaddingLeftRight2: '16', couponShowBorder2: 'false', couponBorderStyle2: 'dashed', couponBorderColor2: '#0066FF',
-            detailsFontSize2: '16', detailsFontWeight2: 'normal', detailsFontStyle2: 'normal', detailsTextColor2: '#333333', detailsBgColor2: 'transparent', detailsAlignment2: 'center', detailsLineHeight2: '1.5', detailsPaddingTop2: '12', detailsPaddingBottom2: '12', detailsPaddingLeftRight2: '0',
-            disclaimerFontSize2: '12', disclaimerFontWeight2: 'normal', disclaimerFontStyle2: 'normal', disclaimerTextColor2: '#666666', disclaimerBgColor2: 'transparent', disclaimerAlignment2: 'center', disclaimerPaddingTop2: '8', disclaimerPaddingBottom2: '8', disclaimerPaddingLeftRight2: '0',
-            buttonFontSize2: '16', buttonAlignment2: 'center', buttonBgColor2: '#0066FF', buttonTextColor2: '#FFFFFF', buttonPaddingTop2: '12', buttonPaddingBottom2: '12', buttonPaddingLeftRight2: '20', buttonWidth2: 'auto'
+            imageWidth2: '100', imageAlignment2: 'center', imagePaddingTop2: '8', imagePaddingBottom2: '8',
+            titleFontSize2: '18', titleFontWeight2: 'bold', titleFontStyle2: 'normal', titleTextColor2: '#000000', titleBgColor2: 'transparent', titleAlignment2: 'center', titlePaddingTop2: '8', titlePaddingBottom2: '8', titlePaddingLeftRight2: '0',
+            couponFontSize2: '15', couponFontWeight2: 'bold', couponFontStyle2: 'normal', couponTextColor2: '#0066FF', couponBgColor2: '#F0F7FF', couponAlignment2: 'center', couponPaddingTop2: '6', couponPaddingBottom2: '6', couponPaddingLeftRight2: '12', couponShowBorder2: 'false', couponBorderStyle2: 'dashed', couponBorderColor2: '#0066FF',
+            detailsFontSize2: '12', detailsFontWeight2: 'normal', detailsFontStyle2: 'normal', detailsTextColor2: '#333333', detailsBgColor2: 'transparent', detailsAlignment2: 'center', detailsLineHeight2: '1.5', detailsPaddingTop2: '9', detailsPaddingBottom2: '9', detailsPaddingLeftRight2: '0',
+            disclaimerFontSize2: '9', disclaimerFontWeight2: 'normal', disclaimerFontStyle2: 'normal', disclaimerTextColor2: '#666666', disclaimerBgColor2: 'transparent', disclaimerAlignment2: 'center', disclaimerPaddingTop2: '6', disclaimerPaddingBottom2: '6', disclaimerPaddingLeftRight2: '0',
+            buttonFontSize2: '12', buttonAlignment2: 'center', buttonBgColor2: '#0066FF', buttonTextColor2: '#FFFFFF', buttonPaddingTop2: '9', buttonPaddingBottom2: '9', buttonPaddingLeftRight2: '15', buttonWidth2: 'auto'
         };
     } else if (type === 'sales_offer') {
         data = {
@@ -669,25 +669,25 @@ const addNewComponent = (type: string) => {
             btnText2: 'View Inventory',
             btnLink2: '{{dealership.tracked_website_specials_url}}',
             // Styling Offer 1
-            vehicleFontSize: '14', vehicleFontWeight: 'normal', vehicleFontStyle: 'normal', vehicleColor: '#1d1d1f', vehicleBgColor: 'transparent', vehicleTextAlign: 'center', vehiclePaddingTop: '0', vehiclePaddingBottom: '8', vehiclePaddingLeftRight: '0',
-            mainOfferFontSize: '18', mainOfferFontWeight: 'normal', mainOfferFontStyle: 'normal', mainOfferColor: '#007aff', mainOfferBgColor: 'transparent', mainOfferTextAlign: 'center', mainOfferPaddingTop: '0', mainOfferPaddingBottom: '8', mainOfferPaddingLeftRight: '0',
-            detailsFontSize: '10', detailsFontWeight: 'normal', detailsFontStyle: 'normal', detailsColor: '#6e6e73', detailsBgColor: 'transparent', detailsTextAlign: 'center', detailsPaddingTop: '0', detailsPaddingBottom: '12', detailsPaddingLeftRight: '0',
-            stockVinFontSize: '11', stockVinFontWeight: 'normal', stockVinFontStyle: 'normal', stockVinColor: '#86868b', stockVinBgColor: 'transparent', stockVinTextAlign: 'center', stockVinPaddingTop: '10', stockVinPaddingBottom: '0', stockVinPaddingLeftRight: '0',
-            mileageFontSize: '11', mileageFontWeight: 'normal', mileageFontStyle: 'normal', mileageColor: '#86868b', mileageBgColor: 'transparent', mileageTextAlign: 'center', mileagePaddingTop: '4', mileagePaddingBottom: '0', mileagePaddingLeftRight: '0',
-            disclaimerFontSize: '10', disclaimerFontWeight: 'normal', disclaimerFontStyle: 'normal', disclaimerColor: '#86868b', disclaimerBgColor: 'transparent', disclaimerTextAlign: 'center', disclaimerPaddingTop: '16', disclaimerPaddingBottom: '0', disclaimerPaddingLeftRight: '0',
-            btnFontSize: '14', btnPaddingTop: '12', btnPaddingBottom: '12', btnPaddingLeftRight: '20', btnColor: '#007aff', btnTextColor: '#ffffff', btnAlign: 'center', btnWidthType: 'full',
+            vehicleFontSize: '11', vehicleFontWeight: 'normal', vehicleFontStyle: 'normal', vehicleColor: '#1d1d1f', vehicleBgColor: 'transparent', vehicleTextAlign: 'center', vehiclePaddingTop: '0', vehiclePaddingBottom: '6', vehiclePaddingLeftRight: '0',
+            mainOfferFontSize: '14', mainOfferFontWeight: 'normal', mainOfferFontStyle: 'normal', mainOfferColor: '#007aff', mainOfferBgColor: 'transparent', mainOfferTextAlign: 'center', mainOfferPaddingTop: '0', mainOfferPaddingBottom: '6', mainOfferPaddingLeftRight: '0',
+            detailsFontSize: '8', detailsFontWeight: 'normal', detailsFontStyle: 'normal', detailsColor: '#6e6e73', detailsBgColor: 'transparent', detailsTextAlign: 'center', detailsPaddingTop: '0', detailsPaddingBottom: '9', detailsPaddingLeftRight: '0',
+            stockVinFontSize: '8', stockVinFontWeight: 'normal', stockVinFontStyle: 'normal', stockVinColor: '#86868b', stockVinBgColor: 'transparent', stockVinTextAlign: 'center', stockVinPaddingTop: '8', stockVinPaddingBottom: '0', stockVinPaddingLeftRight: '0',
+            mileageFontSize: '8', mileageFontWeight: 'normal', mileageFontStyle: 'normal', mileageColor: '#86868b', mileageBgColor: 'transparent', mileageTextAlign: 'center', mileagePaddingTop: '3', mileagePaddingBottom: '0', mileagePaddingLeftRight: '0',
+            disclaimerFontSize: '8', disclaimerFontWeight: 'normal', disclaimerFontStyle: 'normal', disclaimerColor: '#86868b', disclaimerBgColor: 'transparent', disclaimerTextAlign: 'center', disclaimerPaddingTop: '12', disclaimerPaddingBottom: '0', disclaimerPaddingLeftRight: '0',
+            btnFontSize: '11', btnPaddingTop: '9', btnPaddingBottom: '9', btnPaddingLeftRight: '15', btnColor: '#007aff', btnTextColor: '#ffffff', btnAlign: 'center', btnWidthType: 'full',
             // Styling Offer 2 (mirrors offer 1)
-            vehicleFontSize2: '14', vehicleFontWeight2: 'normal', vehicleFontStyle2: 'normal', vehicleColor2: '#1d1d1f', vehicleBgColor2: 'transparent', vehicleTextAlign2: 'center', vehiclePaddingTop2: '0', vehiclePaddingBottom2: '8', vehiclePaddingLeftRight2: '0',
-            mainOfferFontSize2: '18', mainOfferFontWeight2: 'normal', mainOfferFontStyle2: 'normal', mainOfferColor2: '#007aff', mainOfferBgColor2: 'transparent', mainOfferTextAlign2: 'center', mainOfferPaddingTop2: '0', mainOfferPaddingBottom2: '8', mainOfferPaddingLeftRight2: '0',
-            detailsFontSize2: '10', detailsFontWeight2: 'normal', detailsFontStyle2: 'normal', detailsColor2: '#6e6e73', detailsBgColor2: 'transparent', detailsTextAlign2: 'center', detailsPaddingTop2: '0', detailsPaddingBottom2: '12', detailsPaddingLeftRight2: '0',
-            stockVinFontSize2: '11', stockVinFontWeight2: 'normal', stockVinFontStyle2: 'normal', stockVinColor2: '#86868b', stockVinBgColor2: 'transparent', stockVinTextAlign2: 'center', stockVinPaddingTop2: '10', stockVinPaddingBottom2: '0', stockVinPaddingLeftRight2: '0',
-            mileageFontSize2: '11', mileageFontWeight2: 'normal', mileageFontStyle2: 'normal', mileageColor2: '#86868b', mileageBgColor2: 'transparent', mileageTextAlign2: 'center', mileagePaddingTop2: '4', mileagePaddingBottom2: '0', mileagePaddingLeftRight2: '0',
-            disclaimerFontSize2: '10', disclaimerFontWeight2: 'normal', disclaimerFontStyle2: 'normal', disclaimerColor2: '#86868b', disclaimerBgColor2: 'transparent', disclaimerTextAlign2: 'center', disclaimerPaddingTop2: '16', disclaimerPaddingBottom2: '0', disclaimerPaddingLeftRight2: '0',
-            btnFontSize2: '14', btnPaddingTop2: '12', btnPaddingBottom2: '12', btnPaddingLeftRight2: '20', btnColor2: '#007aff', btnTextColor2: '#ffffff', btnAlign2: 'center', btnWidthType2: 'full',
+            vehicleFontSize2: '11', vehicleFontWeight2: 'normal', vehicleFontStyle2: 'normal', vehicleColor2: '#1d1d1f', vehicleBgColor2: 'transparent', vehicleTextAlign2: 'center', vehiclePaddingTop2: '0', vehiclePaddingBottom2: '6', vehiclePaddingLeftRight2: '0',
+            mainOfferFontSize2: '14', mainOfferFontWeight2: 'normal', mainOfferFontStyle2: 'normal', mainOfferColor2: '#007aff', mainOfferBgColor2: 'transparent', mainOfferTextAlign2: 'center', mainOfferPaddingTop2: '0', mainOfferPaddingBottom2: '6', mainOfferPaddingLeftRight2: '0',
+            detailsFontSize2: '8', detailsFontWeight2: 'normal', detailsFontStyle2: 'normal', detailsColor2: '#6e6e73', detailsBgColor2: 'transparent', detailsTextAlign2: 'center', detailsPaddingTop2: '0', detailsPaddingBottom2: '9', detailsPaddingLeftRight2: '0',
+            stockVinFontSize2: '8', stockVinFontWeight2: 'normal', stockVinFontStyle2: 'normal', stockVinColor2: '#86868b', stockVinBgColor2: 'transparent', stockVinTextAlign2: 'center', stockVinPaddingTop2: '8', stockVinPaddingBottom2: '0', stockVinPaddingLeftRight2: '0',
+            mileageFontSize2: '8', mileageFontWeight2: 'normal', mileageFontStyle2: 'normal', mileageColor2: '#86868b', mileageBgColor2: 'transparent', mileageTextAlign2: 'center', mileagePaddingTop2: '3', mileagePaddingBottom2: '0', mileagePaddingLeftRight2: '0',
+            disclaimerFontSize2: '8', disclaimerFontWeight2: 'normal', disclaimerFontStyle2: 'normal', disclaimerColor2: '#86868b', disclaimerBgColor2: 'transparent', disclaimerTextAlign2: 'center', disclaimerPaddingTop2: '12', disclaimerPaddingBottom2: '0', disclaimerPaddingLeftRight2: '0',
+            btnFontSize2: '11', btnPaddingTop2: '9', btnPaddingBottom2: '9', btnPaddingLeftRight2: '15', btnColor2: '#007aff', btnTextColor2: '#ffffff', btnAlign2: 'center', btnWidthType2: 'full',
             // Container styles
-            paddingTop: '20',
-            paddingBottom: '20',
-            paddingLeftRight: '20',
+            paddingTop: '15',
+            paddingBottom: '15',
+            paddingLeftRight: '15',
             backgroundColor: '#ffffff'
         };
     }
@@ -844,11 +844,11 @@ function generateSubOffersHtml(comp: EmailComponent, suffix: string): string {
     }
 
     let html = offers.map((offer, index) => `
-        <div class="sub-offer-item card" style="margin-top: 10px;">
+        <div class="sub-offer-item card" style="margin-top: 8px;">
              <div class="card-header" style="background-color: var(--background-secondary);">
                 <span class="component-title text-xs font-bold uppercase" style="color: var(--label-secondary);">Additional Offer ${index + 1}</span>
                 <button type="button" class="btn btn-ghost btn-sm remove-sub-offer" data-index="${index}" data-offer-index="${suffix || '1'}">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                 </button>
             </div>
             <div class="card-body">
@@ -869,7 +869,7 @@ function generateSubOffersHtml(comp: EmailComponent, suffix: string): string {
     `).join('');
 
     html += `
-        <button type="button" class="btn btn-secondary add-sub-offer-btn" data-offer-index="${suffix || '1'}" style="margin-top: 10px;">+ Add Additional Offer</button>
+        <button type="button" class="btn btn-secondary add-sub-offer-btn" data-offer-index="${suffix || '1'}" style="margin-top: 8px;">+ Add Additional Offer</button>
     `;
 
     return html;
@@ -961,7 +961,7 @@ const renderComponents = () => {
     componentsContainer.innerHTML = '';
     if (activeComponents.length === 0) {
         componentsContainer.innerHTML = `
-            <div id="empty-state-message" style="text-align: center; padding: 40px 20px; border: 2px dashed var(--separator-primary); border-radius: var(--radius-lg); color: var(--label-secondary);">
+            <div id="empty-state-message" style="text-align: center; padding: 30px 15px; border: 2px dashed var(--separator-primary); border-radius: var(--radius-lg); color: var(--label-secondary);">
                 <p>No sections added yet. Click "+ Add Section" to begin.</p>
             </div>
         `;
@@ -992,7 +992,7 @@ const renderComponents = () => {
         let dynamicTitle = '';
         const defaultTitleText = comp.type.replace(/_/g, ' ');
         let sourceFieldKey = '';
-        const TRUNCATE_LENGTH = 45;
+        const TRUNCATE_LENGTH = 34;
 
         switch (comp.type) {
             case 'header':
@@ -1066,7 +1066,7 @@ const renderComponents = () => {
             `;
         } else if (comp.type === 'divider') {
             componentFormHtml = `
-                <div class="divider-preview-container" tabindex="0" data-alignment="${comp.data.alignment}" style="padding: ${comp.data.paddingTop}px 20px ${comp.data.paddingBottom}px 20px;" data-stylable="true" data-component-id="${comp.id}" data-field-key="divider" data-field-label="Divider">
+                <div class="divider-preview-container" tabindex="0" data-alignment="${comp.data.alignment}" style="padding: ${comp.data.paddingTop}px 15px ${comp.data.paddingBottom}px 15px;" data-stylable="true" data-component-id="${comp.id}" data-field-key="divider" data-field-label="Divider">
                     <div class="divider-preview-line" style="width: ${comp.data.width}%; height: ${comp.data.thickness}px; background-color: ${comp.data.lineColor};"></div>
                 </div>
             `;
@@ -1161,7 +1161,7 @@ const renderComponents = () => {
         item.innerHTML = `
             <div class="card-header">
                 <span class="drag-handle" title="Drag to reorder">
-                    <svg width="12" height="16" viewBox="0 0 12 16" fill="currentColor">
+                    <svg width="9" height="12" viewBox="0 0 12 16" fill="currentColor">
                         <circle cx="3" cy="3" r="1.5"></circle>
                         <circle cx="9" cy="3" r="1.5"></circle>
                         <circle cx="3" cy="8" r="1.5"></circle>
@@ -1174,12 +1174,12 @@ const renderComponents = () => {
                     <span class="collapse-icon">▼</span>
                     <span id="component-title-${comp.id}" class="component-title text-xs font-bold uppercase" style="color: var(--label-secondary);">${index + 1} - ${dynamicTitle}</span>
                 </div>
-                <div class="flex items-center" style="gap: 4px;">
+                <div class="flex items-center" style="gap: 3px;">
                     <button type="button" class="btn btn-ghost btn-sm duplicate-comp-btn" title="Duplicate section">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                     </button>
                     <button type="button" class="btn btn-ghost btn-sm remove-comp-btn">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                     </button>
                 </div>
             </div>
@@ -1259,9 +1259,9 @@ const renderComponents = () => {
                     const offersKey = offerIndex === '2' ? 'additionalOffers2' : 'additionalOffers';
                     const current = JSON.parse(comp.data[offersKey] || '[]');
                     current.push({
-                        separator: 'AND', separatorFontSize: '11', separatorFontWeight: 'normal', separatorFontStyle: 'normal', separatorColor: '#86868b', separatorBgColor: 'transparent', separatorTextAlign: 'center', separatorPaddingTop: '12', separatorPaddingBottom: '12', separatorPaddingLeftRight: '0',
-                        offer: 'Additional Offer Title', offerFontSize: '14', offerFontWeight: 'normal', offerFontStyle: 'normal', offerColor: comp.data.mainOfferColor || '#007aff', offerBgColor: 'transparent', offerTextAlign: 'center', offerPaddingTop: '0', offerPaddingBottom: '4', offerPaddingLeftRight: '0',
-                        details: 'Details for the additional offer.', detailsFontSize: '10', detailsFontWeight: 'normal', detailsFontStyle: 'normal', detailsColor: comp.data.detailsColor || '#6e6e73', detailsBgColor: 'transparent', detailsTextAlign: 'center', detailsPaddingTop: '0', detailsPaddingBottom: '4', detailsPaddingLeftRight: '0',
+                        separator: 'AND', separatorFontSize: '8', separatorFontWeight: 'normal', separatorFontStyle: 'normal', separatorColor: '#86868b', separatorBgColor: 'transparent', separatorTextAlign: 'center', separatorPaddingTop: '9', separatorPaddingBottom: '9', separatorPaddingLeftRight: '0',
+                        offer: 'Additional Offer Title', offerFontSize: '11', offerFontWeight: 'normal', offerFontStyle: 'normal', offerColor: comp.data.mainOfferColor || '#007aff', offerBgColor: 'transparent', offerTextAlign: 'center', offerPaddingTop: '0', offerPaddingBottom: '3', offerPaddingLeftRight: '0',
+                        details: 'Details for the additional offer.', detailsFontSize: '8', detailsFontWeight: 'normal', detailsFontStyle: 'normal', detailsColor: comp.data.detailsColor || '#6e6e73', detailsBgColor: 'transparent', detailsTextAlign: 'center', detailsPaddingTop: '0', detailsPaddingBottom: '3', detailsPaddingLeftRight: '0',
                     });
                     updateComponentData(comp.id, offersKey, JSON.stringify(current));
                     renderComponents();
@@ -1618,7 +1618,7 @@ function generateEmailHtml(): string {
                 const sanitizedDisclaimer = DOMPurify.sanitize(data[`disclaimer${suffix}`]).replace(/\n/g, '<br>');
                 contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${data[`disclaimerAlignment${suffix}`] || 'center'}" style="padding: ${data[`disclaimerPaddingTop${suffix}`] || 8}px ${data[`disclaimerPaddingLeftRight${suffix}`] || '0'}px ${data[`disclaimerPaddingBottom${suffix}`] || 8}px ${data[`disclaimerPaddingLeftRight${suffix}`] || '0'}px; font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${data[`disclaimerFontSize${suffix}`]}px; font-weight: ${data[`disclaimerFontWeight${suffix}`] || 'normal'}; font-style: ${data[`disclaimerFontStyle${suffix}`] || 'normal'}; color: ${data[`disclaimerTextColor${suffix}`]}; line-height: 1.4;">${sanitizedDisclaimer}</td></tr></table>`;
             }
-            return contentBlocks;
+            return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;">${contentBlocks}</td></tr></table>`;
         };
 
         const containerPadding = `padding: ${d.containerPaddingTop}px ${d.containerPaddingRight}px ${d.containerPaddingBottom}px ${d.containerPaddingLeft}px;`;
@@ -1631,10 +1631,11 @@ function generateEmailHtml(): string {
                     <td align="center" style="${containerPadding}">
                         <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                             <tr>
-                                <td width="50%" class="mobile-stack" valign="top" style="width: 50%; padding-right: 10px; vertical-align: top;">
+                                <td class="mobile-stack" width="280" valign="top" style="width: 280px;">
                                     ${offer1Html}
                                 </td>
-                                <td width="50%" class="mobile-stack" valign="top" style="width: 50%; padding-left: 10px; vertical-align: top;">
+                                <td class="mobile-stack-spacer" width="20" style="width: 20px; font-size: 1px; line-height: 1px;">&nbsp;</td>
+                                <td class="mobile-stack" width="280" valign="top" style="width: 280px;">
                                     ${offer2Html}
                                 </td>
                             </tr>
@@ -1647,19 +1648,13 @@ function generateEmailHtml(): string {
             sectionsHtml += `
                 <tr>
                     <td align="center" style="${containerPadding}">
-                        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
-                            <tr>
-                                <td style="padding: 20px;">
-                                    ${offerHtml}
-                                </td>
-                            </tr>
-                        </table>
+                        ${offerHtml}
                     </td>
                 </tr>
             `;
         }
     } else if (comp.type === 'sales_offer') {
-        const renderSalesOfferContent = (data: Record<string, string>, suffix: string) => {
+        const renderSalesOfferContent = (data: Record<string, string>, suffix: string, imageMaxWidth?: number) => {
             const rawAddOffers = JSON.parse(data[`additionalOffers${suffix}`] || '[]');
             const addOffers = rawAddOffers.map((o: any) => ({
                 ...o,
@@ -1668,7 +1663,7 @@ function generateEmailHtml(): string {
                 details: DOMPurify.sanitize(o.details || ''),
                 disclaimer: DOMPurify.sanitize(o.disclaimer || '')
             }));
-            let detailsHtml = '';
+            let contentHtml = '';
 
             const renderField = (options: any) => {
                 if (!options.text) return '';
@@ -1677,16 +1672,23 @@ function generateEmailHtml(): string {
                 const style = [`font-family: ${designSettings.fontFamily}`,`color: ${color || '#000'}`,`font-size: ${fontSize || 14}px`,`background-color: ${bgColor === 'transparent' ? 'transparent' : bgColor}`,`font-weight: ${fontWeight || 'normal'}`,`font-style: ${fontStyle || 'normal'}`,`text-align: ${textAlign || 'center'}`,padding,`line-height: 1.2`].join(';');
                 return `<div style="${style}">${text.replace(/\n/g, '<br>')}</div>`;
             };
+            
+            if (data[`imageEnabled${suffix}`] === 'true' && data[`imageSrc${suffix}`]) {
+                const imgStyles = `display: block; width: 100%; max-width: ${imageMaxWidth ? `${imageMaxWidth}px` : '100%'}; height: auto; border: 0; border-radius: 8px; margin: 0 auto 15px;`;
+                let imgTag = `<img src="${DOMPurify.sanitize(data[`imageSrc${suffix}`] || '')}" alt="${DOMPurify.sanitize(data[`imageAlt${suffix}`] || 'Sales Offer')}" style="${imgStyles}" border="0" />`;
+                if (data[`imageLink${suffix}`]) imgTag = `<a href="${DOMPurify.sanitize(data[`imageLink${suffix}`])}" target="_blank" style="text-decoration: none;">${imgTag}</a>`;
+                contentHtml += imgTag;
+            }
 
-            detailsHtml += renderField({ text: DOMPurify.sanitize(data[`vehicleText${suffix}`]), fontSize: data[`vehicleFontSize${suffix}`], color: data[`vehicleColor${suffix}`], bgColor: data[`vehicleBgColor${suffix}`], fontWeight: 'bold', fontStyle: data[`vehicleFontStyle${suffix}`], textAlign: data[`vehicleTextAlign${suffix}`], paddingTop: data[`vehiclePaddingTop${suffix}`], paddingBottom: data[`vehiclePaddingBottom${suffix}`], paddingLeftRight: data[`vehiclePaddingLeftRight${suffix}`] });
-            detailsHtml += renderField({ text: DOMPurify.sanitize(data[`mainOfferText${suffix}`]), fontSize: data[`mainOfferFontSize${suffix}`], color: data[`mainOfferColor${suffix}`], bgColor: data[`mainOfferBgColor${suffix}`], fontWeight: '800', fontStyle: data[`mainOfferFontStyle${suffix}`], textAlign: data[`mainOfferTextAlign${suffix}`], paddingTop: data[`mainOfferPaddingTop${suffix}`], paddingBottom: data[`mainOfferPaddingBottom${suffix}`], paddingLeftRight: data[`mainOfferPaddingLeftRight${suffix}`] });
-            detailsHtml += renderField({ text: DOMPurify.sanitize(data[`detailsText${suffix}`]), fontSize: data[`detailsFontSize${suffix}`], color: data[`detailsColor${suffix}`], bgColor: data[`detailsBgColor${suffix}`], fontWeight: data[`detailsFontWeight${suffix}`], fontStyle: data[`detailsFontStyle${suffix}`], textAlign: data[`detailsTextAlign${suffix}`], paddingTop: data[`detailsPaddingTop${suffix}`], paddingBottom: data[`detailsPaddingBottom${suffix}`], paddingLeftRight: data[`detailsPaddingLeftRight${suffix}`] });
+            contentHtml += renderField({ text: DOMPurify.sanitize(data[`vehicleText${suffix}`]), fontSize: data[`vehicleFontSize${suffix}`], color: data[`vehicleColor${suffix}`], bgColor: data[`vehicleBgColor${suffix}`], fontWeight: 'bold', fontStyle: data[`vehicleFontStyle${suffix}`], textAlign: data[`vehicleTextAlign${suffix}`], paddingTop: data[`vehiclePaddingTop${suffix}`], paddingBottom: data[`vehiclePaddingBottom${suffix}`], paddingLeftRight: data[`vehiclePaddingLeftRight${suffix}`] });
+            contentHtml += renderField({ text: DOMPurify.sanitize(data[`mainOfferText${suffix}`]), fontSize: data[`mainOfferFontSize${suffix}`], color: data[`mainOfferColor${suffix}`], bgColor: data[`mainOfferBgColor${suffix}`], fontWeight: '800', fontStyle: data[`mainOfferFontStyle${suffix}`], textAlign: data[`mainOfferTextAlign${suffix}`], paddingTop: data[`mainOfferPaddingTop${suffix}`], paddingBottom: data[`mainOfferPaddingBottom${suffix}`], paddingLeftRight: data[`mainOfferPaddingLeftRight${suffix}`] });
+            contentHtml += renderField({ text: DOMPurify.sanitize(data[`detailsText${suffix}`]), fontSize: data[`detailsFontSize${suffix}`], color: data[`detailsColor${suffix}`], bgColor: data[`detailsBgColor${suffix}`], fontWeight: data[`detailsFontWeight${suffix}`], fontStyle: data[`detailsFontStyle${suffix}`], textAlign: data[`detailsTextAlign${suffix}`], paddingTop: data[`detailsPaddingTop${suffix}`], paddingBottom: data[`detailsPaddingBottom${suffix}`], paddingLeftRight: data[`detailsPaddingLeftRight${suffix}`] });
 
             addOffers.forEach((o: any) => {
-                detailsHtml += renderField({ text: o.separator, fontSize: o.separatorFontSize, color: o.separatorColor, bgColor: o.separatorBgColor, fontWeight: o.separatorFontWeight, fontStyle: o.separatorFontStyle, textAlign: o.separatorTextAlign, paddingTop: o.separatorPaddingTop, paddingBottom: o.separatorPaddingBottom, paddingLeftRight: o.separatorPaddingLeftRight });
-                detailsHtml += renderField({ text: o.offer, fontSize: o.offerFontSize, color: o.offerColor, bgColor: o.offerBgColor, fontWeight: o.offerFontWeight, fontStyle: o.offerFontStyle, textAlign: o.offerTextAlign, paddingTop: o.offerPaddingTop, paddingBottom: o.offerPaddingBottom, paddingLeftRight: o.offerPaddingLeftRight });
-                detailsHtml += renderField({ text: o.details, fontSize: o.detailsFontSize, color: o.detailsColor, bgColor: o.detailsBgColor, fontWeight: o.detailsFontWeight, fontStyle: o.detailsFontStyle, textAlign: o.detailsTextAlign, paddingTop: o.detailsPaddingTop, paddingBottom: o.detailsPaddingBottom, paddingLeftRight: o.detailsPaddingLeftRight });
-                detailsHtml += renderField({ text: o.disclaimer, fontSize: o.disclaimerFontSize, color: o.disclaimerColor, bgColor: o.disclaimerBgColor, fontWeight: o.disclaimerFontWeight, fontStyle: o.disclaimerFontStyle, textAlign: o.disclaimerTextAlign, paddingTop: o.disclaimerPaddingTop, paddingBottom: o.disclaimerPaddingBottom, paddingLeftRight: o.disclaimerPaddingLeftRight });
+                contentHtml += renderField({ text: o.separator, fontSize: o.separatorFontSize, color: o.separatorColor, bgColor: o.separatorBgColor, fontWeight: o.separatorFontWeight, fontStyle: o.separatorFontStyle, textAlign: o.separatorTextAlign, paddingTop: o.separatorPaddingTop, paddingBottom: o.separatorPaddingBottom, paddingLeftRight: o.separatorPaddingLeftRight });
+                contentHtml += renderField({ text: o.offer, fontSize: o.offerFontSize, color: o.offerColor, bgColor: o.offerBgColor, fontWeight: o.offerFontWeight, fontStyle: o.offerFontStyle, textAlign: o.offerTextAlign, paddingTop: o.offerPaddingTop, paddingBottom: o.offerPaddingBottom, paddingLeftRight: o.offerPaddingLeftRight });
+                contentHtml += renderField({ text: o.details, fontSize: o.detailsFontSize, color: o.detailsColor, bgColor: o.detailsBgColor, fontWeight: o.detailsFontWeight, fontStyle: o.detailsFontStyle, textAlign: o.detailsTextAlign, paddingTop: o.detailsPaddingTop, paddingBottom: o.detailsPaddingBottom, paddingLeftRight: o.detailsPaddingLeftRight });
+                contentHtml += renderField({ text: o.disclaimer, fontSize: o.disclaimerFontSize, color: o.disclaimerColor, bgColor: o.disclaimerBgColor, fontWeight: o.disclaimerFontWeight, fontStyle: o.disclaimerFontStyle, textAlign: o.disclaimerTextAlign, paddingTop: o.disclaimerPaddingTop, paddingBottom: o.disclaimerPaddingBottom, paddingLeftRight: o.disclaimerPaddingLeftRight });
             });
 
             let finalStockVinText = '';
@@ -1695,12 +1697,12 @@ function generateEmailHtml(): string {
                 const label = data[`stockVinType${suffix}`] === 'stock' ? 'Stock #:' : 'VIN:';
                 finalStockVinText = `${label} ${sanitizedStockVin.trim()}`;
             }
-            detailsHtml += renderField({ text: finalStockVinText, fontSize: data[`stockVinFontSize${suffix}`], color: data[`stockVinColor${suffix}`], bgColor: data[`stockVinBgColor${suffix}`], fontWeight: data[`stockVinFontWeight${suffix}`], fontStyle: data[`stockVinFontStyle${suffix}`], textAlign: data[`stockVinTextAlign${suffix}`], paddingTop: data[`stockVinPaddingTop${suffix}`], paddingBottom: data[`stockVinPaddingBottom${suffix}`], paddingLeftRight: data[`stockVinPaddingLeftRight${suffix}`] });
+            contentHtml += renderField({ text: finalStockVinText, fontSize: data[`stockVinFontSize${suffix}`], color: data[`stockVinColor${suffix}`], bgColor: data[`stockVinBgColor${suffix}`], fontWeight: data[`stockVinFontWeight${suffix}`], fontStyle: data[`stockVinFontStyle${suffix}`], textAlign: data[`stockVinTextAlign${suffix}`], paddingTop: data[`stockVinPaddingTop${suffix}`], paddingBottom: data[`stockVinPaddingBottom${suffix}`], paddingLeftRight: data[`stockVinPaddingLeftRight${suffix}`] });
 
             let finalMileageText = '';
             const sanitizedMileage = DOMPurify.sanitize(data[`mileageValue${suffix}`] || '');
             if (sanitizedMileage.trim() !== '') { finalMileageText = `Mileage: ${sanitizedMileage.trim()}`; }
-            detailsHtml += renderField({ text: finalMileageText, fontSize: data[`mileageFontSize${suffix}`], color: data[`mileageColor${suffix}`], bgColor: data[`mileageBgColor${suffix}`], fontWeight: data[`mileageFontWeight${suffix}`], fontStyle: data[`mileageFontStyle${suffix}`], textAlign: data[`mileageTextAlign${suffix}`], paddingTop: data[`mileagePaddingTop${suffix}`], paddingBottom: data[`mileagePaddingBottom${suffix}`], paddingLeftRight: data[`mileagePaddingLeftRight${suffix}`] });
+            contentHtml += renderField({ text: finalMileageText, fontSize: data[`mileageFontSize${suffix}`], color: data[`mileageColor${suffix}`], bgColor: data[`mileageBgColor${suffix}`], fontWeight: data[`mileageFontWeight${suffix}`], fontStyle: data[`mileageFontStyle${suffix}`], textAlign: data[`mileageTextAlign${suffix}`], paddingTop: data[`mileagePaddingTop${suffix}`], paddingBottom: data[`mileagePaddingBottom${suffix}`], paddingLeftRight: data[`mileagePaddingLeftRight${suffix}`] });
 
             const radius = designSettings.buttonStyle === 'pill' ? '50px' : designSettings.buttonStyle === 'square' ? '0px' : '8px';
             const isOutlined = designSettings.buttonStyle === 'outlined';
@@ -1713,42 +1715,39 @@ function generateEmailHtml(): string {
             else if (btnWidthType === 'small') btnTableWidthAttr = "160";
             else if (btnWidthType === 'medium') btnTableWidthAttr = "280";
             else if (btnWidthType === 'large') btnTableWidthAttr = "400";
-            let btnMargin = '16px 0 0 0';
-            if (btnAlign === 'center') btnMargin = '16px auto 0';
-            else if (btnAlign === 'right') btnMargin = '16px 0 0 auto';
+            let btnMargin = '12px 0 0 0';
+            if (btnAlign === 'center') btnMargin = '12px auto 0';
+            else if (btnAlign === 'right') btnMargin = '12px 0 0 auto';
             const btnStyles = [`background-color: ${isOutlined ? 'transparent' : btnBgColor}`,`color: ${isOutlined ? btnBgColor : btnTextColor}`,`padding: ${data[`btnPaddingTop${suffix}`] || '12'}px ${data[`btnPaddingLeftRight${suffix}`] || '20'}px ${data[`btnPaddingBottom${suffix}`] || '12'}px`,`text-decoration: none`,`display: block`,`font-weight: bold`,`border-radius: ${radius}`,`font-size: ${data[`btnFontSize${suffix}`] || 16}px`,`font-family: ${designSettings.fontFamily}`,`text-align: center`,isOutlined ? `border: 2px solid ${btnBgColor}` : 'border: 0'].join('; ');
-            detailsHtml += `<table border="0" cellspacing="0" cellpadding="0" ${btnTableWidthAttr ? `width="${btnTableWidthAttr}"` : ""} style="margin: ${btnMargin}; width: ${btnWidthType === 'full' ? '100%' : (btnTableWidthAttr ? btnTableWidthAttr+'px' : 'auto')}; max-width: 100%;"><tr><td align="center" bgcolor="${isOutlined ? 'transparent' : btnBgColor}" style="border-radius: ${radius};"><a href="${DOMPurify.sanitize(data[`btnLink${suffix}`] || '#')}" target="_blank" style="${btnStyles}">${DOMPurify.sanitize(data[`btnText${suffix}`] || 'View')}</a></td></tr></table>`;
-            detailsHtml += renderField({ text: DOMPurify.sanitize(data[`disclaimerText${suffix}`]), fontSize: data[`disclaimerFontSize${suffix}`], color: data[`disclaimerColor${suffix}`], bgColor: data[`disclaimerBgColor${suffix}`], fontWeight: data[`disclaimerFontWeight${suffix}`], fontStyle: data[`disclaimerFontStyle${suffix}`], textAlign: data[`disclaimerTextAlign${suffix}`], paddingTop: data[`disclaimerPaddingTop${suffix}`], paddingBottom: data[`disclaimerPaddingBottom${suffix}`], paddingLeftRight: data[`disclaimerPaddingLeftRight${suffix}`] });
+            contentHtml += `<table border="0" cellspacing="0" cellpadding="0" ${btnTableWidthAttr ? `width="${btnTableWidthAttr}"` : ""} style="margin: ${btnMargin}; width: ${btnWidthType === 'full' ? '100%' : (btnTableWidthAttr ? btnTableWidthAttr+'px' : 'auto')}; max-width: 100%;"><tr><td align="center" bgcolor="${isOutlined ? 'transparent' : btnBgColor}" style="border-radius: ${radius};"><a href="${DOMPurify.sanitize(data[`btnLink${suffix}`] || '#')}" target="_blank" style="${btnStyles}">${DOMPurify.sanitize(data[`btnText${suffix}`] || 'View')}</a></td></tr></table>`;
+            contentHtml += renderField({ text: DOMPurify.sanitize(data[`disclaimerText${suffix}`]), fontSize: data[`disclaimerFontSize${suffix}`], color: data[`disclaimerColor${suffix}`], bgColor: data[`disclaimerBgColor${suffix}`], fontWeight: data[`disclaimerFontWeight${suffix}`], fontStyle: data[`disclaimerFontStyle${suffix}`], textAlign: data[`disclaimerTextAlign${suffix}`], paddingTop: data[`disclaimerPaddingTop${suffix}`], paddingBottom: data[`disclaimerPaddingBottom${suffix}`], paddingLeftRight: data[`disclaimerPaddingLeftRight${suffix}`] });
             
-            return detailsHtml;
-        };
-
-        const renderSalesOfferImage = (data: Record<string, string>, suffix: string, fixedWidth?: number) => {
-            if (data[`imageEnabled${suffix}`] !== 'true') return '';
-            const imgStyles = `display: block; width: 100%; max-width: ${fixedWidth ? `${fixedWidth}px` : '100%'}; height: auto; border: 0;`;
-            let imgTag = `<img src="${DOMPurify.sanitize(data[`imageSrc${suffix}`] || '')}" alt="${DOMPurify.sanitize(data[`imageAlt${suffix}`] || 'Sales Offer')}" ${fixedWidth ? `width="${fixedWidth}"` : ''} style="${imgStyles}" border="0" />`;
-            if (data[`imageLink${suffix}`]) imgTag = `<a href="${DOMPurify.sanitize(data[`imageLink${suffix}`])}" target="_blank" style="text-decoration: none;">${imgTag}</a>`;
-            return imgTag;
+            return contentHtml;
         };
         
         const layout = d.layout || 'center';
         let offerContentHtml = '';
 
         if (layout === 'grid') {
-            const offer1Image = renderSalesOfferImage(d, '', 280);
-            const offer1Details = renderSalesOfferContent(d, '');
-            const offer1Content = `<table width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td align="center" style="padding-bottom: 20px;">${offer1Image}</td></tr><tr><td align="center">${offer1Details}</td></tr></table>`;
-            
-            const offer2Image = renderSalesOfferImage(d, '2', 280);
-            const offer2Details = renderSalesOfferContent(d, '2');
-            const offer2Content = `<table width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td align="center" style="padding-bottom: 20px;">${offer2Image}</td></tr><tr><td align="center">${offer2Details}</td></tr></table>`;
-            
+            const offer1Content = renderSalesOfferContent(d, '', 250);
+            const offer2Content = renderSalesOfferContent(d, '2', 250);
             offerContentHtml = `
                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
-                    <tr>
-                        <td class="mobile-stack" width="50%" valign="top" style="padding-right: 10px; vertical-align: top;">${offer1Content}</td>
-                        <td class="mobile-stack" width="50%" valign="top" style="padding-left: 10px; vertical-align: top;">${offer2Content}</td>
-                    </tr>
+                    <tbody>
+                        <tr>
+                            <td class="mobile-stack" width="280" valign="top" style="width: 280px;">
+                                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px;"><tr><td style="padding: 15px;">
+                                    ${offer1Content}
+                                </td></tr></table>
+                            </td>
+                            <td class="mobile-stack-spacer" width="20" style="width: 20px; font-size: 1px; line-height: 1px;">&nbsp;</td>
+                            <td class="mobile-stack" width="280" valign="top" style="width: 280px;">
+                                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px;"><tr><td style="padding: 15px;">
+                                    ${offer2Content}
+                                </td></tr></table>
+                            </td>
+                        </tr>
+                    </tbody>
                 </table>
             `;
         } else { // Handle single column layouts
@@ -1756,12 +1755,12 @@ function generateEmailHtml(): string {
             if (!imageEnabled) {
                 offerContentHtml = `<table width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td align="center">${renderSalesOfferContent(d, '')}</td></tr></table>`;
             } else if (layout === 'center') {
-                offerContentHtml = `<table width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td align="center" style="padding-bottom: 20px;">${renderSalesOfferImage(d, '')}</td></tr><tr><td align="center">${renderSalesOfferContent(d, '')}</td></tr></table>`;
+                offerContentHtml = `<table width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td align="center">${renderSalesOfferContent(d, '')}</td></tr></table>`;
             } else {
                 const isRightLayout = layout === 'right';
-                const imgColWidth = 240;
-                const gutter = 20;
-                const imageTd = `<td width="${imgColWidth}" class="mobile-stack mobile-padding-bottom" valign="top" style="width: ${imgColWidth}px; vertical-align: top;">${renderSalesOfferImage(d, '', imgColWidth)}</td>`;
+                const imgColWidth = 180;
+                const gutter = 15;
+                const imageTd = `<td width="${imgColWidth}" class="mobile-stack mobile-padding-bottom" valign="top" style="width: ${imgColWidth}px; vertical-align: top;">${renderSalesOfferContent(d, '', imgColWidth)}</td>`;
                 const contentTdLeft = `<td class="mobile-stack" valign="top" style="vertical-align: top; padding-left: ${gutter}px;">${renderSalesOfferContent(d, '')}</td>`;
                 const contentTdRight = `<td class="mobile-stack" valign="top" style="vertical-align: top; padding-right: ${gutter}px;">${renderSalesOfferContent(d, '')}</td>`;
                 offerContentHtml = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr>${isRightLayout ? contentTdRight + imageTd : imageTd + contentTdLeft}</tr></table>`;
@@ -1860,6 +1859,14 @@ function generateEmailHtml(): string {
                 display: block !important;
                 width: 100% !important;
                 max-width: 100% !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
+            .mobile-stack:not(:last-child) {
+                padding-bottom: 20px !important;
+            }
+            .mobile-stack-spacer {
+                display: none !important;
             }
         }
     </style>
@@ -1868,7 +1875,7 @@ function generateEmailHtml(): string {
     <!-- 100% background wrapper -->
     <table border="0" cellpadding="0" cellspacing="0" width="100%" id="bodyTable" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; margin: 0; padding: 0; width: 100%; height: 100%; background-color: #f5f5f7;">
         <tr>
-            <td align="center" valign="top" style="margin: 0; padding: 20px 0; border-collapse: collapse;">
+            <td align="center" valign="top" style="margin: 0; padding: 15px 0; border-collapse: collapse;">
                 
                 <!-- Centering wrapper for Outlook -->
                 <!--[if (gte mso 9)|(IE)]>
@@ -1878,9 +1885,9 @@ function generateEmailHtml(): string {
                 <![endif]-->
                 
                 <!-- 600px container -->
-                <table border="0" cellpadding="0" cellspacing="0" width="100%" class="email-container" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+                <table border="0" cellpadding="0" cellspacing="0" width="100%" class="email-container" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 6px; overflow: hidden;">
                     
-                    ${sectionsHtml || '<tr><td style="padding: 40px; text-align: center; font-family: sans-serif;">No content added yet.</td></tr>'}
+                    ${sectionsHtml || '<tr><td style="padding: 30px; text-align: center; font-family: sans-serif;">No content added yet.</td></tr>'}
                     
                 </table>
                 
@@ -2028,15 +2035,15 @@ const renderSavedTemplates = () => {
         return;
     }
     savedTemplatesList.innerHTML = templates.map(t => `
-        <div class="card" style="margin-bottom: 8px; background: var(--background-secondary);">
-            <div class="card-body" style="padding: 12px; display: flex; justify-content: space-between; align-items: center;">
+        <div class="card" style="margin-bottom: 6px; background: var(--background-secondary);">
+            <div class="card-body" style="padding: 9px; display: flex; justify-content: space-between; align-items: center;">
                 <div>
                     <h4 class="text-base font-bold">${t.name}</h4>
                     <p class="text-xs" style="color: var(--label-tertiary);">${new Date(t.createdAt).toLocaleString()}</p>
                 </div>
                 <div class="flex gap-2">
                     <button class="btn btn-primary btn-sm load-tpl-btn" data-id="${t.id}">Load</button>
-                    <button class="btn btn-ghost btn-sm del-tpl-btn" data-id="${t.id}" style="color: var(--destructive); height: 32px;">Delete</button>
+                    <button class="btn btn-ghost btn-sm del-tpl-btn" data-id="${t.id}" style="color: var(--destructive); height: 24px;">Delete</button>
                 </div>
             </div>
         </div>
@@ -2204,9 +2211,9 @@ const typographyControlsHtml = (data: Record<string, string>, keys: Record<strin
              html += `
                 <div class="form-group">
                     <label class="form-label">Formatting</label>
-                    <div style="display: flex; gap: 6px;">
-                        ${keys.fontWeight ? `<button type="button" class="btn btn-secondary format-toggle style-control ${data[keys.fontWeight] === 'bold' ? 'active' : ''}" data-style-key="${keys.fontWeight}" data-val-on="bold" data-val-off="normal" style="font-weight: 800; font-size: 15px; width: 36px; height: 36px; padding: 0; border-radius: var(--radius-md);">B</button>` : ''}
-                        ${keys.fontStyle ? `<button type="button" class="btn btn-secondary format-toggle style-control ${data[keys.fontStyle] === 'italic' ? 'active' : ''}" data-style-key="${keys.fontStyle}" data-val-on="italic" data-val-off="normal" style="font-style: italic; font-size: 15px; width: 36px; height: 36px; padding: 0; border-radius: var(--radius-md);">I</button>`: ''}
+                    <div style="display: flex; gap: 4px;">
+                        ${keys.fontWeight ? `<button type="button" class="btn btn-secondary format-toggle style-control ${data[keys.fontWeight] === 'bold' ? 'active' : ''}" data-style-key="${keys.fontWeight}" data-val-on="bold" data-val-off="normal" style="font-weight: 800; font-size: 11px; width: 27px; height: 27px; padding: 0; border-radius: var(--radius-md);">B</button>` : ''}
+                        ${keys.fontStyle ? `<button type="button" class="btn btn-secondary format-toggle style-control ${data[keys.fontStyle] === 'italic' ? 'active' : ''}" data-style-key="${keys.fontStyle}" data-val-on="italic" data-val-off="normal" style="font-style: italic; font-size: 11px; width: 27px; height: 27px; padding: 0; border-radius: var(--radius-md);">I</button>`: ''}
                     </div>
                 </div>
             `;
@@ -2258,15 +2265,15 @@ const renderStandardStylingPanel = (
     const formattedCompType = comp.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
     let html = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg);">
-            <div style="display: flex; align-items: center; gap: 4px;">
-                <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--label-tertiary);">${formattedCompType}</span>
-                <span style="color: var(--label-tertiary); font-size: 12px; padding-bottom: 2px;">›</span>
-                <span style="font-size: 13px; font-weight: 600; color: var(--label-primary);">${activeField.fieldLabel}</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
+            <div style="display: flex; align-items: center; gap: 3px;">
+                <span style="font-size: 8px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--label-tertiary);">${formattedCompType}</span>
+                <span style="color: var(--label-tertiary); font-size: 9px; padding-bottom: 2px;">›</span>
+                <span style="font-size: 10px; font-weight: 600; color: var(--label-primary);">${activeField.fieldLabel}</span>
             </div>
-            <button type="button" id="close-styling-panel-btn" class="btn btn-ghost" style="width: 24px; height: 24px; padding: 0; border-radius: 50%; line-height: 1;">&times;</button>
+            <button type="button" id="close-styling-panel-btn" class="btn btn-ghost" style="width: 18px; height: 18px; padding: 0; border-radius: 50%; line-height: 1;">&times;</button>
         </div>
-        <div class="design-option-group" style="border-top: 1px solid var(--separator-secondary); padding-top: var(--spacing-lg);">
+        <div class="design-option-group" style="border-top: 1px solid var(--separator-secondary); padding-top: var(--spacing-md);">
     `;
 
     // Typography
