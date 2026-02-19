@@ -598,8 +598,8 @@ textarea.form-control.compact {
   transition: all 0.2s;
 }
 .toggle-btn.active {
-  background: var(--background-primary);
-  color: var(--label-primary);
+  background: var(--system-blue);
+  color: #ffffff;
   box-shadow: var(--shadow-sm);
 }
 
@@ -1530,6 +1530,7 @@ textarea.form-control.compact {
 .header-toggle-group .toggle-btn .material-symbols-rounded {
   font-size: 14px;
   line-height: 1;
+  pointer-events: none;
 }
 .header-toggle-divider {
   width: 1px;
