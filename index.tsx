@@ -9,6 +9,9 @@ interface DesignSettings {
   fontFamily: string;
   buttonStyle: string;
   offersLayout: 'list' | 'grid';
+  globalBodyColor: string;
+  globalLinkColor: string;
+  globalFontSize: string;
 }
 
 interface SavedTemplate {
@@ -178,7 +181,10 @@ const MERGE_FIELDS: MergeFieldGroup[] = [
 let designSettings: DesignSettings = {
   fontFamily: "'Arial', sans-serif",
   buttonStyle: 'rounded',
-  offersLayout: 'list'
+  offersLayout: 'list',
+  globalBodyColor: '#1d1d1f',
+  globalLinkColor: '#007aff',
+  globalFontSize: '14'
 };
 
 let activeComponents: EmailComponent[] = [];
@@ -209,6 +215,7 @@ const closeComponentPicker = document.getElementById('close-component-picker');
 // Toggle buttons
 const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
 const mergeFieldsToggle = document.getElementById('merge-fields-toggle');
+const collapseAllBtn = document.getElementById('collapse-all-btn');
 const floatingMergeBtn = document.getElementById('floating-merge-btn');
 
 // View Toggles
@@ -295,6 +302,22 @@ const loadCollapsedStates = () => {
 const saveCollapsedStates = () => {
     localStorage.setItem(LS_COLLAPSED_KEY, JSON.stringify(collapsedStates));
 };
+
+const updateCollapseAllBtn = () => {
+    if (!collapseAllBtn) return;
+    const allCollapsed = activeComponents.length > 0 && activeComponents.every(c => collapsedStates[c.id]);
+    collapseAllBtn.textContent = allCollapsed ? 'Expand All' : 'Collapse All';
+};
+
+collapseAllBtn?.addEventListener('click', () => {
+    const allCollapsed = activeComponents.length > 0 && activeComponents.every(c => collapsedStates[c.id]);
+    activeComponents.forEach(c => {
+        collapsedStates[c.id] = !allCollapsed;
+    });
+    saveCollapsedStates();
+    renderComponents();
+    updateCollapseAllBtn();
+});
 
 const toggleComponent = (id: string) => {
     const componentEl = document.querySelector(`.component-item[data-id='${id}']`);
@@ -526,8 +549,8 @@ const addNewComponent = (type: string) => {
     if (type === 'header') {
         data = {
             text: 'Your Header Title',
-            fontSize: '18',
-            textColor: '#1d1d1f',
+            fontSize: designSettings.globalFontSize || '18',
+            textColor: designSettings.globalBodyColor || '#1d1d1f',
             backgroundColor: 'transparent',
             fontWeight: 'bold',
             fontStyle: 'normal',
@@ -540,8 +563,8 @@ const addNewComponent = (type: string) => {
     } else if (type === 'text_block') {
         data = {
             text: 'This is a sample text block. You can use merge fields here.',
-            fontSize: '12',
-            textColor: '#3c3c43',
+            fontSize: designSettings.globalFontSize || '12',
+            textColor: designSettings.globalBodyColor || '#3c3c43',
             backgroundColor: 'transparent',
             fontWeight: 'normal',
             fontStyle: 'normal',
@@ -569,7 +592,7 @@ const addNewComponent = (type: string) => {
             link: 'https://example.com',
             fontSize: '12',
             textColor: '#ffffff',
-            backgroundColor: '#007aff',
+            backgroundColor: designSettings.globalLinkColor || '#007aff',
             align: 'center',
             paddingTop: '9',
             paddingBottom: '9',
@@ -1460,61 +1483,81 @@ const renderComponents = () => {
     });
 
     initializeDragAndDrop();
+    updateCollapseAllBtn();
 };
 
 function initializeDragAndDrop() {
     const components = componentsContainer.querySelectorAll('.component-item');
 
+    const dropIndicator = document.createElement('div');
+    dropIndicator.className = 'drop-indicator';
+
+    let dropBeforeId: string | null = null; // null → append to end
+
+    const removeIndicator = () => {
+        dropIndicator.parentNode?.removeChild(dropIndicator);
+    };
+
     components.forEach(comp => {
-        comp.addEventListener('dragstart', (e) => {
+        comp.addEventListener('dragstart', () => {
             draggedComponentId = comp.getAttribute('data-id');
-            setTimeout(() => {
-                comp.classList.add('dragging');
-            }, 0);
+            setTimeout(() => comp.classList.add('dragging'), 0);
         });
 
         comp.addEventListener('dragend', () => {
             comp.classList.remove('dragging');
             draggedComponentId = null;
-            document.querySelectorAll('.component-item.drag-over').forEach(c => c.classList.remove('drag-over'));
+            dropBeforeId = null;
+            removeIndicator();
         });
 
         comp.addEventListener('dragover', (e) => {
             e.preventDefault();
-            const targetComponent = e.currentTarget as HTMLElement;
-            if (targetComponent.getAttribute('data-id') !== draggedComponentId) {
-                if (!targetComponent.classList.contains('drag-over')) {
-                    document.querySelector('.drag-over')?.classList.remove('drag-over');
-                    targetComponent.classList.add('drag-over');
-                }
-            }
-        });
+            const target = e.currentTarget as HTMLElement;
+            if (target.getAttribute('data-id') === draggedComponentId) return;
 
-        comp.addEventListener('dragleave', (e) => {
-            (e.currentTarget as HTMLElement).classList.remove('drag-over');
+            const rect = target.getBoundingClientRect();
+            if ((e as DragEvent).clientY < rect.top + rect.height / 2) {
+                dropBeforeId = target.getAttribute('data-id');
+                componentsContainer.insertBefore(dropIndicator, target);
+            } else {
+                const next = target.nextElementSibling;
+                dropBeforeId = (next?.classList.contains('component-item'))
+                    ? next.getAttribute('data-id')
+                    : null;
+                componentsContainer.insertBefore(dropIndicator, next ?? null);
+            }
         });
 
         comp.addEventListener('drop', (e) => {
             e.preventDefault();
-            const droppedOnComponent = e.currentTarget as HTMLElement;
-            droppedOnComponent.classList.remove('drag-over');
+            removeIndicator();
+            if (!draggedComponentId) return;
 
-            const droppedOnId = droppedOnComponent.getAttribute('data-id');
+            const draggedIndex = activeComponents.findIndex(c => c.id === draggedComponentId);
+            if (draggedIndex === -1) return;
 
-            if (draggedComponentId && draggedComponentId !== droppedOnId) {
-                const draggedIndex = activeComponents.findIndex(c => c.id === draggedComponentId);
-                const droppedOnIndex = activeComponents.findIndex(c => c.id === droppedOnId);
-
-                if (draggedIndex > -1 && droppedOnIndex > -1) {
-                    const [draggedItem] = activeComponents.splice(draggedIndex, 1);
-                    activeComponents.splice(droppedOnIndex, 0, draggedItem);
-                    
-                    saveToHistory();
-                    saveDraft();
-                    renderComponents();
-                }
+            const [draggedItem] = activeComponents.splice(draggedIndex, 1);
+            if (dropBeforeId === null) {
+                activeComponents.push(draggedItem);
+            } else {
+                const targetIndex = activeComponents.findIndex(c => c.id === dropBeforeId);
+                activeComponents.splice(targetIndex > -1 ? targetIndex : activeComponents.length, 0, draggedItem);
             }
+
+            saveToHistory();
+            saveDraft();
+            renderComponents();
+            showToast('Component moved', 'success');
         });
+    });
+
+    // Hide indicator if cursor leaves the container entirely
+    componentsContainer.addEventListener('dragleave', (e) => {
+        if (!componentsContainer.contains(e.relatedTarget as Node)) {
+            removeIndicator();
+            dropBeforeId = null;
+        }
     });
 }
 
@@ -2085,9 +2128,10 @@ const loadTemplate = (id: string) => {
     const templates = getSavedTemplates();
     const template = templates.find(t => t.id === id);
     if (template) {
-        designSettings = { ...template.designSettings };
+        designSettings = { ...designSettings, ...template.designSettings };
         activeComponents = [...template.components];
         if (fontSelect) fontSelect.value = designSettings.fontFamily;
+        syncGlobalTextStylesUI();
         saveToHistory();
         renderComponents();
         saveDraft();
@@ -2131,7 +2175,7 @@ const loadDraft = () => {
         if (data) {
             const draft = JSON.parse(data);
             if (draft && draft.designSettings && Array.isArray(draft.activeComponents)) {
-                designSettings = draft.designSettings;
+                designSettings = { ...designSettings, ...draft.designSettings };
                 activeComponents = draft.activeComponents;
                 if (fontSelect) fontSelect.value = designSettings.fontFamily;
                 renderComponents();
@@ -2916,11 +2960,117 @@ const initKeyboardShortcuts = () => {
 
 // --- END: Keyboard Shortcut System Implementation ---
 
+const syncGlobalTextStylesUI = () => {
+    const bodyColorPicker = document.getElementById('global-body-color') as HTMLInputElement | null;
+    const bodyColorHex = document.getElementById('global-body-color-hex') as HTMLInputElement | null;
+    const bodyColorSwatch = document.getElementById('global-body-color-swatch') as HTMLElement | null;
+    const linkColorPicker = document.getElementById('global-link-color') as HTMLInputElement | null;
+    const linkColorHex = document.getElementById('global-link-color-hex') as HTMLInputElement | null;
+    const linkColorSwatch = document.getElementById('global-link-color-swatch') as HTMLElement | null;
+    const fontSizeInput = document.getElementById('global-font-size') as HTMLInputElement | null;
+    if (bodyColorPicker) bodyColorPicker.value = designSettings.globalBodyColor;
+    if (bodyColorHex) bodyColorHex.value = designSettings.globalBodyColor;
+    if (bodyColorSwatch) bodyColorSwatch.style.background = designSettings.globalBodyColor;
+    if (linkColorPicker) linkColorPicker.value = designSettings.globalLinkColor;
+    if (linkColorHex) linkColorHex.value = designSettings.globalLinkColor;
+    if (linkColorSwatch) linkColorSwatch.style.background = designSettings.globalLinkColor;
+    if (fontSizeInput) fontSizeInput.value = designSettings.globalFontSize;
+};
+
+function initGlobalTextStyles() {
+    const bodyColorPicker = document.getElementById('global-body-color') as HTMLInputElement | null;
+    const bodyColorHex = document.getElementById('global-body-color-hex') as HTMLInputElement | null;
+    const bodyColorSwatch = document.getElementById('global-body-color-swatch') as HTMLElement | null;
+    const linkColorPicker = document.getElementById('global-link-color') as HTMLInputElement | null;
+    const linkColorHex = document.getElementById('global-link-color-hex') as HTMLInputElement | null;
+    const linkColorSwatch = document.getElementById('global-link-color-swatch') as HTMLElement | null;
+    const fontSizeInput = document.getElementById('global-font-size') as HTMLInputElement | null;
+
+    const propagateBodyColor = (color: string) => {
+        designSettings.globalBodyColor = color;
+        activeComponents.forEach(comp => {
+            if (['header', 'text_block'].includes(comp.type)) {
+                comp.data.textColor = color;
+            }
+        });
+        saveDraft();
+        saveToHistory();
+        triggerPreviewUpdate();
+    };
+
+    const propagateLinkColor = (color: string) => {
+        designSettings.globalLinkColor = color;
+        activeComponents.forEach(comp => {
+            if (comp.type === 'button') comp.data.backgroundColor = color;
+            if (comp.type === 'service_offer') { comp.data.buttonBgColor = color; comp.data.buttonBgColor2 = color; }
+            if (comp.type === 'sales_offer') { comp.data.btnColor = color; comp.data.btnColor2 = color; }
+        });
+        saveDraft();
+        saveToHistory();
+        triggerPreviewUpdate();
+    };
+
+    const propagateFontSize = (size: string) => {
+        designSettings.globalFontSize = size;
+        activeComponents.forEach(comp => {
+            if (['header', 'text_block'].includes(comp.type)) {
+                comp.data.fontSize = size;
+            }
+        });
+        saveDraft();
+        saveToHistory();
+        triggerPreviewUpdate();
+    };
+
+    // Body color picker ↔ hex input sync
+    bodyColorPicker?.addEventListener('input', () => {
+        const color = bodyColorPicker.value;
+        if (bodyColorHex) bodyColorHex.value = color;
+        if (bodyColorSwatch) bodyColorSwatch.style.background = color;
+        propagateBodyColor(color);
+    });
+    bodyColorHex?.addEventListener('change', () => {
+        const color = bodyColorHex.value.trim();
+        if (/^#[0-9a-fA-F]{6}$/.test(color)) {
+            if (bodyColorPicker) bodyColorPicker.value = color;
+            if (bodyColorSwatch) bodyColorSwatch.style.background = color;
+            propagateBodyColor(color);
+        }
+    });
+
+    // Link color picker ↔ hex input sync
+    linkColorPicker?.addEventListener('input', () => {
+        const color = linkColorPicker.value;
+        if (linkColorHex) linkColorHex.value = color;
+        if (linkColorSwatch) linkColorSwatch.style.background = color;
+        propagateLinkColor(color);
+    });
+    linkColorHex?.addEventListener('change', () => {
+        const color = linkColorHex.value.trim();
+        if (/^#[0-9a-fA-F]{6}$/.test(color)) {
+            if (linkColorPicker) linkColorPicker.value = color;
+            if (linkColorSwatch) linkColorSwatch.style.background = color;
+            propagateLinkColor(color);
+        }
+    });
+
+    // Font size input
+    fontSizeInput?.addEventListener('change', () => {
+        const size = fontSizeInput.value.trim();
+        if (size && parseInt(size) >= 8 && parseInt(size) <= 72) {
+            propagateFontSize(size);
+        }
+    });
+
+    syncGlobalTextStylesUI();
+}
+
 
 saveTemplateBtn?.addEventListener('click', saveTemplate);
 loadCollapsedStates();
 renderMergeFieldsSidebar();
 loadDraft();
+initGlobalTextStyles();
 renderComponents();
 renderSavedTemplates();
 initKeyboardShortcuts();

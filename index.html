@@ -120,6 +120,36 @@
           </select>
         </div>
 
+        <!-- Global Text Styles -->
+        <div class="design-option-group" id="global-text-styles">
+          <h4>Default Text Styles</h4>
+          <div class="form-group-inline" style="margin-bottom: var(--spacing-md);">
+            <label class="form-label-inline" style="width: 90px;">Body Color</label>
+            <div class="color-picker-wrapper">
+              <div class="color-input-container mini">
+                <input type="color" id="global-body-color" class="color-input-hidden" value="#1d1d1f">
+                <div class="color-swatch-display" id="global-body-color-swatch" style="background: #1d1d1f;"></div>
+              </div>
+              <input type="text" id="global-body-color-hex" class="form-control compact color-hex-input" value="#1d1d1f">
+            </div>
+          </div>
+          <div class="form-group-inline" style="margin-bottom: var(--spacing-md);">
+            <label class="form-label-inline" style="width: 90px;">Link Color</label>
+            <div class="color-picker-wrapper">
+              <div class="color-input-container mini">
+                <input type="color" id="global-link-color" class="color-input-hidden" value="#007aff">
+                <div class="color-swatch-display" id="global-link-color-swatch" style="background: #007aff;"></div>
+              </div>
+              <input type="text" id="global-link-color-hex" class="form-control compact color-hex-input" value="#007aff">
+            </div>
+          </div>
+          <div class="form-group-inline">
+            <label class="form-label-inline" style="width: 90px;">Font Size</label>
+            <input type="number" id="global-font-size" class="form-control compact" value="14" min="8" max="72" style="width: 70px;">
+            <span class="text-xs" style="color: var(--label-tertiary); margin-left: 4px;">px</span>
+          </div>
+        </div>
+
         <!-- Dynamic Field Styling Container -->
         <div id="dynamic-styling-container"></div>
       </div>
@@ -163,6 +193,9 @@
               <div class="flex items-center gap-2">
                 <button type="button" id="shortcuts-help-btn" class="btn btn-ghost btn-sm" title="Keyboard Shortcuts (?)">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                </button>
+                <button type="button" id="collapse-all-btn" class="btn btn-ghost btn-sm">
+                  Collapse All
                 </button>
                 <button type="button" id="merge-fields-toggle" class="btn btn-ghost btn-sm">
                   Insert Merge Fields

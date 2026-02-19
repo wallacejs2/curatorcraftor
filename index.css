@@ -173,9 +173,28 @@ main {
   box-shadow: var(--shadow-xl);
 }
 
-.component-item.drag-over {
-  border-top: 2px solid var(--system-blue);
+.drop-indicator {
+  height: 2px;
+  background: var(--system-blue);
+  border-radius: 2px;
+  position: relative;
+  box-shadow: 0 0 8px rgba(0, 122, 255, 0.45);
+  pointer-events: none;
+  flex-shrink: 0;
 }
+.drop-indicator::before,
+.drop-indicator::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  background: var(--system-blue);
+  border-radius: 50%;
+}
+.drop-indicator::before { left: 0; }
+.drop-indicator::after  { right: 0; }
 
 
 .collapse-icon {
