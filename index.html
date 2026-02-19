@@ -120,33 +120,11 @@
           </select>
         </div>
 
-        <!-- Global Text Styles -->
+        <!-- Color Scheme -->
         <div class="design-option-group" id="global-text-styles">
-          <h4>Default Text Styles</h4>
-          <div class="form-group-inline" style="margin-bottom: var(--spacing-md);">
-            <label class="form-label-inline" style="width: 90px;">Body Color</label>
-            <div class="color-picker-wrapper">
-              <div class="color-input-container mini">
-                <input type="color" id="global-body-color" class="color-input-hidden" value="#1d1d1f">
-                <div class="color-swatch-display" id="global-body-color-swatch" style="background: #1d1d1f;"></div>
-              </div>
-              <input type="text" id="global-body-color-hex" class="form-control compact color-hex-input" value="#1d1d1f">
-            </div>
-          </div>
-          <div class="form-group-inline" style="margin-bottom: var(--spacing-md);">
-            <label class="form-label-inline" style="width: 90px;">Link Color</label>
-            <div class="color-picker-wrapper">
-              <div class="color-input-container mini">
-                <input type="color" id="global-link-color" class="color-input-hidden" value="#007aff">
-                <div class="color-swatch-display" id="global-link-color-swatch" style="background: #007aff;"></div>
-              </div>
-              <input type="text" id="global-link-color-hex" class="form-control compact color-hex-input" value="#007aff">
-            </div>
-          </div>
-          <div class="form-group-inline">
-            <label class="form-label-inline" style="width: 90px;">Font Size</label>
-            <input type="number" id="global-font-size" class="form-control compact" value="14" min="8" max="72" style="width: 70px;">
-            <span class="text-xs" style="color: var(--label-tertiary); margin-left: 4px;">px</span>
+          <h4>Color Scheme</h4>
+          <div class="color-scheme-grid" id="color-scheme-grid">
+            <!-- cards injected by initGlobalTextStyles() -->
           </div>
         </div>
 

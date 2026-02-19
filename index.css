@@ -1517,3 +1517,74 @@ textarea.form-control.compact {
     align-items: stretch;
   }
 }
+
+/* Header toggle group — compact toggles in card header */
+.header-toggle-group .toggle-btn {
+  padding: 2px 5px;
+  height: 22px;
+  min-width: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.header-toggle-group .toggle-btn .material-symbols-rounded {
+  font-size: 14px;
+  line-height: 1;
+}
+.header-toggle-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--separator-secondary);
+  flex-shrink: 0;
+  margin: 0 1px;
+}
+
+/* Color Scheme Selector */
+.color-scheme-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.color-scheme-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 6px;
+  border-radius: var(--radius-md);
+  border: 2px solid transparent;
+  background: var(--background-secondary);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.color-scheme-card:hover {
+  border-color: var(--system-blue-dark);
+  background: var(--system-gray-light);
+}
+
+.color-scheme-card.selected {
+  border-color: var(--system-blue);
+  background: var(--system-gray-light);
+}
+
+.scheme-swatches {
+  display: flex;
+  gap: 4px;
+}
+
+.scheme-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0,0,0,0.12);
+}
+
+.scheme-name {
+  font-size: 11px;
+  color: var(--label-secondary);
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.2;
+}

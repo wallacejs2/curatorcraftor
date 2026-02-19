@@ -12,7 +12,19 @@ interface DesignSettings {
   globalBodyColor: string;
   globalLinkColor: string;
   globalFontSize: string;
+  colorScheme?: string;
 }
+
+const COLOR_SCHEMES = [
+  { id: 'classic',  name: 'Classic',   bodyColor: '#1d1d1f', accentColor: '#007aff' },
+  { id: 'midnight', name: 'Midnight',  bodyColor: '#0a0a0a', accentColor: '#f5a623' },
+  { id: 'ocean',    name: 'Ocean',     bodyColor: '#1e3a5f', accentColor: '#00b4d8' },
+  { id: 'forest',   name: 'Forest',    bodyColor: '#1b4332', accentColor: '#52b788' },
+  { id: 'slate',    name: 'Slate',     bodyColor: '#2d3748', accentColor: '#667eea' },
+  { id: 'ember',    name: 'Ember',     bodyColor: '#2d2d2d', accentColor: '#e53e3e' },
+  { id: 'rosegold', name: 'Rose Gold', bodyColor: '#3d1515', accentColor: '#c9657e' },
+  { id: 'mono',     name: 'Mono',      bodyColor: '#000000', accentColor: '#666666' },
+] as const;
 
 interface SavedTemplate {
     id: string;
@@ -184,7 +196,8 @@ let designSettings: DesignSettings = {
   offersLayout: 'list',
   globalBodyColor: '#1d1d1f',
   globalLinkColor: '#007aff',
-  globalFontSize: '14'
+  globalFontSize: '14',
+  colorScheme: 'classic'
 };
 
 let activeComponents: EmailComponent[] = [];
@@ -1145,13 +1158,6 @@ const renderComponents = () => {
         } else if (comp.type === 'service_offer') {
             const isGrid = comp.data.layout === 'grid';
             componentFormHtml = `
-                <div class="form-group-inline">
-                    <label class="form-label-inline">Layout</label>
-                    <div class="toggle-group">
-                        <button type="button" class="toggle-btn layout-toggle ${!isGrid ? 'active' : ''}" data-key="layout" data-value="single">Single</button>
-                        <button type="button" class="toggle-btn layout-toggle ${isGrid ? 'active' : ''}" data-key="layout" data-value="grid">Grid</button>
-                    </div>
-                </div>
                 <div class="offer-columns-container" data-layout="${comp.data.layout || 'single'}">
                     <div class="offer-column">
                          <h4 class="offer-column-title">Offer 1</h4>
@@ -1178,17 +1184,8 @@ const renderComponents = () => {
             }
             const isGrid = comp.data.layout === 'grid';
             componentFormHtml = `
-                <div class="form-group-inline">
-                    <label class="form-label-inline">Offer Layout</label>
-                    <div class="toggle-group">
-                        <button type="button" class="toggle-btn layout-toggle ${comp.data.layout === 'left' ? 'active' : ''}" data-key="layout" data-value="left">L</button>
-                        <button type="button" class="toggle-btn layout-toggle ${comp.data.layout === 'center' || !comp.data.layout ? 'active' : ''}" data-key="layout" data-value="center">C</button>
-                        <button type="button" class="toggle-btn layout-toggle ${comp.data.layout === 'right' ? 'active' : ''}" data-key="layout" data-value="right">R</button>
-                        <button type="button" class="toggle-btn layout-toggle ${isGrid ? 'active' : ''}" data-key="layout" data-value="grid">G</button>
-                    </div>
-                </div>
-
-                <div class="single-offer-settings" style="display: ${isGrid ? 'none' : 'block'};">
+                ${!isGrid ? `
+                <div class="single-offer-settings">
                   <div class="offer-img-row">
                       <div class="offer-img-toggle">
                           <label class="form-label">Image</label>
@@ -1220,7 +1217,8 @@ const renderComponents = () => {
                       </div>
                   </div>
                 </div>
-                
+                ` : ''}
+
                 <div class="offer-columns-container" data-layout="${comp.data.layout || 'center'}">
                     <div class="offer-column">
                         ${!isGrid ? '' : '<h4 class="offer-column-title">Offer 1</h4>'}
@@ -1246,6 +1244,43 @@ const renderComponents = () => {
         };
         const typeIcon = componentTypeIcons[comp.type] || 'widgets';
 
+        const currentTextLayout = comp.data.textLayout || 'center';
+        let offerHeaderControls = '';
+        if (comp.type === 'sales_offer') {
+            const isSLeft = comp.data.layout === 'left';
+            const isSCenter = comp.data.layout === 'center' || !comp.data.layout;
+            const isSRight = comp.data.layout === 'right';
+            const isSGrid = comp.data.layout === 'grid';
+            offerHeaderControls = `
+                <div class="toggle-group header-toggle-group">
+                    <button type="button" class="toggle-btn layout-toggle ${isSLeft ? 'active' : ''}" data-key="layout" data-value="left" title="Image Left"><span class="material-symbols-rounded">splitscreen_left</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSCenter ? 'active' : ''}" data-key="layout" data-value="center" title="Center"><span class="material-symbols-rounded">splitscreen_top</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSRight ? 'active' : ''}" data-key="layout" data-value="right" title="Image Right"><span class="material-symbols-rounded">splitscreen_right</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSGrid ? 'active' : ''}" data-key="layout" data-value="grid" title="Grid"><span class="material-symbols-rounded">splitscreen_add</span></button>
+                </div>
+                <span class="header-toggle-divider"></span>
+            `;
+        } else if (comp.type === 'service_offer') {
+            const isSvcGrid = comp.data.layout === 'grid';
+            offerHeaderControls = `
+                <div class="toggle-group header-toggle-group">
+                    <button type="button" class="toggle-btn layout-toggle ${!isSvcGrid ? 'active' : ''}" data-key="layout" data-value="single" title="Single Column">1</button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSvcGrid ? 'active' : ''}" data-key="layout" data-value="grid" title="Two Columns">2×2</button>
+                </div>
+                <span class="header-toggle-divider"></span>
+            `;
+        }
+        if (comp.type === 'sales_offer' || comp.type === 'service_offer') {
+            offerHeaderControls += `
+                <div class="toggle-group header-toggle-group">
+                    <button type="button" class="toggle-btn text-layout-toggle ${currentTextLayout === 'left' ? 'active' : ''}" data-key="textLayout" data-value="left" title="Align Left"><span class="material-symbols-rounded">format_align_left</span></button>
+                    <button type="button" class="toggle-btn text-layout-toggle ${currentTextLayout === 'center' ? 'active' : ''}" data-key="textLayout" data-value="center" title="Align Center"><span class="material-symbols-rounded">format_align_center</span></button>
+                    <button type="button" class="toggle-btn text-layout-toggle ${currentTextLayout === 'right' ? 'active' : ''}" data-key="textLayout" data-value="right" title="Align Right"><span class="material-symbols-rounded">format_align_right</span></button>
+                </div>
+                <span class="header-toggle-divider"></span>
+            `;
+        }
+
         item.innerHTML = `
             <div class="card-header">
                 <span class="drag-handle" title="Drag to reorder">
@@ -1264,6 +1299,7 @@ const renderComponents = () => {
                     <span id="component-title-${comp.id}" class="component-title text-xs font-bold uppercase" style="color: var(--label-secondary);">${index + 1} - ${dynamicTitle}</span>
                 </div>
                 <div class="flex items-center" style="gap: 3px;">
+                    ${offerHeaderControls}
                     <button type="button" class="btn btn-ghost btn-sm duplicate-comp-btn" title="Duplicate section">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                     </button>
@@ -1390,7 +1426,7 @@ const renderComponents = () => {
             });
         }
 
-        item.querySelectorAll('input, textarea, select, button.layout-toggle').forEach(input => {
+        item.querySelectorAll('input, textarea, select, button.layout-toggle, button.text-layout-toggle').forEach(input => {
             if (!input.classList.contains('sub-offer-field')) {
                 const eventType = (input.tagName === 'BUTTON' || (input as HTMLInputElement).type === 'checkbox') ? 'click' : 'input';
                 input.addEventListener(eventType, (e) => {
@@ -1434,6 +1470,43 @@ const renderComponents = () => {
                             } catch (error) {
                                 console.error("Failed to update sub-offer alignments:", error);
                             }
+                            renderStylingPanel();
+                        }
+
+                        if (key === 'textLayout') {
+                            // Update active state of text-layout buttons without full re-render
+                            item.querySelectorAll('.text-layout-toggle').forEach(btn => {
+                                btn.classList.toggle('active', btn.getAttribute('data-value') === value);
+                            });
+                        }
+
+                        if (comp.type === 'sales_offer' && key === 'textLayout') {
+                            ['', '2'].forEach(sfx => {
+                                ['vehicleTextAlign', 'mainOfferTextAlign', 'detailsTextAlign',
+                                 'stockVinTextAlign', 'mileageTextAlign', 'disclaimerTextAlign'].forEach(field => {
+                                    updateComponentData(comp.id, `${field}${sfx}`, value);
+                                });
+                                updateComponentData(comp.id, `btnAlign${sfx}`, value);
+                                try {
+                                    const offerKey = `additionalOffers${sfx}`;
+                                    const offers = JSON.parse(comp.data[offerKey] || '[]');
+                                    updateComponentData(comp.id, offerKey, JSON.stringify(
+                                        offers.map((o: any) => ({ ...o,
+                                            separatorTextAlign: value, offerTextAlign: value,
+                                            detailsTextAlign: value, disclaimerTextAlign: value }))
+                                    ));
+                                } catch {}
+                            });
+                            renderStylingPanel();
+                        }
+
+                        if (comp.type === 'service_offer' && key === 'textLayout') {
+                            ['', '2'].forEach(sfx => {
+                                ['titleAlignment', 'couponAlignment', 'detailsAlignment',
+                                 'disclaimerAlignment', 'buttonAlignment'].forEach(field => {
+                                    updateComponentData(comp.id, `${field}${sfx}`, value);
+                                });
+                            });
                             renderStylingPanel();
                         }
 
@@ -2960,109 +3033,80 @@ const initKeyboardShortcuts = () => {
 
 // --- END: Keyboard Shortcut System Implementation ---
 
+const propagateBodyColor = (color: string) => {
+    designSettings.globalBodyColor = color;
+    activeComponents.forEach(comp => {
+        if (['header', 'text_block'].includes(comp.type)) {
+            comp.data.textColor = color;
+        }
+    });
+    saveDraft();
+    saveToHistory();
+    triggerPreviewUpdate();
+};
+
+const propagateLinkColor = (color: string) => {
+    designSettings.globalLinkColor = color;
+    activeComponents.forEach(comp => {
+        if (comp.type === 'button') comp.data.backgroundColor = color;
+        if (comp.type === 'service_offer') { comp.data.buttonBgColor = color; comp.data.buttonBgColor2 = color; }
+        if (comp.type === 'sales_offer') { comp.data.btnColor = color; comp.data.btnColor2 = color; }
+    });
+    saveDraft();
+    saveToHistory();
+    triggerPreviewUpdate();
+};
+
 const syncGlobalTextStylesUI = () => {
-    const bodyColorPicker = document.getElementById('global-body-color') as HTMLInputElement | null;
-    const bodyColorHex = document.getElementById('global-body-color-hex') as HTMLInputElement | null;
-    const bodyColorSwatch = document.getElementById('global-body-color-swatch') as HTMLElement | null;
-    const linkColorPicker = document.getElementById('global-link-color') as HTMLInputElement | null;
-    const linkColorHex = document.getElementById('global-link-color-hex') as HTMLInputElement | null;
-    const linkColorSwatch = document.getElementById('global-link-color-swatch') as HTMLElement | null;
-    const fontSizeInput = document.getElementById('global-font-size') as HTMLInputElement | null;
-    if (bodyColorPicker) bodyColorPicker.value = designSettings.globalBodyColor;
-    if (bodyColorHex) bodyColorHex.value = designSettings.globalBodyColor;
-    if (bodyColorSwatch) bodyColorSwatch.style.background = designSettings.globalBodyColor;
-    if (linkColorPicker) linkColorPicker.value = designSettings.globalLinkColor;
-    if (linkColorHex) linkColorHex.value = designSettings.globalLinkColor;
-    if (linkColorSwatch) linkColorSwatch.style.background = designSettings.globalLinkColor;
-    if (fontSizeInput) fontSizeInput.value = designSettings.globalFontSize;
+    const grid = document.getElementById('color-scheme-grid');
+    if (!grid) return;
+    grid.querySelectorAll('.color-scheme-card').forEach(card => {
+        const el = card as HTMLElement;
+        const match = el.dataset.bodyColor === designSettings.globalBodyColor &&
+                      el.dataset.accentColor === designSettings.globalLinkColor;
+        el.classList.toggle('selected', match);
+    });
 };
 
 function initGlobalTextStyles() {
-    const bodyColorPicker = document.getElementById('global-body-color') as HTMLInputElement | null;
-    const bodyColorHex = document.getElementById('global-body-color-hex') as HTMLInputElement | null;
-    const bodyColorSwatch = document.getElementById('global-body-color-swatch') as HTMLElement | null;
-    const linkColorPicker = document.getElementById('global-link-color') as HTMLInputElement | null;
-    const linkColorHex = document.getElementById('global-link-color-hex') as HTMLInputElement | null;
-    const linkColorSwatch = document.getElementById('global-link-color-swatch') as HTMLElement | null;
-    const fontSizeInput = document.getElementById('global-font-size') as HTMLInputElement | null;
+    const grid = document.getElementById('color-scheme-grid');
+    if (!grid) return;
 
-    const propagateBodyColor = (color: string) => {
-        designSettings.globalBodyColor = color;
-        activeComponents.forEach(comp => {
-            if (['header', 'text_block'].includes(comp.type)) {
-                comp.data.textColor = color;
-            }
-        });
-        saveDraft();
-        saveToHistory();
-        triggerPreviewUpdate();
-    };
+    // Render scheme cards
+    grid.innerHTML = COLOR_SCHEMES.map(scheme => {
+        const isActive = designSettings.globalBodyColor === scheme.bodyColor &&
+                         designSettings.globalLinkColor === scheme.accentColor;
+        return `
+            <div class="color-scheme-card${isActive ? ' selected' : ''}"
+                 data-scheme-id="${scheme.id}"
+                 data-body-color="${scheme.bodyColor}"
+                 data-accent-color="${scheme.accentColor}"
+                 title="${scheme.name}">
+              <div class="scheme-swatches">
+                <div class="scheme-swatch" style="background:${scheme.bodyColor};"></div>
+                <div class="scheme-swatch" style="background:${scheme.accentColor};"></div>
+              </div>
+              <span class="scheme-name">${scheme.name}</span>
+            </div>`;
+    }).join('');
 
-    const propagateLinkColor = (color: string) => {
-        designSettings.globalLinkColor = color;
-        activeComponents.forEach(comp => {
-            if (comp.type === 'button') comp.data.backgroundColor = color;
-            if (comp.type === 'service_offer') { comp.data.buttonBgColor = color; comp.data.buttonBgColor2 = color; }
-            if (comp.type === 'sales_offer') { comp.data.btnColor = color; comp.data.btnColor2 = color; }
-        });
-        saveDraft();
-        saveToHistory();
-        triggerPreviewUpdate();
-    };
+    // Click handler
+    grid.addEventListener('click', (e) => {
+        const card = (e.target as Element).closest('.color-scheme-card') as HTMLElement | null;
+        if (!card) return;
 
-    const propagateFontSize = (size: string) => {
-        designSettings.globalFontSize = size;
-        activeComponents.forEach(comp => {
-            if (['header', 'text_block'].includes(comp.type)) {
-                comp.data.fontSize = size;
-            }
-        });
-        saveDraft();
-        saveToHistory();
-        triggerPreviewUpdate();
-    };
+        const bodyColor = card.dataset.bodyColor!;
+        const accentColor = card.dataset.accentColor!;
+        const schemeId = card.dataset.schemeId!;
 
-    // Body color picker ↔ hex input sync
-    bodyColorPicker?.addEventListener('input', () => {
-        const color = bodyColorPicker.value;
-        if (bodyColorHex) bodyColorHex.value = color;
-        if (bodyColorSwatch) bodyColorSwatch.style.background = color;
-        propagateBodyColor(color);
+        designSettings.colorScheme = schemeId;
+        propagateBodyColor(bodyColor);
+        propagateLinkColor(accentColor);
+
+        grid.querySelectorAll('.color-scheme-card').forEach(c =>
+            c.classList.toggle('selected', c === card)
+        );
     });
-    bodyColorHex?.addEventListener('change', () => {
-        const color = bodyColorHex.value.trim();
-        if (/^#[0-9a-fA-F]{6}$/.test(color)) {
-            if (bodyColorPicker) bodyColorPicker.value = color;
-            if (bodyColorSwatch) bodyColorSwatch.style.background = color;
-            propagateBodyColor(color);
-        }
-    });
-
-    // Link color picker ↔ hex input sync
-    linkColorPicker?.addEventListener('input', () => {
-        const color = linkColorPicker.value;
-        if (linkColorHex) linkColorHex.value = color;
-        if (linkColorSwatch) linkColorSwatch.style.background = color;
-        propagateLinkColor(color);
-    });
-    linkColorHex?.addEventListener('change', () => {
-        const color = linkColorHex.value.trim();
-        if (/^#[0-9a-fA-F]{6}$/.test(color)) {
-            if (linkColorPicker) linkColorPicker.value = color;
-            if (linkColorSwatch) linkColorSwatch.style.background = color;
-            propagateLinkColor(color);
-        }
-    });
-
-    // Font size input
-    fontSizeInput?.addEventListener('change', () => {
-        const size = fontSizeInput.value.trim();
-        if (size && parseInt(size) >= 8 && parseInt(size) <= 72) {
-            propagateFontSize(size);
-        }
-    });
-
-    syncGlobalTextStylesUI();
 }
 
 
