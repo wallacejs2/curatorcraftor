@@ -667,7 +667,8 @@ const addNewComponent = (type: string) => {
             couponFontSize2: '15', couponFontWeight2: 'bold', couponFontStyle2: 'normal', couponTextColor2: '#0066FF', couponBgColor2: '#F0F7FF', couponAlignment2: 'center', couponPaddingTop2: '6', couponPaddingBottom2: '6', couponPaddingLeftRight2: '12', couponShowBorder2: 'false', couponBorderStyle2: 'dashed', couponBorderColor2: '#0066FF',
             detailsFontSize2: '12', detailsFontWeight2: 'normal', detailsFontStyle2: 'normal', detailsTextColor2: '#333333', detailsBgColor2: 'transparent', detailsAlignment2: 'center', detailsLineHeight2: '1.5', detailsPaddingTop2: '9', detailsPaddingBottom2: '9', detailsPaddingLeftRight2: '0',
             disclaimerFontSize2: '9', disclaimerFontWeight2: 'normal', disclaimerFontStyle2: 'normal', disclaimerTextColor2: '#666666', disclaimerBgColor2: 'transparent', disclaimerAlignment2: 'center', disclaimerPaddingTop2: '6', disclaimerPaddingBottom2: '6', disclaimerPaddingLeftRight2: '0',
-            buttonFontSize2: '12', buttonAlignment2: 'center', buttonBgColor2: '#0066FF', buttonTextColor2: '#FFFFFF', buttonPaddingTop2: '9', buttonPaddingBottom2: '9', buttonPaddingLeftRight2: '15', buttonWidth2: 'auto'
+            buttonFontSize2: '12', buttonAlignment2: 'center', buttonBgColor2: '#0066FF', buttonTextColor2: '#FFFFFF', buttonPaddingTop2: '9', buttonPaddingBottom2: '9', buttonPaddingLeftRight2: '15', buttonWidth2: 'auto',
+            textLayout: 'center'
         };
     } else if (type === 'sales_offer') {
         data = {
@@ -724,7 +725,8 @@ const addNewComponent = (type: string) => {
             paddingTop: '15',
             paddingBottom: '15',
             paddingLeftRight: '15',
-            backgroundColor: '#ffffff'
+            backgroundColor: '#ffffff',
+            textLayout: 'center'
         };
     }
 
@@ -1813,11 +1815,10 @@ function generateEmailHtml(): string {
                     <td align="center" style="${containerPadding}">
                         <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                             <tr>
-                                <td class="mobile-stack" width="280" valign="top" style="width: 280px;">
+                                <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-right: 8px; vertical-align: top;">
                                     ${offer1Html}
                                 </td>
-                                <td class="mobile-stack-spacer" width="20" style="width: 20px; font-size: 1px; line-height: 1px;">&nbsp;</td>
-                                <td class="mobile-stack" width="280" valign="top" style="width: 280px;">
+                                <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-left: 8px; vertical-align: top;">
                                     ${offer2Html}
                                 </td>
                             </tr>
@@ -1919,13 +1920,12 @@ function generateEmailHtml(): string {
                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                     <tbody>
                         <tr>
-                            <td class="mobile-stack" width="280" valign="top" style="width: 280px;">
+                            <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-right: 8px; vertical-align: top;">
                                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px;"><tr><td style="padding: 15px;">
                                     ${offer1Content}
                                 </td></tr></table>
                             </td>
-                            <td class="mobile-stack-spacer" width="20" style="width: 20px; font-size: 1px; line-height: 1px;">&nbsp;</td>
-                            <td class="mobile-stack" width="280" valign="top" style="width: 280px;">
+                            <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-left: 8px; vertical-align: top;">
                                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px;"><tr><td style="padding: 15px;">
                                     ${offer2Content}
                                 </td></tr></table>
