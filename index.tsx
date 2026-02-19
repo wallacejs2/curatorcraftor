@@ -3033,11 +3033,48 @@ const initKeyboardShortcuts = () => {
 
 // --- END: Keyboard Shortcut System Implementation ---
 
+const blendWithWhite = (hex: string, alpha: number): string => {
+    const r = parseInt(hex.slice(1,3), 16);
+    const g = parseInt(hex.slice(3,5), 16);
+    const b = parseInt(hex.slice(5,7), 16);
+    const mix = (c: number) => Math.round(c * alpha + 255 * (1 - alpha)).toString(16).padStart(2,'0');
+    return `#${mix(r)}${mix(g)}${mix(b)}`;
+};
+
 const propagateBodyColor = (color: string) => {
     designSettings.globalBodyColor = color;
+    const secondary = blendWithWhite(color, 0.55);
+    const tertiary  = blendWithWhite(color, 0.40);
     activeComponents.forEach(comp => {
         if (['header', 'text_block'].includes(comp.type)) {
             comp.data.textColor = color;
+        }
+        if (comp.type === 'sales_offer') {
+            ['', '2'].forEach(sfx => {
+                comp.data[`vehicleColor${sfx}`]    = color;
+                comp.data[`detailsColor${sfx}`]    = secondary;
+                comp.data[`stockVinColor${sfx}`]   = tertiary;
+                comp.data[`mileageColor${sfx}`]    = tertiary;
+                comp.data[`disclaimerColor${sfx}`] = tertiary;
+                const key = `additionalOffers${sfx}`;
+                try {
+                    const offers = JSON.parse(comp.data[key] || '[]');
+                    comp.data[key] = JSON.stringify(offers.map((o: any) => ({
+                        ...o,
+                        separatorColor:  color,
+                        offerColor:      color,
+                        detailsColor:    secondary,
+                        disclaimerColor: tertiary,
+                    })));
+                } catch {}
+            });
+        }
+        if (comp.type === 'service_offer') {
+            ['', '2'].forEach(sfx => {
+                comp.data[`titleTextColor${sfx}`]      = color;
+                comp.data[`detailsTextColor${sfx}`]    = secondary;
+                comp.data[`disclaimerTextColor${sfx}`] = tertiary;
+            });
         }
     });
     saveDraft();
@@ -3049,8 +3086,14 @@ const propagateLinkColor = (color: string) => {
     designSettings.globalLinkColor = color;
     activeComponents.forEach(comp => {
         if (comp.type === 'button') comp.data.backgroundColor = color;
-        if (comp.type === 'service_offer') { comp.data.buttonBgColor = color; comp.data.buttonBgColor2 = color; }
-        if (comp.type === 'sales_offer') { comp.data.btnColor = color; comp.data.btnColor2 = color; }
+        if (comp.type === 'service_offer') {
+            comp.data.buttonBgColor = color; comp.data.buttonBgColor2 = color;
+            comp.data.couponTextColor = color; comp.data.couponTextColor2 = color;
+        }
+        if (comp.type === 'sales_offer') {
+            comp.data.btnColor = color; comp.data.btnColor2 = color;
+            comp.data.mainOfferColor = color; comp.data.mainOfferColor2 = color;
+        }
     });
     saveDraft();
     saveToHistory();
@@ -3072,7 +3115,7 @@ function initGlobalTextStyles() {
     const grid = document.getElementById('color-scheme-grid');
     if (!grid) return;
 
-    // Render scheme cards
+    // Render preset scheme cards (no name label)
     grid.innerHTML = COLOR_SCHEMES.map(scheme => {
         const isActive = designSettings.globalBodyColor === scheme.bodyColor &&
                          designSettings.globalLinkColor === scheme.accentColor;
@@ -3086,26 +3129,65 @@ function initGlobalTextStyles() {
                 <div class="scheme-swatch" style="background:${scheme.bodyColor};"></div>
                 <div class="scheme-swatch" style="background:${scheme.accentColor};"></div>
               </div>
-              <span class="scheme-name">${scheme.name}</span>
             </div>`;
     }).join('');
 
-    // Click handler
+    // Append custom scheme card with live color pickers
+    const isCustom = designSettings.colorScheme === 'custom';
+    grid.innerHTML += `
+        <div class="color-scheme-card${isCustom ? ' selected' : ''}" data-scheme-id="custom" title="Custom">
+          <div class="scheme-swatches">
+            <div class="color-input-container mini" onclick="this.querySelector('input[type=color]').click()">
+              <div class="color-swatch-display" style="background-color:${designSettings.globalBodyColor};"></div>
+              <input type="color" class="color-input-hidden" id="custom-body-color" value="${designSettings.globalBodyColor}">
+            </div>
+            <div class="color-input-container mini" onclick="this.querySelector('input[type=color]').click()">
+              <div class="color-swatch-display" style="background-color:${designSettings.globalLinkColor};"></div>
+              <input type="color" class="color-input-hidden" id="custom-accent-color" value="${designSettings.globalLinkColor}">
+            </div>
+          </div>
+        </div>`;
+
+    // Click handler — skip propagation for custom card (color inputs handle it)
     grid.addEventListener('click', (e) => {
         const card = (e.target as Element).closest('.color-scheme-card') as HTMLElement | null;
         if (!card) return;
-
-        const bodyColor = card.dataset.bodyColor!;
-        const accentColor = card.dataset.accentColor!;
         const schemeId = card.dataset.schemeId!;
 
+        if (schemeId === 'custom') {
+            designSettings.colorScheme = 'custom';
+            grid.querySelectorAll('.color-scheme-card').forEach(c => c.classList.toggle('selected', c === card));
+            return;
+        }
+
+        const bodyColor   = card.dataset.bodyColor!;
+        const accentColor = card.dataset.accentColor!;
         designSettings.colorScheme = schemeId;
         propagateBodyColor(bodyColor);
         propagateLinkColor(accentColor);
+        grid.querySelectorAll('.color-scheme-card').forEach(c => c.classList.toggle('selected', c === card));
+    });
 
+    // Live listeners for custom color pickers
+    const customBodyInput   = document.getElementById('custom-body-color')   as HTMLInputElement | null;
+    const customAccentInput = document.getElementById('custom-accent-color') as HTMLInputElement | null;
+
+    customBodyInput?.addEventListener('input', () => {
+        designSettings.colorScheme = 'custom';
+        const swatch = customBodyInput.previousElementSibling as HTMLElement | null;
+        if (swatch) swatch.style.backgroundColor = customBodyInput.value;
+        propagateBodyColor(customBodyInput.value);
         grid.querySelectorAll('.color-scheme-card').forEach(c =>
-            c.classList.toggle('selected', c === card)
-        );
+            c.classList.toggle('selected', (c as HTMLElement).dataset.schemeId === 'custom'));
+    });
+
+    customAccentInput?.addEventListener('input', () => {
+        designSettings.colorScheme = 'custom';
+        const swatch = customAccentInput.previousElementSibling as HTMLElement | null;
+        if (swatch) swatch.style.backgroundColor = customAccentInput.value;
+        propagateLinkColor(customAccentInput.value);
+        grid.querySelectorAll('.color-scheme-card').forEach(c =>
+            c.classList.toggle('selected', (c as HTMLElement).dataset.schemeId === 'custom'));
     });
 }
 
