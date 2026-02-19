@@ -2290,11 +2290,12 @@ const renderStandardStylingPanel = (
     
     // Alignment
     if (config.alignment) {
-        const key = Object.keys(config.alignment)[0];
+        const configKey = Object.keys(config.alignment)[0];
+        const dataKey = config.alignment[configKey];
         html += `
             <div class="form-group">
                 <label class="form-label">Alignment</label>
-                ${alignmentControlHtml(key, data[key] || 'center')}
+                ${alignmentControlHtml(dataKey, data[dataKey] || 'center')}
             </div>
         `;
     }
