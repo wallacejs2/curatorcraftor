@@ -1313,8 +1313,188 @@ textarea.form-control.compact {
   .merge-fields-sidebar {
     width: 100vw;
   }
-  
+
   .button-style-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* =====================================================
+   Component Layout UX Improvements
+   ===================================================== */
+
+/* Material Symbols icon in card header */
+.component-type-icon {
+  font-size: 16px;
+  color: var(--label-tertiary);
+  flex-shrink: 0;
+  margin-right: var(--spacing-sm);
+  line-height: 1;
+  vertical-align: middle;
+}
+
+/* Material Symbols icon in component picker */
+.picker-icon {
+  font-size: 24px;
+  color: var(--system-blue);
+}
+
+/* Button style panel: stacked single-column list */
+.button-style-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.button-style-stack .button-style-option {
+  padding: var(--spacing-xs) var(--spacing-sm);
+}
+.button-style-stack .button-preview {
+  margin-bottom: 0;
+}
+
+/* Equal-width 2-column row (Button component, offer button rows) */
+.component-row {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: flex-end;
+}
+.component-row-item {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+.component-row-item .form-label {
+  margin-bottom: 0;
+}
+
+/* Image fields single row: URL Upload | Alt | Link */
+.img-fields-row {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: flex-end;
+}
+.img-field-group {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+.img-field-group .form-label {
+  margin-bottom: 0;
+}
+.img-url-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+.img-url-inner .form-control {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.img-url-inner .upload-btn {
+  flex-shrink: 0;
+}
+
+/* Offer image row: Toggle | URL Upload | Alt | Link (all inline) */
+.offer-img-row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+.offer-img-toggle {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+.offer-img-toggle .form-label {
+  margin-bottom: 0;
+}
+.offer-img-toggle .toggle-switch-group {
+  padding-bottom: 3px; /* align toggle knob with input baseline */
+}
+.offer-img-fields {
+  flex: 1;
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: flex-end;
+}
+
+/* Sub-offer items (Additional Offers inside Sales Offer) */
+.sub-offer-item {
+  border: 1px solid var(--separator-secondary);
+  border-radius: var(--radius-md);
+  background: var(--background-secondary);
+  margin-top: var(--spacing-md);
+  overflow: hidden;
+}
+.sub-offer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 1px solid var(--separator-secondary);
+  background: var(--background-tertiary);
+}
+.sub-offer-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--label-tertiary);
+}
+.sub-offer-body {
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+.sub-offer-body .form-group {
+  margin-bottom: 0;
+}
+
+/* Add Additional Offer trigger button */
+.add-sub-offer-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1.5px dashed var(--separator-primary);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--label-secondary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+.add-sub-offer-btn:hover {
+  border-color: var(--system-blue);
+  color: var(--system-blue);
+  background: var(--background-secondary);
+}
+
+@media (max-width: 768px) {
+  .img-fields-row,
+  .offer-img-row,
+  .offer-img-fields {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .offer-img-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .component-row {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

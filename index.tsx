@@ -791,24 +791,34 @@ function generateServiceOfferFormHtml(comp: EmailComponent, suffix: string): str
     const displayStyle = isChecked ? 'flex' : 'none';
 
     return `
-        <div class="form-group-inline wrap">
-            <div class="toggle-switch-group">
-                <div class="toggle-switch compact">
-                    <input type="checkbox" id="show-image-${comp.id}-${suffix || '1'}" class="toggle-switch-checkbox" data-key="showImage${suffix}" ${isChecked ? 'checked' : ''}>
-                    <label for="show-image-${comp.id}-${suffix || '1'}" class="toggle-switch-label"></label>
+        <div class="offer-img-row">
+            <div class="offer-img-toggle">
+                <label class="form-label">Image</label>
+                <div class="toggle-switch-group">
+                    <div class="toggle-switch compact">
+                        <input type="checkbox" id="show-image-${comp.id}-${suffix || '1'}" class="toggle-switch-checkbox" data-key="showImage${suffix}" ${isChecked ? 'checked' : ''}>
+                        <label for="show-image-${comp.id}-${suffix || '1'}" class="toggle-switch-label"></label>
+                    </div>
+                    <label for="show-image-${comp.id}-${suffix || '1'}" class="toggle-switch-text-label">Show</label>
                 </div>
-                <label for="show-image-${comp.id}-${suffix || '1'}" class="toggle-switch-text-label">Show Image</label>
             </div>
-        </div>
-        <div id="service-image-fields-${comp.id}-${suffix || '1'}" style="display: ${displayStyle}; flex-direction: column; gap: var(--spacing-sm); margin-top: var(--spacing-sm);">
-            <div class="form-group-inline wrap">
-                <div class="inline-input-group"><label>URL:</label><input type="text" class="form-control compact" data-key="imageUrl${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferImage${suffix}" data-field-label="Image ${suffix || '1'}" value="${d[`imageUrl${suffix}`] || ''}"></div>
-                <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
-                <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="${suffix || '1'}">
-            </div>
-            <div class="form-group-inline wrap">
-                <div class="inline-input-group"><label>Alt:</label><input type="text" class="form-control compact" data-key="imageAlt${suffix}" value="${d[`imageAlt${suffix}`] || ''}"></div>
-                <div class="inline-input-group"><label>Link:</label><input type="text" class="form-control compact" data-key="imageLink${suffix}" value="${d[`imageLink${suffix}`] || ''}"></div>
+            <div id="service-image-fields-${comp.id}-${suffix || '1'}" class="offer-img-fields" style="display: ${displayStyle};">
+                <div class="img-field-group">
+                    <label class="form-label">URL</label>
+                    <div class="img-url-inner">
+                        <input type="text" class="form-control compact" data-key="imageUrl${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferImage${suffix}" data-field-label="Image ${suffix || '1'}" value="${d[`imageUrl${suffix}`] || ''}" placeholder="https://...">
+                        <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
+                        <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="${suffix || '1'}">
+                    </div>
+                </div>
+                <div class="img-field-group">
+                    <label class="form-label">Alt</label>
+                    <input type="text" class="form-control compact" data-key="imageAlt${suffix}" value="${d[`imageAlt${suffix}`] || ''}" placeholder="Description">
+                </div>
+                <div class="img-field-group">
+                    <label class="form-label">Link</label>
+                    <input type="text" class="form-control compact" data-key="imageLink${suffix}" value="${d[`imageLink${suffix}`] || ''}" placeholder="https://...">
+                </div>
             </div>
         </div>
         <div class="form-group">
@@ -827,9 +837,15 @@ function generateServiceOfferFormHtml(comp: EmailComponent, suffix: string): str
             <label class="form-label">Disclaimer</label>
             <textarea class="form-control" data-key="disclaimer${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferDisclaimer${suffix}" data-field-label="Disclaimer ${suffix || '1'}">${d[`disclaimer${suffix}`] || ''}</textarea>
         </div>
-        <div class="form-group-inline wrap">
-            <div class="inline-input-group"><label>Btn Text:</label><input type="text" class="form-control compact" data-key="buttonText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferButton${suffix}" data-field-label="Button ${suffix || '1'} Text" value="${d[`buttonText${suffix}`] || ''}"></div>
-            <div class="inline-input-group"><label>Btn Link:</label><input type="text" class="form-control compact" data-key="buttonLink${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferButton${suffix}" data-field-label="Button ${suffix || '1'} Link" value="${d[`buttonLink${suffix}`] || ''}"></div>
+        <div class="component-row">
+            <div class="component-row-item">
+                <label class="form-label">Btn Text</label>
+                <input type="text" class="form-control compact" data-key="buttonText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferButton${suffix}" data-field-label="Button ${suffix || '1'} Text" value="${d[`buttonText${suffix}`] || ''}" placeholder="e.g. Schedule Now">
+            </div>
+            <div class="component-row-item">
+                <label class="form-label">Btn Link</label>
+                <input type="text" class="form-control compact" data-key="buttonLink${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferButton${suffix}" data-field-label="Button ${suffix || '1'} Link" value="${d[`buttonLink${suffix}`] || ''}" placeholder="https://...">
+            </div>
         </div>
     `;
 }
@@ -844,32 +860,35 @@ function generateSubOffersHtml(comp: EmailComponent, suffix: string): string {
     }
 
     let html = offers.map((offer, index) => `
-        <div class="sub-offer-item card" style="margin-top: 8px;">
-             <div class="card-header" style="background-color: var(--background-secondary);">
-                <span class="component-title text-xs font-bold uppercase" style="color: var(--label-secondary);">Additional Offer ${index + 1}</span>
-                <button type="button" class="btn btn-ghost btn-sm remove-sub-offer" data-index="${index}" data-offer-index="${suffix || '1'}">
+        <div class="sub-offer-item" data-index="${index}">
+            <div class="sub-offer-header">
+                <span class="sub-offer-label">Additional Offer ${index + 1}</span>
+                <button type="button" class="btn btn-ghost btn-sm remove-sub-offer" data-index="${index}" data-offer-index="${suffix || '1'}" title="Remove">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                 </button>
             </div>
-            <div class="card-body">
+            <div class="sub-offer-body">
                 <div class="form-group">
                     <label class="form-label">Separator Text</label>
-                    <input type="text" class="form-control sub-offer-field" data-index="${index}" data-offer-index="${suffix || '1'}" data-field="separator" value="${offer.separator || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="separator${suffix}" data-sub-offer-index="${index}" data-field-label="Separator">
+                    <input type="text" class="form-control compact sub-offer-field" data-index="${index}" data-offer-index="${suffix || '1'}" data-field="separator" value="${offer.separator || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="separator${suffix}" data-sub-offer-index="${index}" data-field-label="Separator">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Offer Title</label>
-                    <input type="text" class="form-control sub-offer-field" data-index="${index}" data-offer-index="${suffix || '1'}" data-field="offer" value="${offer.offer || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="offer${suffix}" data-sub-offer-index="${index}" data-field-label="Offer Title">
+                    <input type="text" class="form-control compact sub-offer-field" data-index="${index}" data-offer-index="${suffix || '1'}" data-field="offer" value="${offer.offer || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="offer${suffix}" data-sub-offer-index="${index}" data-field-label="Offer Title">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Offer Details</label>
-                    <textarea class="form-control sub-offer-field" data-index="${index}" data-offer-index="${suffix || '1'}" data-field="details" data-stylable="true" data-component-id="${comp.id}" data-field-key="details${suffix}" data-sub-offer-index="${index}" data-field-label="Offer Details">${offer.details || ''}</textarea>
+                    <label class="form-label">Details</label>
+                    <textarea class="form-control compact sub-offer-field" data-index="${index}" data-offer-index="${suffix || '1'}" data-field="details" data-stylable="true" data-component-id="${comp.id}" data-field-key="details${suffix}" data-sub-offer-index="${index}" data-field-label="Offer Details">${offer.details || ''}</textarea>
                 </div>
             </div>
         </div>
     `).join('');
 
     html += `
-        <button type="button" class="btn btn-secondary add-sub-offer-btn" data-offer-index="${suffix || '1'}" style="margin-top: 8px;">+ Add Additional Offer</button>
+        <button type="button" class="add-sub-offer-btn" data-offer-index="${suffix || '1'}">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Add Additional Offer
+        </button>
     `;
 
     return html;
@@ -884,24 +903,34 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
         const isChecked = d[`imageEnabled${suffix}`] === 'true';
         const displayStyle = isChecked ? 'flex' : 'none';
         html += `
-            <div class="form-group-inline wrap">
-                <div class="toggle-switch-group">
-                    <div class="toggle-switch compact">
-                        <input type="checkbox" id="image-enabled-${comp.id}-${suffix || '1'}" class="toggle-switch-checkbox" data-key="imageEnabled${suffix}" ${isChecked ? 'checked' : ''}>
-                        <label for="image-enabled-${comp.id}-${suffix || '1'}" class="toggle-switch-label"></label>
+            <div class="offer-img-row">
+                <div class="offer-img-toggle">
+                    <label class="form-label">Image</label>
+                    <div class="toggle-switch-group">
+                        <div class="toggle-switch compact">
+                            <input type="checkbox" id="image-enabled-${comp.id}-${suffix || '1'}" class="toggle-switch-checkbox" data-key="imageEnabled${suffix}" ${isChecked ? 'checked' : ''}>
+                            <label for="image-enabled-${comp.id}-${suffix || '1'}" class="toggle-switch-label"></label>
+                        </div>
+                        <label for="image-enabled-${comp.id}-${suffix || '1'}" class="toggle-switch-text-label">Show</label>
                     </div>
-                    <label for="image-enabled-${comp.id}-${suffix || '1'}" class="toggle-switch-text-label">Show Image</label>
                 </div>
-            </div>
-            <div id="image-fields-container-${comp.id}-${suffix || '1'}" style="display: ${displayStyle}; flex-direction: column; gap: var(--spacing-sm); margin-top: var(--spacing-sm);">
-                <div class="form-group-inline wrap">
-                    <div class="inline-input-group"><label>URL:</label><input type="text" class="form-control compact" data-key="imageSrc${suffix}" value="${d[`imageSrc${suffix}`] || ''}"></div>
-                    <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
-                    <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="${suffix || '1'}">
-                </div>
-                <div class="form-group-inline wrap">
-                    <div class="inline-input-group"><label>Alt:</label><input type="text" class="form-control compact" data-key="imageAlt${suffix}" value="${d[`imageAlt${suffix}`] || ''}"></div>
-                    <div class="inline-input-group"><label>Link:</label><input type="text" class="form-control compact" data-key="imageLink${suffix}" value="${d[`imageLink${suffix}`] || ''}"></div>
+                <div id="image-fields-container-${comp.id}-${suffix || '1'}" class="offer-img-fields" style="display: ${displayStyle};">
+                    <div class="img-field-group">
+                        <label class="form-label">URL</label>
+                        <div class="img-url-inner">
+                            <input type="text" class="form-control compact" data-key="imageSrc${suffix}" value="${d[`imageSrc${suffix}`] || ''}" placeholder="https://...">
+                            <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
+                            <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="${suffix || '1'}">
+                        </div>
+                    </div>
+                    <div class="img-field-group">
+                        <label class="form-label">Alt</label>
+                        <input type="text" class="form-control compact" data-key="imageAlt${suffix}" value="${d[`imageAlt${suffix}`] || ''}" placeholder="Description">
+                    </div>
+                    <div class="img-field-group">
+                        <label class="form-label">Link</label>
+                        <input type="text" class="form-control compact" data-key="imageLink${suffix}" value="${d[`imageLink${suffix}`] || ''}" placeholder="https://...">
+                    </div>
                 </div>
             </div>
         `;
@@ -947,9 +976,15 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
             <label class="form-label">Disclaimer</label>
             <textarea class="form-control" data-key="disclaimerText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="disclaimer${suffix}" data-field-label="Disclaimer">${d[`disclaimerText${suffix}`] || ''}</textarea>
         </div>
-        <div class="form-group-inline wrap">
-            <div class="inline-input-group"><label>Button Text</label><input type="text" class="form-control compact" data-key="btnText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="salesOfferButton${suffix}" data-field-label="Button Text" value="${d[`btnText${suffix}`] || ''}"></div>
-            <div class="inline-input-group"><label>Button Link</label><input type="text" class="form-control compact" data-key="btnLink${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="salesOfferButton${suffix}" data-field-label="Button Link" value="${d[`btnLink${suffix}`] || ''}"></div>
+        <div class="component-row">
+            <div class="component-row-item">
+                <label class="form-label">Btn Text</label>
+                <input type="text" class="form-control compact" data-key="btnText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="salesOfferButton${suffix}" data-field-label="Button Text" value="${d[`btnText${suffix}`] || ''}" placeholder="e.g. View Offer">
+            </div>
+            <div class="component-row-item">
+                <label class="form-label">Btn Link</label>
+                <input type="text" class="form-control compact" data-key="btnLink${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="salesOfferButton${suffix}" data-field-label="Button Link" value="${d[`btnLink${suffix}`] || ''}" placeholder="https://...">
+            </div>
         </div>
     `;
 
@@ -1036,32 +1071,36 @@ const renderComponents = () => {
             `;
         } else if (comp.type === 'image') {
             componentFormHtml = `
-                 <div class="image-component-form">
-                    <div class="form-group-inline wrap">
-                        <div class="inline-input-group">
-                            <label>Source URL:</label>
-                            <input type="text" class="form-control compact" data-key="src" data-stylable="true" data-component-id="${comp.id}" data-field-key="image" data-field-label="Image Source" value="${comp.data.src || ''}">
+                <div class="img-fields-row">
+                    <div class="img-field-group">
+                        <label class="form-label">URL</label>
+                        <div class="img-url-inner">
+                            <input type="text" class="form-control compact" data-key="src" data-stylable="true" data-component-id="${comp.id}" data-field-key="image" data-field-label="Image Source" value="${comp.data.src || ''}" placeholder="https://example.com/image.jpg">
+                            <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
+                            <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp">
                         </div>
-                        <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
-                        <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp">
                     </div>
-                    <div class="form-group-inline wrap">
-                        <div class="inline-input-group">
-                            <label>Alt Text:</label>
-                            <input type="text" class="form-control compact" data-key="alt" data-stylable="true" data-component-id="${comp.id}" data-field-key="image" data-field-label="Image Alt Text" value="${comp.data.alt || ''}">
-                        </div>
-                        <div class="inline-input-group">
-                            <label>Link URL:</label>
-                            <input type="text" class="form-control compact" data-key="link" data-stylable="true" data-component-id="${comp.id}" data-field-key="image" data-field-label="Image Link" value="${comp.data.link || ''}">
-                        </div>
+                    <div class="img-field-group">
+                        <label class="form-label">Alt</label>
+                        <input type="text" class="form-control compact" data-key="alt" data-stylable="true" data-component-id="${comp.id}" data-field-key="image" data-field-label="Image Alt Text" value="${comp.data.alt || ''}" placeholder="Image description">
+                    </div>
+                    <div class="img-field-group">
+                        <label class="form-label">Link</label>
+                        <input type="text" class="form-control compact" data-key="link" data-stylable="true" data-component-id="${comp.id}" data-field-key="image" data-field-label="Image Link" value="${comp.data.link || ''}" placeholder="https://example.com">
                     </div>
                 </div>
             `;
         } else if (comp.type === 'button') {
             componentFormHtml = `
-                 <div class="form-group-inline wrap">
-                    <div class="inline-input-group"><label>Text:</label><input type="text" class="form-control compact" data-key="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="button" data-field-label="Button Text" value="${comp.data.text || ''}"></div>
-                    <div class="inline-input-group"><label>Link:</label><input type="text" class="form-control compact" data-key="link" data-stylable="true" data-component-id="${comp.id}" data-field-key="button" data-field-label="Button Link" value="${comp.data.link || ''}"></div>
+                <div class="component-row">
+                    <div class="component-row-item">
+                        <label class="form-label">Btn Text</label>
+                        <input type="text" class="form-control compact" data-key="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="button" data-field-label="Button Text" value="${comp.data.text || ''}" placeholder="e.g. Shop Now">
+                    </div>
+                    <div class="component-row-item">
+                        <label class="form-label">Btn Link</label>
+                        <input type="text" class="form-control compact" data-key="link" data-stylable="true" data-component-id="${comp.id}" data-field-key="button" data-field-label="Button Link" value="${comp.data.link || ''}" placeholder="https://example.com">
+                    </div>
                 </div>
             `;
         } else if (comp.type === 'divider') {
@@ -1127,20 +1166,34 @@ const renderComponents = () => {
                 </div>
 
                 <div class="single-offer-settings" style="display: ${isGrid ? 'none' : 'block'};">
-                  <div class="form-group-inline wrap">
-                      <div class="toggle-switch-group">
-                          <div class="toggle-switch compact">
-                              <input type="checkbox" id="image-enabled-${comp.id}" class="toggle-switch-checkbox" data-key="imageEnabled" ${comp.data.imageEnabled === 'true' ? 'checked' : ''}>
-                              <label for="image-enabled-${comp.id}" class="toggle-switch-label"></label>
+                  <div class="offer-img-row">
+                      <div class="offer-img-toggle">
+                          <label class="form-label">Image</label>
+                          <div class="toggle-switch-group">
+                              <div class="toggle-switch compact">
+                                  <input type="checkbox" id="image-enabled-${comp.id}" class="toggle-switch-checkbox" data-key="imageEnabled" ${comp.data.imageEnabled === 'true' ? 'checked' : ''}>
+                                  <label for="image-enabled-${comp.id}" class="toggle-switch-label"></label>
+                              </div>
+                              <label for="image-enabled-${comp.id}" class="toggle-switch-text-label">Show</label>
                           </div>
-                          <label for="image-enabled-${comp.id}" class="toggle-switch-text-label">Show Image</label>
                       </div>
-                      <div id="image-fields-container-${comp.id}" style="display: ${comp.data.imageEnabled === 'true' ? 'flex' : 'none'}; gap: var(--spacing-md); flex: 1; flex-wrap: wrap; align-items: center;">
-                          <div class="inline-input-group"><label>URL:</label><input type="text" class="form-control compact" data-key="imageSrc" value="${comp.data.imageSrc || ''}"></div>
-                          <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
-                          <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="1">
-                          <div class="inline-input-group"><label>Alt:</label><input type="text" class="form-control compact" data-key="imageAlt" value="${comp.data.imageAlt || ''}"></div>
-                          <div class="inline-input-group"><label>Link:</label><input type="text" class="form-control compact" data-key="imageLink" value="${comp.data.imageLink || ''}"></div>
+                      <div id="image-fields-container-${comp.id}" class="offer-img-fields" style="display: ${comp.data.imageEnabled === 'true' ? 'flex' : 'none'};">
+                          <div class="img-field-group">
+                              <label class="form-label">URL</label>
+                              <div class="img-url-inner">
+                                  <input type="text" class="form-control compact" data-key="imageSrc" value="${comp.data.imageSrc || ''}" placeholder="https://...">
+                                  <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
+                                  <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="1">
+                              </div>
+                          </div>
+                          <div class="img-field-group">
+                              <label class="form-label">Alt</label>
+                              <input type="text" class="form-control compact" data-key="imageAlt" value="${comp.data.imageAlt || ''}" placeholder="Description">
+                          </div>
+                          <div class="img-field-group">
+                              <label class="form-label">Link</label>
+                              <input type="text" class="form-control compact" data-key="imageLink" value="${comp.data.imageLink || ''}" placeholder="https://...">
+                          </div>
                       </div>
                   </div>
                 </div>
@@ -1158,6 +1211,18 @@ const renderComponents = () => {
             `;
         }
 
+        const componentTypeIcons: Record<string, string> = {
+            header: 'format_h1',
+            text_block: 'format_align_justify',
+            image: 'image',
+            button: 'radio_button_checked',
+            divider: 'horizontal_rule',
+            spacer: 'expand_all',
+            service_offer: 'handyman',
+            sales_offer: 'sell',
+        };
+        const typeIcon = componentTypeIcons[comp.type] || 'widgets';
+
         item.innerHTML = `
             <div class="card-header">
                 <span class="drag-handle" title="Drag to reorder">
@@ -1172,6 +1237,7 @@ const renderComponents = () => {
                 </span>
                 <div class="header-content-wrapper">
                     <span class="collapse-icon">▼</span>
+                    <span class="material-symbols-rounded component-type-icon">${typeIcon}</span>
                     <span id="component-title-${comp.id}" class="component-title text-xs font-bold uppercase" style="color: var(--label-secondary);">${index + 1} - ${dynamicTitle}</span>
                 </div>
                 <div class="flex items-center" style="gap: 3px;">
@@ -2081,25 +2147,18 @@ const getButtonStyleSectionHtml = (): string => {
     return `
         <div class="design-option-group" id="button-style-section" style="border-top: 1px solid var(--separator-secondary); margin-top: var(--spacing-lg); padding-top: var(--spacing-lg);">
           <h4>Button Styles</h4>
-          <div class="button-style-grid">
+          <div class="button-style-stack">
             <div class="button-style-option ${designSettings.buttonStyle === 'rounded' ? 'selected' : ''}" data-button="rounded">
-              <div class="button-preview" style="background: #007aff; border-radius: 8px;">Rounded Button</div>
-              <div class="text-xs" style="color: var(--label-secondary);">Modern rounded corners</div>
+              <div class="button-preview" style="background: #007aff; border-radius: 8px;">Rounded</div>
             </div>
-            
             <div class="button-style-option ${designSettings.buttonStyle === 'pill' ? 'selected' : ''}" data-button="pill">
-              <div class="button-preview" style="background: #007aff; border-radius: 20px;">Pill Button</div>
-              <div class="text-xs" style="color: var(--label-secondary);">Fully rounded pill shape</div>
+              <div class="button-preview" style="background: #007aff; border-radius: 20px;">Pill</div>
             </div>
-            
             <div class="button-style-option ${designSettings.buttonStyle === 'square' ? 'selected' : ''}" data-button="square">
-              <div class="button-preview" style="background: #007aff; border-radius: 0px;">Square Button</div>
-              <div class="text-xs" style="color: var(--label-secondary);">Classic square edges</div>
+              <div class="button-preview" style="background: #007aff; border-radius: 0px;">Square</div>
             </div>
-            
             <div class="button-style-option ${designSettings.buttonStyle === 'outlined' ? 'selected' : ''}" data-button="outlined">
-              <div class="button-preview" style="background: transparent; border: 2px solid #007aff; color: #007aff; border-radius: 8px;">Outlined Button</div>
-              <div class="text-xs" style="color: var(--label-secondary);">Outline style with border</div>
+              <div class="button-preview" style="background: transparent; border: 2px solid #007aff; color: #007aff; border-radius: 8px;">Outlined</div>
             </div>
           </div>
         </div>
