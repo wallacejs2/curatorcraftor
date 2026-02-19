@@ -1177,7 +1177,7 @@ const renderComponents = () => {
                               <label for="image-enabled-${comp.id}" class="toggle-switch-text-label">Show</label>
                           </div>
                       </div>
-                      <div id="image-fields-container-${comp.id}" class="offer-img-fields" style="display: ${comp.data.imageEnabled === 'true' ? 'flex' : 'none'};">
+                      <div id="image-fields-container-${comp.id}-1" class="offer-img-fields" style="display: ${comp.data.imageEnabled === 'true' ? 'flex' : 'none'};">
                           <div class="img-field-group">
                               <label class="form-label">URL</label>
                               <div class="img-url-inner">
