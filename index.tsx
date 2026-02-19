@@ -1157,12 +1157,12 @@ const renderComponents = () => {
             componentFormHtml = `
                 <div class="form-group-inline">
                     <label class="form-label-inline">Offer Layout</label>
-                    <select class="form-control compact" data-key="layout">
-                        <option value="left" ${comp.data.layout === 'left' ? 'selected' : ''}>Left (Image Left)</option>
-                        <option value="center" ${comp.data.layout === 'center' ? 'selected' : ''}>Center (Image Top)</option>
-                        <option value="right" ${comp.data.layout === 'right' ? 'selected' : ''}>Right (Image Right)</option>
-                        <option value="grid" ${comp.data.layout === 'grid' ? 'selected' : ''}>Grid (2 Column)</option>
-                    </select>
+                    <div class="toggle-group">
+                        <button type="button" class="toggle-btn layout-toggle ${comp.data.layout === 'left' ? 'active' : ''}" data-key="layout" data-value="left">L</button>
+                        <button type="button" class="toggle-btn layout-toggle ${comp.data.layout === 'center' || !comp.data.layout ? 'active' : ''}" data-key="layout" data-value="center">C</button>
+                        <button type="button" class="toggle-btn layout-toggle ${comp.data.layout === 'right' ? 'active' : ''}" data-key="layout" data-value="right">R</button>
+                        <button type="button" class="toggle-btn layout-toggle ${isGrid ? 'active' : ''}" data-key="layout" data-value="grid">G</button>
+                    </div>
                 </div>
 
                 <div class="single-offer-settings" style="display: ${isGrid ? 'none' : 'block'};">
