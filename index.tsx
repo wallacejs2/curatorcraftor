@@ -802,7 +802,7 @@ function generateServiceOfferFormHtml(comp: EmailComponent, suffix: string): str
         </div>
         <div id="service-image-fields-${comp.id}-${suffix || '1'}" style="display: ${displayStyle}; flex-direction: column; gap: var(--spacing-sm); margin-top: var(--spacing-sm);">
             <div class="form-group-inline wrap">
-                <div class="inline-input-group"><label>URL:</label><input type="text" class="form-control compact" data-key="imageUrl${suffix}" value="${d[`imageUrl${suffix}`] || ''}"></div>
+                <div class="inline-input-group"><label>URL:</label><input type="text" class="form-control compact" data-key="imageUrl${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferImage${suffix}" data-field-label="Image ${suffix || '1'}" value="${d[`imageUrl${suffix}`] || ''}"></div>
                 <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
                 <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="${suffix || '1'}">
             </div>
@@ -2496,11 +2496,12 @@ const renderStylingPanel = () => {
                         updateFn = (key: string, value: string) => updateSubOfferData(comp.id, activeField.subOfferIndex as number, key, value, offersKey);
                     }
                     const finalPrefix = prefix.replace(/2$/, '');
+                    const keySuffix = activeField.subOfferIndex !== undefined ? '' : suffix;
                      renderStandardStylingPanel(dataObject, {
-                        typography: { fontSize: `${finalPrefix}FontSize`, fontWeight: `${finalPrefix}FontWeight`, fontStyle: `${finalPrefix}FontStyle` },
-                        colors: [ { key: `${finalPrefix}Color`, label: 'Text Color'}, { key: `${finalPrefix}BgColor`, label: 'Background'} ],
-                        alignment: { textAlign: `${finalPrefix}TextAlign`},
-                        padding: [ { key: `${finalPrefix}PaddingTop`, label: 'Padding T'}, { key: `${finalPrefix}PaddingBottom`, label: 'Padding B'}, { key: `${finalPrefix}PaddingLeftRight`, label: 'Padding L/R' } ]
+                        typography: { fontSize: `${finalPrefix}FontSize${keySuffix}`, fontWeight: `${finalPrefix}FontWeight${keySuffix}`, fontStyle: `${finalPrefix}FontStyle${keySuffix}` },
+                        colors: [ { key: `${finalPrefix}Color${keySuffix}`, label: 'Text Color'}, { key: `${finalPrefix}BgColor${keySuffix}`, label: 'Background'} ],
+                        alignment: { textAlign: `${finalPrefix}TextAlign${keySuffix}`},
+                        padding: [ { key: `${finalPrefix}PaddingTop${keySuffix}`, label: 'Padding T'}, { key: `${finalPrefix}PaddingBottom${keySuffix}`, label: 'Padding B'}, { key: `${finalPrefix}PaddingLeftRight${keySuffix}`, label: 'Padding L/R' } ]
                     }, updateFn);
                 }
             }

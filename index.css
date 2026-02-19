@@ -63,7 +63,7 @@ body {
 }
 
 .main-content-area {
-  margin-left: 255px;
+  margin-left: 290px;
   padding: var(--spacing-2xl) 0;
 }
 
@@ -851,7 +851,7 @@ textarea.form-control.compact {
   top: 0;
   left: 0;
   bottom: 0;
-  width: 255px;
+  width: 290px;
   height: 100vh;
   background: var(--background-primary);
   border-right: 1px solid var(--separator-secondary);
@@ -1234,7 +1234,7 @@ textarea.form-control.compact {
   .design-sidebar {
     transform: translateX(-100%);
     transition: transform 0.3s ease;
-    width: 255px;
+    width: 290px;
     box-shadow: 0 0 20px rgba(0,0,0,0.1);
     z-index: 1001;
   }
