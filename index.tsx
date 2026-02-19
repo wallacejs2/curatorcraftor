@@ -9,7 +9,22 @@ interface DesignSettings {
   fontFamily: string;
   buttonStyle: string;
   offersLayout: 'list' | 'grid';
+  globalBodyColor: string;
+  globalLinkColor: string;
+  globalFontSize: string;
+  colorScheme?: string;
 }
+
+const COLOR_SCHEMES = [
+  { id: 'classic',  name: 'Classic',   bodyColor: '#1d1d1f', accentColor: '#007aff' },
+  { id: 'midnight', name: 'Midnight',  bodyColor: '#0a0a0a', accentColor: '#f5a623' },
+  { id: 'ocean',    name: 'Ocean',     bodyColor: '#1e3a5f', accentColor: '#00b4d8' },
+  { id: 'forest',   name: 'Forest',    bodyColor: '#1b4332', accentColor: '#52b788' },
+  { id: 'slate',    name: 'Slate',     bodyColor: '#2d3748', accentColor: '#667eea' },
+  { id: 'ember',    name: 'Ember',     bodyColor: '#2d2d2d', accentColor: '#e53e3e' },
+  { id: 'rosegold', name: 'Rose Gold', bodyColor: '#3d1515', accentColor: '#c9657e' },
+  { id: 'mono',     name: 'Mono',      bodyColor: '#000000', accentColor: '#666666' },
+] as const;
 
 interface SavedTemplate {
     id: string;
@@ -178,7 +193,11 @@ const MERGE_FIELDS: MergeFieldGroup[] = [
 let designSettings: DesignSettings = {
   fontFamily: "'Arial', sans-serif",
   buttonStyle: 'rounded',
-  offersLayout: 'list'
+  offersLayout: 'list',
+  globalBodyColor: '#1d1d1f',
+  globalLinkColor: '#007aff',
+  globalFontSize: '14',
+  colorScheme: 'classic'
 };
 
 let activeComponents: EmailComponent[] = [];
@@ -209,6 +228,7 @@ const closeComponentPicker = document.getElementById('close-component-picker');
 // Toggle buttons
 const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
 const mergeFieldsToggle = document.getElementById('merge-fields-toggle');
+const collapseAllBtn = document.getElementById('collapse-all-btn');
 const floatingMergeBtn = document.getElementById('floating-merge-btn');
 
 // View Toggles
@@ -295,6 +315,22 @@ const loadCollapsedStates = () => {
 const saveCollapsedStates = () => {
     localStorage.setItem(LS_COLLAPSED_KEY, JSON.stringify(collapsedStates));
 };
+
+const updateCollapseAllBtn = () => {
+    if (!collapseAllBtn) return;
+    const allCollapsed = activeComponents.length > 0 && activeComponents.every(c => collapsedStates[c.id]);
+    collapseAllBtn.textContent = allCollapsed ? 'Expand All' : 'Collapse All';
+};
+
+collapseAllBtn?.addEventListener('click', () => {
+    const allCollapsed = activeComponents.length > 0 && activeComponents.every(c => collapsedStates[c.id]);
+    activeComponents.forEach(c => {
+        collapsedStates[c.id] = !allCollapsed;
+    });
+    saveCollapsedStates();
+    renderComponents();
+    updateCollapseAllBtn();
+});
 
 const toggleComponent = (id: string) => {
     const componentEl = document.querySelector(`.component-item[data-id='${id}']`);
@@ -526,8 +562,8 @@ const addNewComponent = (type: string) => {
     if (type === 'header') {
         data = {
             text: 'Your Header Title',
-            fontSize: '18',
-            textColor: '#1d1d1f',
+            fontSize: designSettings.globalFontSize || '18',
+            textColor: designSettings.globalBodyColor || '#1d1d1f',
             backgroundColor: 'transparent',
             fontWeight: 'bold',
             fontStyle: 'normal',
@@ -540,8 +576,8 @@ const addNewComponent = (type: string) => {
     } else if (type === 'text_block') {
         data = {
             text: 'This is a sample text block. You can use merge fields here.',
-            fontSize: '12',
-            textColor: '#3c3c43',
+            fontSize: designSettings.globalFontSize || '12',
+            textColor: designSettings.globalBodyColor || '#3c3c43',
             backgroundColor: 'transparent',
             fontWeight: 'normal',
             fontStyle: 'normal',
@@ -569,7 +605,7 @@ const addNewComponent = (type: string) => {
             link: 'https://example.com',
             fontSize: '12',
             textColor: '#ffffff',
-            backgroundColor: '#007aff',
+            backgroundColor: designSettings.globalLinkColor || '#007aff',
             align: 'center',
             paddingTop: '9',
             paddingBottom: '9',
@@ -631,7 +667,8 @@ const addNewComponent = (type: string) => {
             couponFontSize2: '15', couponFontWeight2: 'bold', couponFontStyle2: 'normal', couponTextColor2: '#0066FF', couponBgColor2: '#F0F7FF', couponAlignment2: 'center', couponPaddingTop2: '6', couponPaddingBottom2: '6', couponPaddingLeftRight2: '12', couponShowBorder2: 'false', couponBorderStyle2: 'dashed', couponBorderColor2: '#0066FF',
             detailsFontSize2: '12', detailsFontWeight2: 'normal', detailsFontStyle2: 'normal', detailsTextColor2: '#333333', detailsBgColor2: 'transparent', detailsAlignment2: 'center', detailsLineHeight2: '1.5', detailsPaddingTop2: '9', detailsPaddingBottom2: '9', detailsPaddingLeftRight2: '0',
             disclaimerFontSize2: '9', disclaimerFontWeight2: 'normal', disclaimerFontStyle2: 'normal', disclaimerTextColor2: '#666666', disclaimerBgColor2: 'transparent', disclaimerAlignment2: 'center', disclaimerPaddingTop2: '6', disclaimerPaddingBottom2: '6', disclaimerPaddingLeftRight2: '0',
-            buttonFontSize2: '12', buttonAlignment2: 'center', buttonBgColor2: '#0066FF', buttonTextColor2: '#FFFFFF', buttonPaddingTop2: '9', buttonPaddingBottom2: '9', buttonPaddingLeftRight2: '15', buttonWidth2: 'auto'
+            buttonFontSize2: '12', buttonAlignment2: 'center', buttonBgColor2: '#0066FF', buttonTextColor2: '#FFFFFF', buttonPaddingTop2: '9', buttonPaddingBottom2: '9', buttonPaddingLeftRight2: '15', buttonWidth2: 'auto',
+            textLayout: 'center'
         };
     } else if (type === 'sales_offer') {
         data = {
@@ -688,7 +725,8 @@ const addNewComponent = (type: string) => {
             paddingTop: '15',
             paddingBottom: '15',
             paddingLeftRight: '15',
-            backgroundColor: '#ffffff'
+            backgroundColor: '#ffffff',
+            textLayout: 'center'
         };
     }
 
@@ -791,24 +829,34 @@ function generateServiceOfferFormHtml(comp: EmailComponent, suffix: string): str
     const displayStyle = isChecked ? 'flex' : 'none';
 
     return `
-        <div class="form-group-inline wrap">
-            <div class="toggle-switch-group">
-                <div class="toggle-switch compact">
-                    <input type="checkbox" id="show-image-${comp.id}-${suffix || '1'}" class="toggle-switch-checkbox" data-key="showImage${suffix}" ${isChecked ? 'checked' : ''}>
-                    <label for="show-image-${comp.id}-${suffix || '1'}" class="toggle-switch-label"></label>
+        <div class="offer-img-row">
+            <div class="offer-img-toggle">
+                <label class="form-label">Image</label>
+                <div class="toggle-switch-group">
+                    <div class="toggle-switch compact">
+                        <input type="checkbox" id="show-image-${comp.id}-${suffix || '1'}" class="toggle-switch-checkbox" data-key="showImage${suffix}" ${isChecked ? 'checked' : ''}>
+                        <label for="show-image-${comp.id}-${suffix || '1'}" class="toggle-switch-label"></label>
+                    </div>
+                    <label for="show-image-${comp.id}-${suffix || '1'}" class="toggle-switch-text-label">Show</label>
                 </div>
-                <label for="show-image-${comp.id}-${suffix || '1'}" class="toggle-switch-text-label">Show Image</label>
             </div>
-        </div>
-        <div id="service-image-fields-${comp.id}-${suffix || '1'}" style="display: ${displayStyle}; flex-direction: column; gap: var(--spacing-sm); margin-top: var(--spacing-sm);">
-            <div class="form-group-inline wrap">
-                <div class="inline-input-group"><label>URL:</label><input type="text" class="form-control compact" data-key="imageUrl${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferImage${suffix}" data-field-label="Image ${suffix || '1'}" value="${d[`imageUrl${suffix}`] || ''}"></div>
-                <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
-                <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="${suffix || '1'}">
-            </div>
-            <div class="form-group-inline wrap">
-                <div class="inline-input-group"><label>Alt:</label><input type="text" class="form-control compact" data-key="imageAlt${suffix}" value="${d[`imageAlt${suffix}`] || ''}"></div>
-                <div class="inline-input-group"><label>Link:</label><input type="text" class="form-control compact" data-key="imageLink${suffix}" value="${d[`imageLink${suffix}`] || ''}"></div>
+            <div id="service-image-fields-${comp.id}-${suffix || '1'}" class="offer-img-fields" style="display: ${displayStyle};">
+                <div class="img-field-group">
+                    <label class="form-label">URL</label>
+                    <div class="img-url-inner">
+                        <input type="text" class="form-control compact" data-key="imageUrl${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferImage${suffix}" data-field-label="Image ${suffix || '1'}" value="${d[`imageUrl${suffix}`] || ''}" placeholder="https://...">
+                        <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
+                        <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="${suffix || '1'}">
+                    </div>
+                </div>
+                <div class="img-field-group">
+                    <label class="form-label">Alt</label>
+                    <input type="text" class="form-control compact" data-key="imageAlt${suffix}" value="${d[`imageAlt${suffix}`] || ''}" placeholder="Description">
+                </div>
+                <div class="img-field-group">
+                    <label class="form-label">Link</label>
+                    <input type="text" class="form-control compact" data-key="imageLink${suffix}" value="${d[`imageLink${suffix}`] || ''}" placeholder="https://...">
+                </div>
             </div>
         </div>
         <div class="form-group">
@@ -827,9 +875,15 @@ function generateServiceOfferFormHtml(comp: EmailComponent, suffix: string): str
             <label class="form-label">Disclaimer</label>
             <textarea class="form-control" data-key="disclaimer${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferDisclaimer${suffix}" data-field-label="Disclaimer ${suffix || '1'}">${d[`disclaimer${suffix}`] || ''}</textarea>
         </div>
-        <div class="form-group-inline wrap">
-            <div class="inline-input-group"><label>Btn Text:</label><input type="text" class="form-control compact" data-key="buttonText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferButton${suffix}" data-field-label="Button ${suffix || '1'} Text" value="${d[`buttonText${suffix}`] || ''}"></div>
-            <div class="inline-input-group"><label>Btn Link:</label><input type="text" class="form-control compact" data-key="buttonLink${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferButton${suffix}" data-field-label="Button ${suffix || '1'} Link" value="${d[`buttonLink${suffix}`] || ''}"></div>
+        <div class="component-row">
+            <div class="component-row-item">
+                <label class="form-label">Btn Text</label>
+                <input type="text" class="form-control compact" data-key="buttonText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferButton${suffix}" data-field-label="Button ${suffix || '1'} Text" value="${d[`buttonText${suffix}`] || ''}" placeholder="e.g. Schedule Now">
+            </div>
+            <div class="component-row-item">
+                <label class="form-label">Btn Link</label>
+                <input type="text" class="form-control compact" data-key="buttonLink${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferButton${suffix}" data-field-label="Button ${suffix || '1'} Link" value="${d[`buttonLink${suffix}`] || ''}" placeholder="https://...">
+            </div>
         </div>
     `;
 }
@@ -844,32 +898,35 @@ function generateSubOffersHtml(comp: EmailComponent, suffix: string): string {
     }
 
     let html = offers.map((offer, index) => `
-        <div class="sub-offer-item card" style="margin-top: 8px;">
-             <div class="card-header" style="background-color: var(--background-secondary);">
-                <span class="component-title text-xs font-bold uppercase" style="color: var(--label-secondary);">Additional Offer ${index + 1}</span>
-                <button type="button" class="btn btn-ghost btn-sm remove-sub-offer" data-index="${index}" data-offer-index="${suffix || '1'}">
+        <div class="sub-offer-item" data-index="${index}">
+            <div class="sub-offer-header">
+                <span class="sub-offer-label">Additional Offer ${index + 1}</span>
+                <button type="button" class="btn btn-ghost btn-sm remove-sub-offer" data-index="${index}" data-offer-index="${suffix || '1'}" title="Remove">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                 </button>
             </div>
-            <div class="card-body">
+            <div class="sub-offer-body">
                 <div class="form-group">
                     <label class="form-label">Separator Text</label>
-                    <input type="text" class="form-control sub-offer-field" data-index="${index}" data-offer-index="${suffix || '1'}" data-field="separator" value="${offer.separator || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="separator${suffix}" data-sub-offer-index="${index}" data-field-label="Separator">
+                    <input type="text" class="form-control compact sub-offer-field" data-index="${index}" data-offer-index="${suffix || '1'}" data-field="separator" value="${offer.separator || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="separator${suffix}" data-sub-offer-index="${index}" data-field-label="Separator">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Offer Title</label>
-                    <input type="text" class="form-control sub-offer-field" data-index="${index}" data-offer-index="${suffix || '1'}" data-field="offer" value="${offer.offer || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="offer${suffix}" data-sub-offer-index="${index}" data-field-label="Offer Title">
+                    <input type="text" class="form-control compact sub-offer-field" data-index="${index}" data-offer-index="${suffix || '1'}" data-field="offer" value="${offer.offer || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="offer${suffix}" data-sub-offer-index="${index}" data-field-label="Offer Title">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Offer Details</label>
-                    <textarea class="form-control sub-offer-field" data-index="${index}" data-offer-index="${suffix || '1'}" data-field="details" data-stylable="true" data-component-id="${comp.id}" data-field-key="details${suffix}" data-sub-offer-index="${index}" data-field-label="Offer Details">${offer.details || ''}</textarea>
+                    <label class="form-label">Details</label>
+                    <textarea class="form-control compact sub-offer-field" data-index="${index}" data-offer-index="${suffix || '1'}" data-field="details" data-stylable="true" data-component-id="${comp.id}" data-field-key="details${suffix}" data-sub-offer-index="${index}" data-field-label="Offer Details">${offer.details || ''}</textarea>
                 </div>
             </div>
         </div>
     `).join('');
 
     html += `
-        <button type="button" class="btn btn-secondary add-sub-offer-btn" data-offer-index="${suffix || '1'}" style="margin-top: 8px;">+ Add Additional Offer</button>
+        <button type="button" class="add-sub-offer-btn" data-offer-index="${suffix || '1'}">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Add Additional Offer
+        </button>
     `;
 
     return html;
@@ -884,24 +941,34 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
         const isChecked = d[`imageEnabled${suffix}`] === 'true';
         const displayStyle = isChecked ? 'flex' : 'none';
         html += `
-            <div class="form-group-inline wrap">
-                <div class="toggle-switch-group">
-                    <div class="toggle-switch compact">
-                        <input type="checkbox" id="image-enabled-${comp.id}-${suffix || '1'}" class="toggle-switch-checkbox" data-key="imageEnabled${suffix}" ${isChecked ? 'checked' : ''}>
-                        <label for="image-enabled-${comp.id}-${suffix || '1'}" class="toggle-switch-label"></label>
+            <div class="offer-img-row">
+                <div class="offer-img-toggle">
+                    <label class="form-label">Image</label>
+                    <div class="toggle-switch-group">
+                        <div class="toggle-switch compact">
+                            <input type="checkbox" id="image-enabled-${comp.id}-${suffix || '1'}" class="toggle-switch-checkbox" data-key="imageEnabled${suffix}" ${isChecked ? 'checked' : ''}>
+                            <label for="image-enabled-${comp.id}-${suffix || '1'}" class="toggle-switch-label"></label>
+                        </div>
+                        <label for="image-enabled-${comp.id}-${suffix || '1'}" class="toggle-switch-text-label">Show</label>
                     </div>
-                    <label for="image-enabled-${comp.id}-${suffix || '1'}" class="toggle-switch-text-label">Show Image</label>
                 </div>
-            </div>
-            <div id="image-fields-container-${comp.id}-${suffix || '1'}" style="display: ${displayStyle}; flex-direction: column; gap: var(--spacing-sm); margin-top: var(--spacing-sm);">
-                <div class="form-group-inline wrap">
-                    <div class="inline-input-group"><label>URL:</label><input type="text" class="form-control compact" data-key="imageSrc${suffix}" value="${d[`imageSrc${suffix}`] || ''}"></div>
-                    <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
-                    <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="${suffix || '1'}">
-                </div>
-                <div class="form-group-inline wrap">
-                    <div class="inline-input-group"><label>Alt:</label><input type="text" class="form-control compact" data-key="imageAlt${suffix}" value="${d[`imageAlt${suffix}`] || ''}"></div>
-                    <div class="inline-input-group"><label>Link:</label><input type="text" class="form-control compact" data-key="imageLink${suffix}" value="${d[`imageLink${suffix}`] || ''}"></div>
+                <div id="image-fields-container-${comp.id}-${suffix || '1'}" class="offer-img-fields" style="display: ${displayStyle};">
+                    <div class="img-field-group">
+                        <label class="form-label">URL</label>
+                        <div class="img-url-inner">
+                            <input type="text" class="form-control compact" data-key="imageSrc${suffix}" value="${d[`imageSrc${suffix}`] || ''}" placeholder="https://...">
+                            <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
+                            <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="${suffix || '1'}">
+                        </div>
+                    </div>
+                    <div class="img-field-group">
+                        <label class="form-label">Alt</label>
+                        <input type="text" class="form-control compact" data-key="imageAlt${suffix}" value="${d[`imageAlt${suffix}`] || ''}" placeholder="Description">
+                    </div>
+                    <div class="img-field-group">
+                        <label class="form-label">Link</label>
+                        <input type="text" class="form-control compact" data-key="imageLink${suffix}" value="${d[`imageLink${suffix}`] || ''}" placeholder="https://...">
+                    </div>
                 </div>
             </div>
         `;
@@ -947,9 +1014,15 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
             <label class="form-label">Disclaimer</label>
             <textarea class="form-control" data-key="disclaimerText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="disclaimer${suffix}" data-field-label="Disclaimer">${d[`disclaimerText${suffix}`] || ''}</textarea>
         </div>
-        <div class="form-group-inline wrap">
-            <div class="inline-input-group"><label>Button Text</label><input type="text" class="form-control compact" data-key="btnText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="salesOfferButton${suffix}" data-field-label="Button Text" value="${d[`btnText${suffix}`] || ''}"></div>
-            <div class="inline-input-group"><label>Button Link</label><input type="text" class="form-control compact" data-key="btnLink${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="salesOfferButton${suffix}" data-field-label="Button Link" value="${d[`btnLink${suffix}`] || ''}"></div>
+        <div class="component-row">
+            <div class="component-row-item">
+                <label class="form-label">Btn Text</label>
+                <input type="text" class="form-control compact" data-key="btnText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="salesOfferButton${suffix}" data-field-label="Button Text" value="${d[`btnText${suffix}`] || ''}" placeholder="e.g. View Offer">
+            </div>
+            <div class="component-row-item">
+                <label class="form-label">Btn Link</label>
+                <input type="text" class="form-control compact" data-key="btnLink${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="salesOfferButton${suffix}" data-field-label="Button Link" value="${d[`btnLink${suffix}`] || ''}" placeholder="https://...">
+            </div>
         </div>
     `;
 
@@ -1036,32 +1109,36 @@ const renderComponents = () => {
             `;
         } else if (comp.type === 'image') {
             componentFormHtml = `
-                 <div class="image-component-form">
-                    <div class="form-group-inline wrap">
-                        <div class="inline-input-group">
-                            <label>Source URL:</label>
-                            <input type="text" class="form-control compact" data-key="src" data-stylable="true" data-component-id="${comp.id}" data-field-key="image" data-field-label="Image Source" value="${comp.data.src || ''}">
+                <div class="img-fields-row">
+                    <div class="img-field-group">
+                        <label class="form-label">URL</label>
+                        <div class="img-url-inner">
+                            <input type="text" class="form-control compact" data-key="src" data-stylable="true" data-component-id="${comp.id}" data-field-key="image" data-field-label="Image Source" value="${comp.data.src || ''}" placeholder="https://example.com/image.jpg">
+                            <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
+                            <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp">
                         </div>
-                        <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
-                        <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp">
                     </div>
-                    <div class="form-group-inline wrap">
-                        <div class="inline-input-group">
-                            <label>Alt Text:</label>
-                            <input type="text" class="form-control compact" data-key="alt" data-stylable="true" data-component-id="${comp.id}" data-field-key="image" data-field-label="Image Alt Text" value="${comp.data.alt || ''}">
-                        </div>
-                        <div class="inline-input-group">
-                            <label>Link URL:</label>
-                            <input type="text" class="form-control compact" data-key="link" data-stylable="true" data-component-id="${comp.id}" data-field-key="image" data-field-label="Image Link" value="${comp.data.link || ''}">
-                        </div>
+                    <div class="img-field-group">
+                        <label class="form-label">Alt</label>
+                        <input type="text" class="form-control compact" data-key="alt" data-stylable="true" data-component-id="${comp.id}" data-field-key="image" data-field-label="Image Alt Text" value="${comp.data.alt || ''}" placeholder="Image description">
+                    </div>
+                    <div class="img-field-group">
+                        <label class="form-label">Link</label>
+                        <input type="text" class="form-control compact" data-key="link" data-stylable="true" data-component-id="${comp.id}" data-field-key="image" data-field-label="Image Link" value="${comp.data.link || ''}" placeholder="https://example.com">
                     </div>
                 </div>
             `;
         } else if (comp.type === 'button') {
             componentFormHtml = `
-                 <div class="form-group-inline wrap">
-                    <div class="inline-input-group"><label>Text:</label><input type="text" class="form-control compact" data-key="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="button" data-field-label="Button Text" value="${comp.data.text || ''}"></div>
-                    <div class="inline-input-group"><label>Link:</label><input type="text" class="form-control compact" data-key="link" data-stylable="true" data-component-id="${comp.id}" data-field-key="button" data-field-label="Button Link" value="${comp.data.link || ''}"></div>
+                <div class="component-row">
+                    <div class="component-row-item">
+                        <label class="form-label">Btn Text</label>
+                        <input type="text" class="form-control compact" data-key="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="button" data-field-label="Button Text" value="${comp.data.text || ''}" placeholder="e.g. Shop Now">
+                    </div>
+                    <div class="component-row-item">
+                        <label class="form-label">Btn Link</label>
+                        <input type="text" class="form-control compact" data-key="link" data-stylable="true" data-component-id="${comp.id}" data-field-key="button" data-field-label="Button Link" value="${comp.data.link || ''}" placeholder="https://example.com">
+                    </div>
                 </div>
             `;
         } else if (comp.type === 'divider') {
@@ -1083,13 +1160,6 @@ const renderComponents = () => {
         } else if (comp.type === 'service_offer') {
             const isGrid = comp.data.layout === 'grid';
             componentFormHtml = `
-                <div class="form-group-inline">
-                    <label class="form-label-inline">Layout</label>
-                    <div class="toggle-group">
-                        <button type="button" class="toggle-btn layout-toggle ${!isGrid ? 'active' : ''}" data-key="layout" data-value="single">Single</button>
-                        <button type="button" class="toggle-btn layout-toggle ${isGrid ? 'active' : ''}" data-key="layout" data-value="grid">Grid</button>
-                    </div>
-                </div>
                 <div class="offer-columns-container" data-layout="${comp.data.layout || 'single'}">
                     <div class="offer-column">
                          <h4 class="offer-column-title">Offer 1</h4>
@@ -1116,35 +1186,41 @@ const renderComponents = () => {
             }
             const isGrid = comp.data.layout === 'grid';
             componentFormHtml = `
-                <div class="form-group-inline">
-                    <label class="form-label-inline">Offer Layout</label>
-                    <select class="form-control compact" data-key="layout">
-                        <option value="left" ${comp.data.layout === 'left' ? 'selected' : ''}>Left (Image Left)</option>
-                        <option value="center" ${comp.data.layout === 'center' ? 'selected' : ''}>Center (Image Top)</option>
-                        <option value="right" ${comp.data.layout === 'right' ? 'selected' : ''}>Right (Image Right)</option>
-                        <option value="grid" ${comp.data.layout === 'grid' ? 'selected' : ''}>Grid (2 Column)</option>
-                    </select>
-                </div>
-
-                <div class="single-offer-settings" style="display: ${isGrid ? 'none' : 'block'};">
-                  <div class="form-group-inline wrap">
-                      <div class="toggle-switch-group">
-                          <div class="toggle-switch compact">
-                              <input type="checkbox" id="image-enabled-${comp.id}" class="toggle-switch-checkbox" data-key="imageEnabled" ${comp.data.imageEnabled === 'true' ? 'checked' : ''}>
-                              <label for="image-enabled-${comp.id}" class="toggle-switch-label"></label>
+                ${!isGrid ? `
+                <div class="single-offer-settings">
+                  <div class="offer-img-row">
+                      <div class="offer-img-toggle">
+                          <label class="form-label">Image</label>
+                          <div class="toggle-switch-group">
+                              <div class="toggle-switch compact">
+                                  <input type="checkbox" id="image-enabled-${comp.id}" class="toggle-switch-checkbox" data-key="imageEnabled" ${comp.data.imageEnabled === 'true' ? 'checked' : ''}>
+                                  <label for="image-enabled-${comp.id}" class="toggle-switch-label"></label>
+                              </div>
+                              <label for="image-enabled-${comp.id}" class="toggle-switch-text-label">Show</label>
                           </div>
-                          <label for="image-enabled-${comp.id}" class="toggle-switch-text-label">Show Image</label>
                       </div>
-                      <div id="image-fields-container-${comp.id}" style="display: ${comp.data.imageEnabled === 'true' ? 'flex' : 'none'}; gap: var(--spacing-md); flex: 1; flex-wrap: wrap; align-items: center;">
-                          <div class="inline-input-group"><label>URL:</label><input type="text" class="form-control compact" data-key="imageSrc" value="${comp.data.imageSrc || ''}"></div>
-                          <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
-                          <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="1">
-                          <div class="inline-input-group"><label>Alt:</label><input type="text" class="form-control compact" data-key="imageAlt" value="${comp.data.imageAlt || ''}"></div>
-                          <div class="inline-input-group"><label>Link:</label><input type="text" class="form-control compact" data-key="imageLink" value="${comp.data.imageLink || ''}"></div>
+                      <div id="image-fields-container-${comp.id}-1" class="offer-img-fields" style="display: ${comp.data.imageEnabled === 'true' ? 'flex' : 'none'};">
+                          <div class="img-field-group">
+                              <label class="form-label">URL</label>
+                              <div class="img-url-inner">
+                                  <input type="text" class="form-control compact" data-key="imageSrc" value="${comp.data.imageSrc || ''}" placeholder="https://...">
+                                  <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
+                                  <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="1">
+                              </div>
+                          </div>
+                          <div class="img-field-group">
+                              <label class="form-label">Alt</label>
+                              <input type="text" class="form-control compact" data-key="imageAlt" value="${comp.data.imageAlt || ''}" placeholder="Description">
+                          </div>
+                          <div class="img-field-group">
+                              <label class="form-label">Link</label>
+                              <input type="text" class="form-control compact" data-key="imageLink" value="${comp.data.imageLink || ''}" placeholder="https://...">
+                          </div>
                       </div>
                   </div>
                 </div>
-                
+                ` : ''}
+
                 <div class="offer-columns-container" data-layout="${comp.data.layout || 'center'}">
                     <div class="offer-column">
                         ${!isGrid ? '' : '<h4 class="offer-column-title">Offer 1</h4>'}
@@ -1155,6 +1231,55 @@ const renderComponents = () => {
                         ${generateSalesOfferFormHtml(comp, '2')}
                     </div>
                 </div>
+            `;
+        }
+
+        const componentTypeIcons: Record<string, string> = {
+            header: 'format_h1',
+            text_block: 'format_align_justify',
+            image: 'image',
+            button: 'radio_button_checked',
+            divider: 'horizontal_rule',
+            spacer: 'expand_all',
+            service_offer: 'handyman',
+            sales_offer: 'sell',
+        };
+        const typeIcon = componentTypeIcons[comp.type] || 'widgets';
+
+        const currentTextLayout = comp.data.textLayout || 'center';
+        let offerHeaderControls = '';
+        if (comp.type === 'sales_offer') {
+            const isSLeft = comp.data.layout === 'left';
+            const isSCenter = comp.data.layout === 'center' || !comp.data.layout;
+            const isSRight = comp.data.layout === 'right';
+            const isSGrid = comp.data.layout === 'grid';
+            offerHeaderControls = `
+                <div class="toggle-group header-toggle-group">
+                    <button type="button" class="toggle-btn layout-toggle ${isSLeft ? 'active' : ''}" data-key="layout" data-value="left" title="Image Left"><span class="material-symbols-rounded">splitscreen_left</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSCenter ? 'active' : ''}" data-key="layout" data-value="center" title="Center"><span class="material-symbols-rounded">splitscreen_top</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSRight ? 'active' : ''}" data-key="layout" data-value="right" title="Image Right"><span class="material-symbols-rounded">splitscreen_right</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSGrid ? 'active' : ''}" data-key="layout" data-value="grid" title="Grid"><span class="material-symbols-rounded">splitscreen_add</span></button>
+                </div>
+                <span class="header-toggle-divider"></span>
+            `;
+        } else if (comp.type === 'service_offer') {
+            const isSvcGrid = comp.data.layout === 'grid';
+            offerHeaderControls = `
+                <div class="toggle-group header-toggle-group">
+                    <button type="button" class="toggle-btn layout-toggle ${!isSvcGrid ? 'active' : ''}" data-key="layout" data-value="single" title="Single Column">1</button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSvcGrid ? 'active' : ''}" data-key="layout" data-value="grid" title="Two Columns">2×2</button>
+                </div>
+                <span class="header-toggle-divider"></span>
+            `;
+        }
+        if (comp.type === 'sales_offer' || comp.type === 'service_offer') {
+            offerHeaderControls += `
+                <div class="toggle-group header-toggle-group">
+                    <button type="button" class="toggle-btn text-layout-toggle ${currentTextLayout === 'left' ? 'active' : ''}" data-key="textLayout" data-value="left" title="Align Left"><span class="material-symbols-rounded">format_align_left</span></button>
+                    <button type="button" class="toggle-btn text-layout-toggle ${currentTextLayout === 'center' ? 'active' : ''}" data-key="textLayout" data-value="center" title="Align Center"><span class="material-symbols-rounded">format_align_center</span></button>
+                    <button type="button" class="toggle-btn text-layout-toggle ${currentTextLayout === 'right' ? 'active' : ''}" data-key="textLayout" data-value="right" title="Align Right"><span class="material-symbols-rounded">format_align_right</span></button>
+                </div>
+                <span class="header-toggle-divider"></span>
             `;
         }
 
@@ -1172,9 +1297,11 @@ const renderComponents = () => {
                 </span>
                 <div class="header-content-wrapper">
                     <span class="collapse-icon">▼</span>
+                    <span class="material-symbols-rounded component-type-icon">${typeIcon}</span>
                     <span id="component-title-${comp.id}" class="component-title text-xs font-bold uppercase" style="color: var(--label-secondary);">${index + 1} - ${dynamicTitle}</span>
                 </div>
                 <div class="flex items-center" style="gap: 3px;">
+                    ${offerHeaderControls}
                     <button type="button" class="btn btn-ghost btn-sm duplicate-comp-btn" title="Duplicate section">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                     </button>
@@ -1301,7 +1428,7 @@ const renderComponents = () => {
             });
         }
 
-        item.querySelectorAll('input, textarea, select, button.layout-toggle').forEach(input => {
+        item.querySelectorAll('input, textarea, select, button.layout-toggle, button.text-layout-toggle').forEach(input => {
             if (!input.classList.contains('sub-offer-field')) {
                 const eventType = (input.tagName === 'BUTTON' || (input as HTMLInputElement).type === 'checkbox') ? 'click' : 'input';
                 input.addEventListener(eventType, (e) => {
@@ -1345,6 +1472,43 @@ const renderComponents = () => {
                             } catch (error) {
                                 console.error("Failed to update sub-offer alignments:", error);
                             }
+                            renderStylingPanel();
+                        }
+
+                        if (key === 'textLayout') {
+                            // Update active state of text-layout buttons without full re-render
+                            item.querySelectorAll('.text-layout-toggle').forEach(btn => {
+                                btn.classList.toggle('active', btn.getAttribute('data-value') === value);
+                            });
+                        }
+
+                        if (comp.type === 'sales_offer' && key === 'textLayout') {
+                            ['', '2'].forEach(sfx => {
+                                ['vehicleTextAlign', 'mainOfferTextAlign', 'detailsTextAlign',
+                                 'stockVinTextAlign', 'mileageTextAlign', 'disclaimerTextAlign'].forEach(field => {
+                                    updateComponentData(comp.id, `${field}${sfx}`, value);
+                                });
+                                updateComponentData(comp.id, `btnAlign${sfx}`, value);
+                                try {
+                                    const offerKey = `additionalOffers${sfx}`;
+                                    const offers = JSON.parse(comp.data[offerKey] || '[]');
+                                    updateComponentData(comp.id, offerKey, JSON.stringify(
+                                        offers.map((o: any) => ({ ...o,
+                                            separatorTextAlign: value, offerTextAlign: value,
+                                            detailsTextAlign: value, disclaimerTextAlign: value }))
+                                    ));
+                                } catch {}
+                            });
+                            renderStylingPanel();
+                        }
+
+                        if (comp.type === 'service_offer' && key === 'textLayout') {
+                            ['', '2'].forEach(sfx => {
+                                ['titleAlignment', 'couponAlignment', 'detailsAlignment',
+                                 'disclaimerAlignment', 'buttonAlignment'].forEach(field => {
+                                    updateComponentData(comp.id, `${field}${sfx}`, value);
+                                });
+                            });
                             renderStylingPanel();
                         }
 
@@ -1394,61 +1558,81 @@ const renderComponents = () => {
     });
 
     initializeDragAndDrop();
+    updateCollapseAllBtn();
 };
 
 function initializeDragAndDrop() {
     const components = componentsContainer.querySelectorAll('.component-item');
 
+    const dropIndicator = document.createElement('div');
+    dropIndicator.className = 'drop-indicator';
+
+    let dropBeforeId: string | null = null; // null → append to end
+
+    const removeIndicator = () => {
+        dropIndicator.parentNode?.removeChild(dropIndicator);
+    };
+
     components.forEach(comp => {
-        comp.addEventListener('dragstart', (e) => {
+        comp.addEventListener('dragstart', () => {
             draggedComponentId = comp.getAttribute('data-id');
-            setTimeout(() => {
-                comp.classList.add('dragging');
-            }, 0);
+            setTimeout(() => comp.classList.add('dragging'), 0);
         });
 
         comp.addEventListener('dragend', () => {
             comp.classList.remove('dragging');
             draggedComponentId = null;
-            document.querySelectorAll('.component-item.drag-over').forEach(c => c.classList.remove('drag-over'));
+            dropBeforeId = null;
+            removeIndicator();
         });
 
         comp.addEventListener('dragover', (e) => {
             e.preventDefault();
-            const targetComponent = e.currentTarget as HTMLElement;
-            if (targetComponent.getAttribute('data-id') !== draggedComponentId) {
-                if (!targetComponent.classList.contains('drag-over')) {
-                    document.querySelector('.drag-over')?.classList.remove('drag-over');
-                    targetComponent.classList.add('drag-over');
-                }
-            }
-        });
+            const target = e.currentTarget as HTMLElement;
+            if (target.getAttribute('data-id') === draggedComponentId) return;
 
-        comp.addEventListener('dragleave', (e) => {
-            (e.currentTarget as HTMLElement).classList.remove('drag-over');
+            const rect = target.getBoundingClientRect();
+            if ((e as DragEvent).clientY < rect.top + rect.height / 2) {
+                dropBeforeId = target.getAttribute('data-id');
+                componentsContainer.insertBefore(dropIndicator, target);
+            } else {
+                const next = target.nextElementSibling;
+                dropBeforeId = (next?.classList.contains('component-item'))
+                    ? next.getAttribute('data-id')
+                    : null;
+                componentsContainer.insertBefore(dropIndicator, next ?? null);
+            }
         });
 
         comp.addEventListener('drop', (e) => {
             e.preventDefault();
-            const droppedOnComponent = e.currentTarget as HTMLElement;
-            droppedOnComponent.classList.remove('drag-over');
+            removeIndicator();
+            if (!draggedComponentId) return;
 
-            const droppedOnId = droppedOnComponent.getAttribute('data-id');
+            const draggedIndex = activeComponents.findIndex(c => c.id === draggedComponentId);
+            if (draggedIndex === -1) return;
 
-            if (draggedComponentId && draggedComponentId !== droppedOnId) {
-                const draggedIndex = activeComponents.findIndex(c => c.id === draggedComponentId);
-                const droppedOnIndex = activeComponents.findIndex(c => c.id === droppedOnId);
-
-                if (draggedIndex > -1 && droppedOnIndex > -1) {
-                    const [draggedItem] = activeComponents.splice(draggedIndex, 1);
-                    activeComponents.splice(droppedOnIndex, 0, draggedItem);
-                    
-                    saveToHistory();
-                    saveDraft();
-                    renderComponents();
-                }
+            const [draggedItem] = activeComponents.splice(draggedIndex, 1);
+            if (dropBeforeId === null) {
+                activeComponents.push(draggedItem);
+            } else {
+                const targetIndex = activeComponents.findIndex(c => c.id === dropBeforeId);
+                activeComponents.splice(targetIndex > -1 ? targetIndex : activeComponents.length, 0, draggedItem);
             }
+
+            saveToHistory();
+            saveDraft();
+            renderComponents();
+            showToast('Component moved', 'success');
         });
+    });
+
+    // Hide indicator if cursor leaves the container entirely
+    componentsContainer.addEventListener('dragleave', (e) => {
+        if (!componentsContainer.contains(e.relatedTarget as Node)) {
+            removeIndicator();
+            dropBeforeId = null;
+        }
     });
 }
 
@@ -1631,11 +1815,10 @@ function generateEmailHtml(): string {
                     <td align="center" style="${containerPadding}">
                         <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                             <tr>
-                                <td class="mobile-stack" width="280" valign="top" style="width: 280px;">
+                                <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-right: 8px; vertical-align: top;">
                                     ${offer1Html}
                                 </td>
-                                <td class="mobile-stack-spacer" width="20" style="width: 20px; font-size: 1px; line-height: 1px;">&nbsp;</td>
-                                <td class="mobile-stack" width="280" valign="top" style="width: 280px;">
+                                <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-left: 8px; vertical-align: top;">
                                     ${offer2Html}
                                 </td>
                             </tr>
@@ -1737,13 +1920,12 @@ function generateEmailHtml(): string {
                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                     <tbody>
                         <tr>
-                            <td class="mobile-stack" width="280" valign="top" style="width: 280px;">
+                            <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-right: 8px; vertical-align: top;">
                                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px;"><tr><td style="padding: 15px;">
                                     ${offer1Content}
                                 </td></tr></table>
                             </td>
-                            <td class="mobile-stack-spacer" width="20" style="width: 20px; font-size: 1px; line-height: 1px;">&nbsp;</td>
-                            <td class="mobile-stack" width="280" valign="top" style="width: 280px;">
+                            <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-left: 8px; vertical-align: top;">
                                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px;"><tr><td style="padding: 15px;">
                                     ${offer2Content}
                                 </td></tr></table>
@@ -2019,9 +2201,10 @@ const loadTemplate = (id: string) => {
     const templates = getSavedTemplates();
     const template = templates.find(t => t.id === id);
     if (template) {
-        designSettings = { ...template.designSettings };
+        designSettings = { ...designSettings, ...template.designSettings };
         activeComponents = [...template.components];
         if (fontSelect) fontSelect.value = designSettings.fontFamily;
+        syncGlobalTextStylesUI();
         saveToHistory();
         renderComponents();
         saveDraft();
@@ -2065,7 +2248,7 @@ const loadDraft = () => {
         if (data) {
             const draft = JSON.parse(data);
             if (draft && draft.designSettings && Array.isArray(draft.activeComponents)) {
-                designSettings = draft.designSettings;
+                designSettings = { ...designSettings, ...draft.designSettings };
                 activeComponents = draft.activeComponents;
                 if (fontSelect) fontSelect.value = designSettings.fontFamily;
                 renderComponents();
@@ -2081,25 +2264,18 @@ const getButtonStyleSectionHtml = (): string => {
     return `
         <div class="design-option-group" id="button-style-section" style="border-top: 1px solid var(--separator-secondary); margin-top: var(--spacing-lg); padding-top: var(--spacing-lg);">
           <h4>Button Styles</h4>
-          <div class="button-style-grid">
+          <div class="button-style-stack">
             <div class="button-style-option ${designSettings.buttonStyle === 'rounded' ? 'selected' : ''}" data-button="rounded">
-              <div class="button-preview" style="background: #007aff; border-radius: 8px;">Rounded Button</div>
-              <div class="text-xs" style="color: var(--label-secondary);">Modern rounded corners</div>
+              <div class="button-preview" style="background: #007aff; border-radius: 8px;">Rounded</div>
             </div>
-            
             <div class="button-style-option ${designSettings.buttonStyle === 'pill' ? 'selected' : ''}" data-button="pill">
-              <div class="button-preview" style="background: #007aff; border-radius: 20px;">Pill Button</div>
-              <div class="text-xs" style="color: var(--label-secondary);">Fully rounded pill shape</div>
+              <div class="button-preview" style="background: #007aff; border-radius: 20px;">Pill</div>
             </div>
-            
             <div class="button-style-option ${designSettings.buttonStyle === 'square' ? 'selected' : ''}" data-button="square">
-              <div class="button-preview" style="background: #007aff; border-radius: 0px;">Square Button</div>
-              <div class="text-xs" style="color: var(--label-secondary);">Classic square edges</div>
+              <div class="button-preview" style="background: #007aff; border-radius: 0px;">Square</div>
             </div>
-            
             <div class="button-style-option ${designSettings.buttonStyle === 'outlined' ? 'selected' : ''}" data-button="outlined">
-              <div class="button-preview" style="background: transparent; border: 2px solid #007aff; color: #007aff; border-radius: 8px;">Outlined Button</div>
-              <div class="text-xs" style="color: var(--label-secondary);">Outline style with border</div>
+              <div class="button-preview" style="background: transparent; border: 2px solid #007aff; color: #007aff; border-radius: 8px;">Outlined</div>
             </div>
           </div>
         </div>
@@ -2857,11 +3033,170 @@ const initKeyboardShortcuts = () => {
 
 // --- END: Keyboard Shortcut System Implementation ---
 
+const blendWithWhite = (hex: string, alpha: number): string => {
+    const r = parseInt(hex.slice(1,3), 16);
+    const g = parseInt(hex.slice(3,5), 16);
+    const b = parseInt(hex.slice(5,7), 16);
+    const mix = (c: number) => Math.round(c * alpha + 255 * (1 - alpha)).toString(16).padStart(2,'0');
+    return `#${mix(r)}${mix(g)}${mix(b)}`;
+};
+
+const propagateBodyColor = (color: string) => {
+    designSettings.globalBodyColor = color;
+    const secondary = blendWithWhite(color, 0.55);
+    const tertiary  = blendWithWhite(color, 0.40);
+    activeComponents.forEach(comp => {
+        if (['header', 'text_block'].includes(comp.type)) {
+            comp.data.textColor = color;
+        }
+        if (comp.type === 'sales_offer') {
+            ['', '2'].forEach(sfx => {
+                comp.data[`vehicleColor${sfx}`]    = color;
+                comp.data[`detailsColor${sfx}`]    = secondary;
+                comp.data[`stockVinColor${sfx}`]   = tertiary;
+                comp.data[`mileageColor${sfx}`]    = tertiary;
+                comp.data[`disclaimerColor${sfx}`] = tertiary;
+                const key = `additionalOffers${sfx}`;
+                try {
+                    const offers = JSON.parse(comp.data[key] || '[]');
+                    comp.data[key] = JSON.stringify(offers.map((o: any) => ({
+                        ...o,
+                        separatorColor:  color,
+                        offerColor:      color,
+                        detailsColor:    secondary,
+                        disclaimerColor: tertiary,
+                    })));
+                } catch {}
+            });
+        }
+        if (comp.type === 'service_offer') {
+            ['', '2'].forEach(sfx => {
+                comp.data[`titleTextColor${sfx}`]      = color;
+                comp.data[`detailsTextColor${sfx}`]    = secondary;
+                comp.data[`disclaimerTextColor${sfx}`] = tertiary;
+            });
+        }
+    });
+    saveDraft();
+    saveToHistory();
+    triggerPreviewUpdate();
+};
+
+const propagateLinkColor = (color: string) => {
+    designSettings.globalLinkColor = color;
+    activeComponents.forEach(comp => {
+        if (comp.type === 'button') comp.data.backgroundColor = color;
+        if (comp.type === 'service_offer') {
+            comp.data.buttonBgColor = color; comp.data.buttonBgColor2 = color;
+            comp.data.couponTextColor = color; comp.data.couponTextColor2 = color;
+        }
+        if (comp.type === 'sales_offer') {
+            comp.data.btnColor = color; comp.data.btnColor2 = color;
+            comp.data.mainOfferColor = color; comp.data.mainOfferColor2 = color;
+        }
+    });
+    saveDraft();
+    saveToHistory();
+    triggerPreviewUpdate();
+};
+
+const syncGlobalTextStylesUI = () => {
+    const grid = document.getElementById('color-scheme-grid');
+    if (!grid) return;
+    grid.querySelectorAll('.color-scheme-card').forEach(card => {
+        const el = card as HTMLElement;
+        const match = el.dataset.bodyColor === designSettings.globalBodyColor &&
+                      el.dataset.accentColor === designSettings.globalLinkColor;
+        el.classList.toggle('selected', match);
+    });
+};
+
+function initGlobalTextStyles() {
+    const grid = document.getElementById('color-scheme-grid');
+    if (!grid) return;
+
+    // Render preset scheme cards (no name label)
+    grid.innerHTML = COLOR_SCHEMES.map(scheme => {
+        const isActive = designSettings.globalBodyColor === scheme.bodyColor &&
+                         designSettings.globalLinkColor === scheme.accentColor;
+        return `
+            <div class="color-scheme-card${isActive ? ' selected' : ''}"
+                 data-scheme-id="${scheme.id}"
+                 data-body-color="${scheme.bodyColor}"
+                 data-accent-color="${scheme.accentColor}"
+                 title="${scheme.name}">
+              <div class="scheme-swatches">
+                <div class="scheme-swatch" style="background:${scheme.bodyColor};"></div>
+                <div class="scheme-swatch" style="background:${scheme.accentColor};"></div>
+              </div>
+            </div>`;
+    }).join('');
+
+    // Append custom scheme card with live color pickers
+    const isCustom = designSettings.colorScheme === 'custom';
+    grid.innerHTML += `
+        <div class="color-scheme-card${isCustom ? ' selected' : ''}" data-scheme-id="custom" title="Custom">
+          <div class="scheme-swatches">
+            <div class="color-input-container mini" onclick="this.querySelector('input[type=color]').click()">
+              <div class="color-swatch-display" style="background-color:${designSettings.globalBodyColor};"></div>
+              <input type="color" class="color-input-hidden" id="custom-body-color" value="${designSettings.globalBodyColor}">
+            </div>
+            <div class="color-input-container mini" onclick="this.querySelector('input[type=color]').click()">
+              <div class="color-swatch-display" style="background-color:${designSettings.globalLinkColor};"></div>
+              <input type="color" class="color-input-hidden" id="custom-accent-color" value="${designSettings.globalLinkColor}">
+            </div>
+          </div>
+        </div>`;
+
+    // Click handler — skip propagation for custom card (color inputs handle it)
+    grid.addEventListener('click', (e) => {
+        const card = (e.target as Element).closest('.color-scheme-card') as HTMLElement | null;
+        if (!card) return;
+        const schemeId = card.dataset.schemeId!;
+
+        if (schemeId === 'custom') {
+            designSettings.colorScheme = 'custom';
+            grid.querySelectorAll('.color-scheme-card').forEach(c => c.classList.toggle('selected', c === card));
+            return;
+        }
+
+        const bodyColor   = card.dataset.bodyColor!;
+        const accentColor = card.dataset.accentColor!;
+        designSettings.colorScheme = schemeId;
+        propagateBodyColor(bodyColor);
+        propagateLinkColor(accentColor);
+        grid.querySelectorAll('.color-scheme-card').forEach(c => c.classList.toggle('selected', c === card));
+    });
+
+    // Live listeners for custom color pickers
+    const customBodyInput   = document.getElementById('custom-body-color')   as HTMLInputElement | null;
+    const customAccentInput = document.getElementById('custom-accent-color') as HTMLInputElement | null;
+
+    customBodyInput?.addEventListener('input', () => {
+        designSettings.colorScheme = 'custom';
+        const swatch = customBodyInput.previousElementSibling as HTMLElement | null;
+        if (swatch) swatch.style.backgroundColor = customBodyInput.value;
+        propagateBodyColor(customBodyInput.value);
+        grid.querySelectorAll('.color-scheme-card').forEach(c =>
+            c.classList.toggle('selected', (c as HTMLElement).dataset.schemeId === 'custom'));
+    });
+
+    customAccentInput?.addEventListener('input', () => {
+        designSettings.colorScheme = 'custom';
+        const swatch = customAccentInput.previousElementSibling as HTMLElement | null;
+        if (swatch) swatch.style.backgroundColor = customAccentInput.value;
+        propagateLinkColor(customAccentInput.value);
+        grid.querySelectorAll('.color-scheme-card').forEach(c =>
+            c.classList.toggle('selected', (c as HTMLElement).dataset.schemeId === 'custom'));
+    });
+}
+
 
 saveTemplateBtn?.addEventListener('click', saveTemplate);
 loadCollapsedStates();
 renderMergeFieldsSidebar();
 loadDraft();
+initGlobalTextStyles();
 renderComponents();
 renderSavedTemplates();
 initKeyboardShortcuts();
