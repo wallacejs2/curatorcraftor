@@ -2765,6 +2765,149 @@ const paddingControlsHtml = (data: Record<string, string>, paddingConfigs: { key
     return `<div class="grid grid-cols-3">${controls}</div>`;
 };
 
+const getDefaultFieldStyles = (compType: string, fieldKey: string, subOfferIndex?: number): Record<string, string> => {
+    switch (compType) {
+        case 'header':
+            return {
+                fontSize: designSettings.globalFontSize || '18',
+                textColor: designSettings.globalBodyColor || '#1d1d1f',
+                backgroundColor: 'transparent',
+                fontWeight: 'bold',
+                fontStyle: 'normal',
+                textAlign: 'center',
+                paddingTop: '15', paddingBottom: '15', paddingLeftRight: '15'
+            };
+        case 'text_block':
+            return {
+                fontSize: designSettings.globalFontSize || '12',
+                textColor: designSettings.globalBodyColor || '#3c3c43',
+                backgroundColor: 'transparent',
+                fontWeight: 'normal',
+                fontStyle: 'normal',
+                textAlign: 'left',
+                paddingTop: '8', paddingBottom: '8', paddingLeftRight: '15'
+            };
+        case 'disclaimers':
+            return {
+                fontSize: '9',
+                textColor: '#86868b',
+                backgroundColor: 'transparent',
+                fontWeight: 'normal',
+                fontStyle: 'normal',
+                textAlign: 'center',
+                paddingTop: '12', paddingBottom: '12', paddingLeftRight: '15'
+            };
+        case 'button':
+            return {
+                fontSize: '12',
+                textColor: '#ffffff',
+                backgroundColor: designSettings.globalLinkColor || '#007aff',
+                align: 'center',
+                paddingTop: '9', paddingBottom: '9', paddingLeftRight: '15',
+                widthType: 'auto'
+            };
+        case 'divider':
+            return {
+                width: '100', thickness: '1', lineColor: '#CCCCCC',
+                alignment: 'center',
+                paddingTop: '12', paddingBottom: '12', paddingLeftRight: '0'
+            };
+        case 'spacer':
+            return {
+                height: '30', backgroundColor: 'transparent', matchEmailBackground: 'true'
+            };
+        case 'image':
+            return {
+                width: '100%', align: 'center',
+                paddingTop: '0', paddingBottom: '0', paddingLeftRight: '0'
+            };
+        case 'service_offer': {
+            const suffix = fieldKey.endsWith('2') ? '2' : '';
+            const baseKey = fieldKey.replace(/2$/, '');
+            switch (baseKey) {
+                case 'serviceOfferTitle': {
+                    const p = 'title';
+                    return {
+                        [`${p}FontSize${suffix}`]: '18', [`${p}FontWeight${suffix}`]: 'bold', [`${p}FontStyle${suffix}`]: 'normal',
+                        [`${p}TextColor${suffix}`]: '#000000', [`${p}BgColor${suffix}`]: 'transparent', [`${p}Alignment${suffix}`]: 'center',
+                        [`${p}PaddingTop${suffix}`]: '8', [`${p}PaddingBottom${suffix}`]: '8', [`${p}PaddingLeftRight${suffix}`]: '0'
+                    };
+                }
+                case 'serviceOfferCoupon': {
+                    const p = 'coupon';
+                    return {
+                        [`${p}FontSize${suffix}`]: '15', [`${p}FontWeight${suffix}`]: 'bold', [`${p}FontStyle${suffix}`]: 'normal',
+                        [`${p}TextColor${suffix}`]: '#0066FF', [`${p}BgColor${suffix}`]: '#F0F7FF', [`${p}Alignment${suffix}`]: 'center',
+                        [`${p}PaddingTop${suffix}`]: '6', [`${p}PaddingBottom${suffix}`]: '6', [`${p}PaddingLeftRight${suffix}`]: '12'
+                    };
+                }
+                case 'serviceOfferDetails': {
+                    const p = 'details';
+                    return {
+                        [`${p}FontSize${suffix}`]: '12', [`${p}FontWeight${suffix}`]: 'normal', [`${p}FontStyle${suffix}`]: 'normal',
+                        [`${p}TextColor${suffix}`]: '#333333', [`${p}BgColor${suffix}`]: 'transparent', [`${p}Alignment${suffix}`]: 'center',
+                        [`${p}PaddingTop${suffix}`]: '9', [`${p}PaddingBottom${suffix}`]: '9', [`${p}PaddingLeftRight${suffix}`]: '0'
+                    };
+                }
+                case 'serviceOfferDisclaimer': {
+                    const p = 'disclaimer';
+                    return {
+                        [`${p}FontSize${suffix}`]: '9', [`${p}FontWeight${suffix}`]: 'normal', [`${p}FontStyle${suffix}`]: 'normal',
+                        [`${p}TextColor${suffix}`]: '#666666', [`${p}BgColor${suffix}`]: 'transparent', [`${p}Alignment${suffix}`]: 'center',
+                        [`${p}PaddingTop${suffix}`]: '6', [`${p}PaddingBottom${suffix}`]: '6', [`${p}PaddingLeftRight${suffix}`]: '0'
+                    };
+                }
+                case 'serviceOfferButton':
+                    return {
+                        [`buttonFontSize${suffix}`]: '12', [`buttonAlignment${suffix}`]: 'center',
+                        [`buttonBgColor${suffix}`]: '#0066FF', [`buttonTextColor${suffix}`]: '#FFFFFF',
+                        [`buttonPaddingTop${suffix}`]: '9', [`buttonPaddingBottom${suffix}`]: '9', [`buttonPaddingLeftRight${suffix}`]: '15',
+                        [`buttonWidth${suffix}`]: 'auto'
+                    };
+                case 'serviceOfferImage':
+                    return {
+                        [`imageWidth${suffix}`]: '100', [`imageAlignment${suffix}`]: 'center',
+                        [`imagePaddingTop${suffix}`]: '8', [`imagePaddingBottom${suffix}`]: '8'
+                    };
+                default: return {};
+            }
+        }
+        case 'sales_offer': {
+            const suffix = fieldKey.endsWith('2') ? '2' : '';
+            const prefix = fieldKey.replace(/2$/, '');
+
+            if (fieldKey.startsWith('salesOfferButton')) {
+                return {
+                    [`btnFontSize${suffix}`]: '12', [`btnPaddingTop${suffix}`]: '9', [`btnPaddingBottom${suffix}`]: '9', [`btnPaddingLeftRight${suffix}`]: '15',
+                    [`btnColor${suffix}`]: '#007aff', [`btnTextColor${suffix}`]: '#ffffff', [`btnAlign${suffix}`]: 'center', [`btnWidthType${suffix}`]: 'full'
+                };
+            }
+
+            const finalPrefix = prefix.replace(/2$/, '');
+            const keySuffix = subOfferIndex !== undefined ? '' : suffix;
+
+            const defaultsByPrefix: Record<string, Record<string, string>> = {
+                vehicle: { FontSize: '18', FontWeight: 'normal', FontStyle: 'normal', Color: '#1d1d1f', BgColor: 'transparent', TextAlign: 'center', PaddingTop: '0', PaddingBottom: '6', PaddingLeftRight: '0' },
+                mainOffer: { FontSize: '21', FontWeight: 'normal', FontStyle: 'normal', Color: '#007aff', BgColor: 'transparent', TextAlign: 'center', PaddingTop: '0', PaddingBottom: '6', PaddingLeftRight: '0' },
+                details: { FontSize: '12', FontWeight: 'normal', FontStyle: 'normal', Color: '#6e6e73', BgColor: 'transparent', TextAlign: 'center', PaddingTop: '0', PaddingBottom: '9', PaddingLeftRight: '0' },
+                stockVin: { FontSize: '12', FontWeight: 'normal', FontStyle: 'normal', Color: '#86868b', BgColor: 'transparent', TextAlign: 'center', PaddingTop: '8', PaddingBottom: '0', PaddingLeftRight: '0' },
+                mileage: { FontSize: '12', FontWeight: 'normal', FontStyle: 'normal', Color: '#86868b', BgColor: 'transparent', TextAlign: 'center', PaddingTop: '3', PaddingBottom: '0', PaddingLeftRight: '0' },
+                disclaimer: { FontSize: '9', FontWeight: 'normal', FontStyle: 'normal', Color: '#86868b', BgColor: 'transparent', TextAlign: 'center', PaddingTop: '12', PaddingBottom: '0', PaddingLeftRight: '0' }
+            };
+
+            const prefixDefaults = defaultsByPrefix[finalPrefix];
+            if (!prefixDefaults) return {};
+
+            const result: Record<string, string> = {};
+            for (const [prop, val] of Object.entries(prefixDefaults)) {
+                result[`${finalPrefix}${prop}${keySuffix}`] = val;
+            }
+            return result;
+        }
+        default: return {};
+    }
+};
+
 const renderStandardStylingPanel = (
     data: Record<string, string>,
     config: Record<string, any>,
@@ -2785,7 +2928,10 @@ const renderStandardStylingPanel = (
                 <span style="color: var(--label-tertiary); font-size: 9px; padding-bottom: 2px;">›</span>
                 <span style="font-size: 10px; font-weight: 600; color: var(--label-primary);">${activeField.fieldLabel}</span>
             </div>
-            <button type="button" id="close-styling-panel-btn" class="btn btn-ghost" style="width: 18px; height: 18px; padding: 0; border-radius: 50%; line-height: 1;">&times;</button>
+            <div style="display: flex; align-items: center; gap: 4px;">
+                <button type="button" id="reset-field-styles-btn" class="btn btn-ghost" style="font-size: 9px; padding: 2px 6px; border-radius: 4px; color: var(--label-secondary); line-height: 1;">Reset</button>
+                <button type="button" id="close-styling-panel-btn" class="btn btn-ghost" style="width: 18px; height: 18px; padding: 0; border-radius: 50%; line-height: 1;">&times;</button>
+            </div>
         </div>
         <div class="design-option-group" style="border-top: 1px solid var(--separator-secondary); padding-top: var(--spacing-md);">
     `;
@@ -2855,6 +3001,17 @@ const renderStandardStylingPanel = (
             activeField.element.classList.remove('field-active');
         }
         activeField = null;
+        renderStylingPanel();
+    });
+
+    dynamicStylingContainer.querySelector('#reset-field-styles-btn')?.addEventListener('click', () => {
+        if (!activeField) return;
+        const comp = activeComponents.find(c => c.id === activeField!.componentId);
+        if (!comp) return;
+        const defaults = getDefaultFieldStyles(comp.type, activeField.fieldKey, activeField.subOfferIndex);
+        for (const [key, value] of Object.entries(defaults)) {
+            updateFn(key, value);
+        }
         renderStylingPanel();
     });
 
