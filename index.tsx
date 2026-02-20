@@ -34,6 +34,14 @@ interface SavedTemplate {
     components: EmailComponent[];
 }
 
+interface SavedLibraryComponent {
+    id: string;
+    name: string;
+    type: string;
+    data: Record<string, string>;
+    createdAt: string;
+}
+
 interface EmailComponent {
     id: string;
     type: string;
@@ -311,6 +319,7 @@ const fontSelect = document.getElementById('design-font-family') as HTMLSelectEl
 // Saved Template Elements
 const saveTemplateBtn = document.getElementById('save-template-btn') as HTMLButtonElement;
 const savedTemplatesList = document.getElementById('saved-templates-list') as HTMLElement;
+const componentLibraryList = document.getElementById('component-library-list') as HTMLElement;
 
 const ALIGNMENT_ICONS = {
     left: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="17" y1="18" x2="3" y2="18"></line></svg>`,
@@ -366,6 +375,7 @@ const showToast = (message: string, type: 'success' | 'error' | 'info' = 'succes
 const LS_TEMPLATES_KEY = 'craftor_saved_templates';
 const LS_DRAFT_KEY = 'craftor_current_draft';
 const LS_COLLAPSED_KEY = 'craftor_component_states';
+const LS_LIBRARY_KEY = 'craftor_component_library';
 
 
 const loadCollapsedStates = () => {
@@ -1400,6 +1410,23 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
 }
 // --- END: Fix for missing functions
 
+const COMPONENT_TYPE_ICONS: Record<string, string> = {
+    header: 'format_h1',
+    text_block: 'format_align_justify',
+    image: 'image',
+    button: 'radio_button_checked',
+    divider: 'horizontal_rule',
+    spacer: 'expand_all',
+    service_offer: 'handyman',
+    sales_offer: 'sell',
+    disclaimers: 'contract',
+};
+
+const getComponentTypeIcon = (type: string): string => COMPONENT_TYPE_ICONS[type] || 'widgets';
+
+const formatComponentTypeName = (type: string): string =>
+    type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
 const renderComponents = () => {
     componentsContainer.innerHTML = '';
     if (activeComponents.length === 0) {
@@ -1612,18 +1639,7 @@ const renderComponents = () => {
             `;
         }
 
-        const componentTypeIcons: Record<string, string> = {
-            header: 'format_h1',
-            text_block: 'format_align_justify',
-            image: 'image',
-            button: 'radio_button_checked',
-            divider: 'horizontal_rule',
-            spacer: 'expand_all',
-            service_offer: 'handyman',
-            sales_offer: 'sell',
-            disclaimers: 'contract',
-        };
-        const typeIcon = componentTypeIcons[comp.type] || 'widgets';
+        const typeIcon = getComponentTypeIcon(comp.type);
 
         const currentTextLayout = comp.data.textLayout || 'center';
         let offerHeaderControls = '';
@@ -1681,6 +1697,9 @@ const renderComponents = () => {
                 </div>
                 <div class="flex items-center" style="gap: 3px;">
                     ${offerHeaderControls}
+                    <button type="button" class="btn btn-ghost btn-sm save-to-library-btn" title="Save to Component Library">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                    </button>
                     <button type="button" class="btn btn-ghost btn-sm reset-comp-btn" title="Reset styles to defaults">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"></path><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
                     </button>
@@ -1938,6 +1957,11 @@ const renderComponents = () => {
         item.querySelector('.clear-comp-btn')?.addEventListener('click', (e) => {
             e.stopPropagation();
             clearComponentContent(comp.id);
+        });
+
+        item.querySelector('.save-to-library-btn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            saveComponentToLibrary(comp.id);
         });
 
         item.querySelector('.duplicate-comp-btn')?.addEventListener('click', (e) => {
@@ -2636,6 +2660,114 @@ const renderSavedTemplates = () => {
         btn.addEventListener('click', () => deleteTemplate(btn.getAttribute('data-id') || ''));
     });
 };
+
+// --- Component Library ---
+
+const getSavedLibraryComponents = (): SavedLibraryComponent[] => {
+    try {
+        const data = localStorage.getItem(LS_LIBRARY_KEY);
+        return data ? JSON.parse(data) : [];
+    } catch (e) {
+        console.error("Failed to load component library", e);
+        return [];
+    }
+};
+
+const saveComponentToLibrary = (id: string) => {
+    const comp = activeComponents.find(c => c.id === id);
+    if (!comp) return;
+
+    const defaultName = `${formatComponentTypeName(comp.type)} ${new Date().toLocaleDateString()}`;
+    const name = prompt('Save to Component Library.\nEnter a name for this component:', defaultName);
+    if (!name) return;
+
+    const libraryItem: SavedLibraryComponent = {
+        id: Date.now().toString(),
+        name,
+        type: comp.type,
+        data: JSON.parse(JSON.stringify(comp.data)),
+        createdAt: new Date().toISOString(),
+    };
+
+    const library = getSavedLibraryComponents();
+    library.unshift(libraryItem);
+    localStorage.setItem(LS_LIBRARY_KEY, JSON.stringify(library));
+    renderComponentLibrary();
+    showToast('Component saved to library', 'success');
+};
+
+const addComponentFromLibrary = (libraryId: string) => {
+    const library = getSavedLibraryComponents();
+    const libraryItem = library.find(item => item.id === libraryId);
+    if (!libraryItem) return;
+
+    const newComponent: EmailComponent = {
+        id: Date.now().toString(),
+        type: libraryItem.type,
+        data: JSON.parse(JSON.stringify(libraryItem.data)),
+    };
+
+    activeComponents.push(newComponent);
+    saveToHistory();
+    renderComponents();
+    saveDraft();
+    showToast(`Added "${libraryItem.name}" from library`, 'success');
+
+    setTimeout(() => {
+        selectComponent(newComponent.id);
+        const newElement = document.querySelector(`.component-item[data-id='${newComponent.id}']`);
+        if (newElement) {
+            newElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, 100);
+};
+
+const deleteLibraryComponent = (id: string) => {
+    const library = getSavedLibraryComponents().filter(item => item.id !== id);
+    localStorage.setItem(LS_LIBRARY_KEY, JSON.stringify(library));
+    renderComponentLibrary();
+    showToast('Component removed from library', 'success');
+};
+
+const renderComponentLibrary = () => {
+    const library = getSavedLibraryComponents();
+    if (!componentLibraryList) return;
+
+    if (library.length === 0) {
+        componentLibraryList.innerHTML = `<p class="text-sm" style="color: var(--label-secondary); text-align: center;">No saved components. Use the <span class="material-symbols-rounded" style="font-size: 14px; vertical-align: middle;">bookmark</span> icon on any section to add it to your library.</p>`;
+        return;
+    }
+
+    componentLibraryList.innerHTML = library.map(item => `
+        <div class="library-item card" style="margin-bottom: 6px; background: var(--background-secondary);">
+            <div class="card-body" style="padding: var(--spacing-sm) var(--spacing-md); display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: var(--spacing-sm); min-width: 0;">
+                    <span class="material-symbols-rounded" style="font-size: 16px; color: var(--label-secondary); flex-shrink: 0;">${getComponentTypeIcon(item.type)}</span>
+                    <div style="min-width: 0;">
+                        <h4 class="text-base font-bold" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.name}</h4>
+                        <div style="display: flex; align-items: center; gap: var(--spacing-xs);">
+                            <span class="library-type-badge">${formatComponentTypeName(item.type)}</span>
+                            <span class="text-xs" style="color: var(--label-tertiary);">${new Date(item.createdAt).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-2" style="flex-shrink: 0;">
+                    <button class="btn btn-primary btn-sm add-from-library-btn" data-id="${item.id}">Add</button>
+                    <button class="btn btn-ghost btn-sm del-library-btn" data-id="${item.id}" style="color: var(--destructive); height: 24px;">Delete</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+    componentLibraryList.querySelectorAll('.add-from-library-btn').forEach(btn => {
+        btn.addEventListener('click', () => addComponentFromLibrary(btn.getAttribute('data-id') || ''));
+    });
+    componentLibraryList.querySelectorAll('.del-library-btn').forEach(btn => {
+        btn.addEventListener('click', () => deleteLibraryComponent(btn.getAttribute('data-id') || ''));
+    });
+};
+
+// --- End Component Library ---
 
 const loadDraft = () => {
     try {
@@ -3539,6 +3671,7 @@ const initKeyboardShortcuts = () => {
         { key: 's', ctrl: true, description: 'Save current template', category: 'General', action: () => saveTemplateBtn?.click() },
         { key: 'n', ctrl: true, description: 'Add new section', category: 'Components', action: () => addComponentBtn?.click() },
         { key: 'd', ctrl: true, description: 'Duplicate selected section', category: 'Components', condition: () => !!selectedComponentId, action: () => selectedComponentId && duplicateComponent(selectedComponentId) },
+        { key: 'b', ctrl: true, description: 'Save section to library', category: 'Components', condition: () => !!selectedComponentId, action: () => selectedComponentId && saveComponentToLibrary(selectedComponentId) },
         { key: '/', shift: true, description: 'Show keyboard shortcuts', category: 'General', action: openShortcutsModal },
         { key: 'ArrowUp', description: 'Select previous section', category: 'Navigation', action: () => {
             if (!selectedComponentId) {
@@ -3755,5 +3888,6 @@ loadDraft();
 initGlobalTextStyles();
 renderComponents();
 renderSavedTemplates();
+renderComponentLibrary();
 initKeyboardShortcuts();
 autocompleteDropdown = document.getElementById('autocomplete-dropdown');
