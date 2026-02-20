@@ -87,6 +87,34 @@ let shortcutsModal: HTMLElement | null = null;
 let shortcutsModalOverlay: HTMLElement | null = null;
 // --- END: Keyboard Shortcut System Interfaces & State ---
 
+const CONTENT_KEYS: Record<string, string[]> = {
+    header:        ['text'],
+    text_block:    ['text'],
+    disclaimers:   ['text'],
+    button:        ['text', 'link'],
+    image:         ['src', 'alt', 'link'],
+    divider:       [],
+    spacer:        [],
+    service_offer: [
+        'showImage', 'imageUrl', 'imageAlt', 'imageLink',
+        'serviceTitle', 'couponCode', 'serviceDetails', 'disclaimer',
+        'buttonText', 'buttonLink',
+        'showImage2', 'imageUrl2', 'imageAlt2', 'imageLink2',
+        'serviceTitle2', 'couponCode2', 'serviceDetails2', 'disclaimer2',
+        'buttonText2', 'buttonLink2',
+    ],
+    sales_offer: [
+        'imageEnabled', 'imageSrc', 'imageAlt', 'imageLink', 'imageWidth',
+        'vehicleText', 'mainOfferText', 'detailsText',
+        'stockVinType', 'stockVinValue', 'mileageValue',
+        'disclaimerText', 'additionalOffers', 'btnText', 'btnLink',
+        'imageEnabled2', 'imageSrc2', 'imageAlt2', 'imageLink2', 'imageWidth2',
+        'vehicleText2', 'mainOfferText2', 'detailsText2',
+        'stockVinType2', 'stockVinValue2', 'mileageValue2',
+        'disclaimerText2', 'additionalOffers2', 'btnText2', 'btnLink2',
+    ],
+};
+const STRUCTURAL_KEYS = ['layout', 'textLayout'];
 
 const MERGE_FIELDS: MergeFieldGroup[] = [
   {
@@ -188,6 +216,44 @@ const MERGE_FIELDS: MergeFieldGroup[] = [
     ]
   }
 ];
+
+interface FlatMergeFieldItem {
+  label: string;
+  value: string;
+  group: string;
+  subgroup?: string;
+  searchText: string;
+}
+
+const FLAT_MERGE_FIELDS: FlatMergeFieldItem[] = (() => {
+  const result: FlatMergeFieldItem[] = [];
+  MERGE_FIELDS.forEach(group => {
+    if (group.items) {
+      group.items.forEach(item => {
+        result.push({
+          label: item.label,
+          value: item.value,
+          group: group.title,
+          searchText: `${item.label} ${item.value}`.toLowerCase()
+        });
+      });
+    }
+    if (group.subgroups) {
+      group.subgroups.forEach(sub => {
+        sub.items.forEach(item => {
+          result.push({
+            label: item.label,
+            value: item.value,
+            group: group.title,
+            subgroup: sub.title,
+            searchText: `${item.label} ${item.value}`.toLowerCase()
+          });
+        });
+      });
+    }
+  });
+  return result;
+})();
 
 // Application State
 let designSettings: DesignSettings = {
@@ -397,6 +463,14 @@ mobileViewBtn?.addEventListener('click', () => {
 
 let lastFocusedInput: HTMLInputElement | HTMLTextAreaElement | null = null;
 
+// --- Autocomplete State ---
+let autocompleteDropdown: HTMLElement | null = null;
+let autocompleteVisible = false;
+let autocompleteSelectedIndex = -1;
+let autocompleteFilteredItems: FlatMergeFieldItem[] = [];
+let autocompleteTriggerStart = -1;
+let autocompleteTargetInput: HTMLInputElement | HTMLTextAreaElement | null = null;
+
 document.addEventListener('focusin', (e) => {
   const target = e.target as HTMLElement;
   const componentId = target.closest('.component-item')?.getAttribute('data-id');
@@ -450,6 +524,273 @@ const insertMergeField = (value: string) => {
         showToast('Please click a text field first to insert the merge field.', 'info');
     }
 };
+
+// --- Merge Field Autocomplete ---
+
+const filterMergeFields = (query: string): FlatMergeFieldItem[] => {
+  if (!query) return FLAT_MERGE_FIELDS;
+  const lowerQuery = query.toLowerCase().trim();
+  if (!lowerQuery) return FLAT_MERGE_FIELDS;
+  return FLAT_MERGE_FIELDS.filter(item => item.searchText.includes(lowerQuery));
+};
+
+const highlightMatch = (text: string, query: string): string => {
+  if (!query) return text;
+  const lowerText = text.toLowerCase();
+  const lowerQuery = query.toLowerCase();
+  const matchIndex = lowerText.indexOf(lowerQuery);
+  if (matchIndex === -1) return text;
+  const before = text.substring(0, matchIndex);
+  const match = text.substring(matchIndex, matchIndex + query.length);
+  const after = text.substring(matchIndex + query.length);
+  return `${before}<span class="match-highlight">${match}</span>${after}`;
+};
+
+const positionAutocomplete = (inputEl: HTMLInputElement | HTMLTextAreaElement) => {
+  if (!autocompleteDropdown) return;
+  const rect = inputEl.getBoundingClientRect();
+  const dropdownHeight = 350;
+  const viewportHeight = window.innerHeight;
+
+  let top = rect.bottom + window.scrollY + 4;
+  let left = rect.left + window.scrollX;
+
+  if (rect.bottom + dropdownHeight > viewportHeight) {
+    top = rect.top + window.scrollY - dropdownHeight - 4;
+  }
+
+  const dropdownWidth = 300;
+  if (left + dropdownWidth > window.innerWidth) {
+    left = window.innerWidth - dropdownWidth - 8;
+  }
+
+  autocompleteDropdown.style.top = `${top}px`;
+  autocompleteDropdown.style.left = `${left}px`;
+};
+
+const renderAutocompleteDropdown = (items: FlatMergeFieldItem[], query: string) => {
+  if (!autocompleteDropdown) {
+    autocompleteDropdown = document.getElementById('autocomplete-dropdown');
+  }
+  if (!autocompleteDropdown) return;
+
+  if (items.length === 0) {
+    hideAutocomplete();
+    return;
+  }
+
+  let html = '<div class="autocomplete-list">';
+  let currentGroup = '';
+  let itemIndex = 0;
+
+  items.forEach((item) => {
+    const groupKey = item.subgroup ? `${item.group} \u203A ${item.subgroup}` : item.group;
+    if (groupKey !== currentGroup) {
+      currentGroup = groupKey;
+      html += `<div class="autocomplete-group-header">${groupKey}</div>`;
+    }
+
+    const highlightedLabel = highlightMatch(item.label, query);
+    const selectedClass = itemIndex === autocompleteSelectedIndex ? ' selected' : '';
+
+    html += `<div class="autocomplete-item${selectedClass}" data-index="${itemIndex}">
+      <span class="autocomplete-item-name">${highlightedLabel}</span>
+    </div>`;
+    itemIndex++;
+  });
+
+  html += '</div>';
+  html += `<div class="autocomplete-footer">
+    <span><kbd>\u2191</kbd><kbd>\u2193</kbd> navigate</span>
+    <span><kbd>Enter</kbd> select</span>
+    <span><kbd>Esc</kbd> close</span>
+  </div>`;
+
+  autocompleteDropdown.innerHTML = html;
+
+  autocompleteDropdown.querySelectorAll('.autocomplete-item').forEach(el => {
+    el.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      const idx = parseInt((el as HTMLElement).dataset.index || '0');
+      selectAutocompleteItem(idx);
+    });
+  });
+};
+
+const showAutocomplete = (inputEl: HTMLInputElement | HTMLTextAreaElement) => {
+  if (!autocompleteDropdown) {
+    autocompleteDropdown = document.getElementById('autocomplete-dropdown');
+  }
+  if (!autocompleteDropdown) return;
+  autocompleteTargetInput = inputEl;
+  positionAutocomplete(inputEl);
+  autocompleteDropdown.classList.add('visible');
+  autocompleteVisible = true;
+};
+
+const hideAutocomplete = () => {
+  if (!autocompleteDropdown) return;
+  autocompleteDropdown.classList.remove('visible');
+  autocompleteVisible = false;
+  autocompleteSelectedIndex = -1;
+  autocompleteTriggerStart = -1;
+  autocompleteTargetInput = null;
+  autocompleteFilteredItems = [];
+};
+
+const selectAutocompleteItem = (index: number) => {
+  const item = autocompleteFilteredItems[index];
+  if (!item || !autocompleteTargetInput) return;
+  if (!document.contains(autocompleteTargetInput)) {
+    hideAutocomplete();
+    return;
+  }
+
+  const input = autocompleteTargetInput;
+  const text = input.value;
+  const cursorPos = input.selectionStart || 0;
+
+  const before = text.substring(0, autocompleteTriggerStart);
+  const after = text.substring(cursorPos);
+
+  input.value = before + item.value + after;
+
+  const newCursorPos = autocompleteTriggerStart + item.value.length;
+  input.selectionStart = input.selectionEnd = newCursorPos;
+  input.focus();
+
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+  hideAutocomplete();
+};
+
+const updateAutocompleteSelection = () => {
+  if (!autocompleteDropdown) return;
+  const items = autocompleteDropdown.querySelectorAll('.autocomplete-item');
+  items.forEach((el, i) => {
+    el.classList.toggle('selected', i === autocompleteSelectedIndex);
+  });
+  const selectedEl = items[autocompleteSelectedIndex] as HTMLElement;
+  if (selectedEl) {
+    selectedEl.scrollIntoView({ block: 'nearest' });
+  }
+};
+
+// Autocomplete: detect '{{' trigger on input
+document.addEventListener('input', (e) => {
+  const target = e.target as HTMLElement;
+  if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') return;
+
+  const input = target as HTMLInputElement | HTMLTextAreaElement;
+  const cursorPos = input.selectionStart;
+  if (cursorPos === null) return;
+
+  const text = input.value;
+  const textBeforeCursor = text.substring(0, cursorPos);
+
+  const lastTrigger = textBeforeCursor.lastIndexOf('{{');
+
+  if (lastTrigger === -1) {
+    if (autocompleteVisible) hideAutocomplete();
+    return;
+  }
+
+  const textAfterTrigger = textBeforeCursor.substring(lastTrigger);
+  if (textAfterTrigger.includes('}}')) {
+    if (autocompleteVisible) hideAutocomplete();
+    return;
+  }
+
+  const query = textBeforeCursor.substring(lastTrigger + 2);
+
+  autocompleteTriggerStart = lastTrigger;
+  autocompleteFilteredItems = filterMergeFields(query);
+  autocompleteSelectedIndex = 0;
+
+  if (autocompleteFilteredItems.length > 0) {
+    renderAutocompleteDropdown(autocompleteFilteredItems, query);
+    showAutocomplete(input);
+  } else {
+    hideAutocomplete();
+  }
+});
+
+// Autocomplete: keyboard navigation (capture phase to intercept before global handler)
+document.addEventListener('keydown', (e) => {
+  if (!autocompleteVisible) return;
+
+  switch (e.key) {
+    case 'ArrowDown':
+      e.preventDefault();
+      e.stopPropagation();
+      autocompleteSelectedIndex = (autocompleteSelectedIndex + 1) % autocompleteFilteredItems.length;
+      updateAutocompleteSelection();
+      break;
+
+    case 'ArrowUp':
+      e.preventDefault();
+      e.stopPropagation();
+      autocompleteSelectedIndex = (autocompleteSelectedIndex - 1 + autocompleteFilteredItems.length) % autocompleteFilteredItems.length;
+      updateAutocompleteSelection();
+      break;
+
+    case 'Enter':
+      e.preventDefault();
+      e.stopPropagation();
+      if (autocompleteSelectedIndex >= 0) {
+        selectAutocompleteItem(autocompleteSelectedIndex);
+      }
+      break;
+
+    case 'Escape':
+      e.preventDefault();
+      e.stopPropagation();
+      hideAutocomplete();
+      break;
+
+    case 'Tab':
+      hideAutocomplete();
+      break;
+  }
+}, true);
+
+// Autocomplete: close on outside click
+document.addEventListener('mousedown', (e) => {
+  if (!autocompleteVisible) return;
+  if (!autocompleteDropdown) return;
+
+  const target = e.target as HTMLElement;
+  if (autocompleteDropdown.contains(target)) return;
+  if (target === autocompleteTargetInput) return;
+
+  hideAutocomplete();
+});
+
+// Autocomplete: close on blur (with delay to allow dropdown mousedown)
+document.addEventListener('focusout', (e) => {
+  if (!autocompleteVisible) return;
+  const target = e.target as HTMLElement;
+  if (target !== autocompleteTargetInput) return;
+
+  setTimeout(() => {
+    const activeEl = document.activeElement;
+    if (activeEl !== autocompleteTargetInput) {
+      hideAutocomplete();
+    }
+  }, 150);
+});
+
+// Autocomplete: reposition on scroll/resize
+window.addEventListener('scroll', () => {
+  if (autocompleteVisible && autocompleteTargetInput) {
+    positionAutocomplete(autocompleteTargetInput);
+  }
+}, true);
+
+window.addEventListener('resize', () => {
+  if (autocompleteVisible && autocompleteTargetInput) {
+    positionAutocomplete(autocompleteTargetInput);
+  }
+});
 
 const renderMergeFieldsSidebar = () => {
     if (!mergeFieldsSidebar) return;
@@ -555,194 +896,209 @@ floatingMergeBtn?.addEventListener('click', () => {
   document.body.style.overflow = 'hidden';
 });
 
+const getDefaultComponentData = (type: string): Record<string, string> => {
+    switch (type) {
+        case 'header':
+            return {
+                text: 'Your Header Title',
+                fontSize: designSettings.globalFontSize || '18',
+                textColor: designSettings.globalBodyColor || '#1d1d1f',
+                backgroundColor: 'transparent',
+                fontWeight: 'bold',
+                fontStyle: 'normal',
+                textDecoration: 'none',
+                textAlign: 'center',
+                paddingTop: '15',
+                paddingBottom: '15',
+                paddingLeftRight: '15'
+            };
+        case 'text_block':
+            return {
+                text: 'This is a sample text block. You can use merge fields here.',
+                fontSize: designSettings.globalFontSize || '12',
+                textColor: designSettings.globalBodyColor || '#3c3c43',
+                backgroundColor: 'transparent',
+                fontWeight: 'normal',
+                fontStyle: 'normal',
+                textDecoration: 'none',
+                textAlign: 'left',
+                paddingTop: '8',
+                paddingBottom: '8',
+                paddingLeftRight: '15'
+            };
+        case 'image':
+            return {
+                src: 'https://via.placeholder.com/600x300',
+                alt: 'Image description',
+                link: '',
+                width: '100%',
+                align: 'center',
+                paddingTop: '0',
+                paddingBottom: '0',
+                paddingLeftRight: '0',
+                backgroundColor: 'transparent'
+            };
+        case 'button':
+            return {
+                text: 'Click Here',
+                link: 'https://example.com',
+                fontSize: '12',
+                textColor: '#ffffff',
+                backgroundColor: designSettings.globalLinkColor || '#007aff',
+                align: 'center',
+                paddingTop: '9',
+                paddingBottom: '9',
+                paddingLeftRight: '15',
+                widthType: 'auto'
+            };
+        case 'divider':
+            return {
+                width: '100',
+                thickness: '1',
+                lineColor: '#CCCCCC',
+                alignment: 'center',
+                paddingTop: '12',
+                paddingBottom: '12',
+                paddingLeftRight: '0'
+            };
+        case 'spacer':
+            return {
+                height: '30',
+                backgroundColor: 'transparent',
+                matchEmailBackground: 'true',
+            };
+        case 'disclaimers':
+            return {
+                text: '*Terms and conditions apply. See dealer for details.',
+                fontSize: '9',
+                textColor: '#86868b',
+                backgroundColor: 'transparent',
+                fontWeight: 'normal',
+                fontStyle: 'normal',
+                textDecoration: 'none',
+                textAlign: 'center',
+                paddingTop: '12',
+                paddingBottom: '12',
+                paddingLeftRight: '15'
+            };
+        case 'service_offer':
+            return {
+                layout: 'single',
+                showImage: 'false', imageUrl: '', imageAlt: '', imageLink: '',
+                serviceTitle: 'Oil Change Special', couponCode: 'OILCHANGE50',
+                serviceDetails: 'Get $50 off your next oil change service. Includes up to 5 quarts of synthetic blend oil and filter replacement.',
+                disclaimer: '*Valid at participating dealers only. Cannot be combined with other offers.',
+                buttonText: 'Schedule Now', buttonLink: '',
+                showImage2: 'false', imageUrl2: '', imageAlt2: '', imageLink2: '',
+                serviceTitle2: 'Tire Rotation Deal', couponCode2: 'TIRES25',
+                serviceDetails2: 'Get $25 off your next tire rotation. Keep your tires wearing evenly and extend their life.',
+                disclaimer2: '*Valid at participating dealers only. Cannot be combined with other offers.',
+                buttonText2: 'Book Service', buttonLink2: '',
+                containerPaddingTop: '15', containerPaddingBottom: '15', containerPaddingLeft: '15', containerPaddingRight: '15',
+                imageWidth: '100', imageAlignment: 'center', imagePaddingTop: '8', imagePaddingBottom: '8',
+                titleFontSize: '18', titleFontWeight: 'bold', titleFontStyle: 'normal', titleTextColor: '#000000', titleBgColor: 'transparent', titleAlignment: 'center', titlePaddingTop: '8', titlePaddingBottom: '8', titlePaddingLeftRight: '0',
+                couponFontSize: '15', couponFontWeight: 'bold', couponFontStyle: 'normal', couponTextColor: '#0066FF', couponBgColor: '#F0F7FF', couponAlignment: 'center', couponPaddingTop: '6', couponPaddingBottom: '6', couponPaddingLeftRight: '12', couponShowBorder: 'false', couponBorderStyle: 'dashed', couponBorderColor: '#0066FF',
+                detailsFontSize: '12', detailsFontWeight: 'normal', detailsFontStyle: 'normal', detailsTextColor: '#333333', detailsBgColor: 'transparent', detailsAlignment: 'center', detailsLineHeight: '1.5', detailsPaddingTop: '9', detailsPaddingBottom: '9', detailsPaddingLeftRight: '0',
+                disclaimerFontSize: '9', disclaimerFontWeight: 'normal', disclaimerFontStyle: 'normal', disclaimerTextColor: '#666666', disclaimerBgColor: 'transparent', disclaimerAlignment: 'center', disclaimerPaddingTop: '6', disclaimerPaddingBottom: '6', disclaimerPaddingLeftRight: '0',
+                buttonFontSize: '12', buttonAlignment: 'center', buttonBgColor: '#0066FF', buttonTextColor: '#FFFFFF', buttonPaddingTop: '9', buttonPaddingBottom: '9', buttonPaddingLeftRight: '15', buttonWidth: 'auto',
+                imageWidth2: '100', imageAlignment2: 'center', imagePaddingTop2: '8', imagePaddingBottom2: '8',
+                titleFontSize2: '18', titleFontWeight2: 'bold', titleFontStyle2: 'normal', titleTextColor2: '#000000', titleBgColor2: 'transparent', titleAlignment2: 'center', titlePaddingTop2: '8', titlePaddingBottom2: '8', titlePaddingLeftRight2: '0',
+                couponFontSize2: '15', couponFontWeight2: 'bold', couponFontStyle2: 'normal', couponTextColor2: '#0066FF', couponBgColor2: '#F0F7FF', couponAlignment2: 'center', couponPaddingTop2: '6', couponPaddingBottom2: '6', couponPaddingLeftRight2: '12', couponShowBorder2: 'false', couponBorderStyle2: 'dashed', couponBorderColor2: '#0066FF',
+                detailsFontSize2: '12', detailsFontWeight2: 'normal', detailsFontStyle2: 'normal', detailsTextColor2: '#333333', detailsBgColor2: 'transparent', detailsAlignment2: 'center', detailsLineHeight2: '1.5', detailsPaddingTop2: '9', detailsPaddingBottom2: '9', detailsPaddingLeftRight2: '0',
+                disclaimerFontSize2: '9', disclaimerFontWeight2: 'normal', disclaimerFontStyle2: 'normal', disclaimerTextColor2: '#666666', disclaimerBgColor2: 'transparent', disclaimerAlignment2: 'center', disclaimerPaddingTop2: '6', disclaimerPaddingBottom2: '6', disclaimerPaddingLeftRight2: '0',
+                buttonFontSize2: '12', buttonAlignment2: 'center', buttonBgColor2: '#0066FF', buttonTextColor2: '#FFFFFF', buttonPaddingTop2: '9', buttonPaddingBottom2: '9', buttonPaddingLeftRight2: '15', buttonWidth2: 'auto',
+                textLayout: 'center'
+            };
+        case 'sales_offer':
+            return {
+                layout: 'center',
+                imageEnabled: 'true', imageSrc: 'https://via.placeholder.com/600x300', imageAlt: 'New Sales Offer', imageLink: '', imageWidth: '100%',
+                vehicleText: 'New {{customer.last_transaction.vehicle.year}} {{customer.last_transaction.vehicle.make}} {{customer.last_transaction.vehicle.model}}',
+                mainOfferText: '$2,500 Trade-In Bonus',
+                detailsText: 'Upgrade your current ride today with our exclusive seasonal offer.',
+                stockVinType: 'stock', stockVinValue: '{{customer.last_transaction.vehicle.vin}}',
+                mileageValue: '{{customer.last_transaction.vehicle.mileage}}',
+                disclaimerText: '*Terms and conditions apply. Offer valid through end of month.',
+                additionalOffers: '[]', btnText: 'View Details', btnLink: '{{dealership.tracked_website_homepage_url}}',
+                imageEnabled2: 'true', imageSrc2: 'https://via.placeholder.com/600x300', imageAlt2: 'Used Sales Offer', imageLink2: '', imageWidth2: '100%',
+                vehicleText2: 'Pre-Owned Vehicle Special', mainOfferText2: 'Low APR Financing',
+                detailsText2: 'Get behind the wheel of a quality pre-owned vehicle with great financing options.',
+                stockVinType2: 'stock', stockVinValue2: '', mileageValue2: '',
+                disclaimerText2: '*With approved credit. See dealer for details.',
+                additionalOffers2: '[]', btnText2: 'View Inventory', btnLink2: '{{dealership.tracked_website_specials_url}}',
+                vehicleFontSize: '18', vehicleFontWeight: 'normal', vehicleFontStyle: 'normal', vehicleColor: '#1d1d1f', vehicleBgColor: 'transparent', vehicleTextAlign: 'center', vehiclePaddingTop: '0', vehiclePaddingBottom: '6', vehiclePaddingLeftRight: '0',
+                mainOfferFontSize: '21', mainOfferFontWeight: 'normal', mainOfferFontStyle: 'normal', mainOfferColor: '#007aff', mainOfferBgColor: 'transparent', mainOfferTextAlign: 'center', mainOfferPaddingTop: '0', mainOfferPaddingBottom: '6', mainOfferPaddingLeftRight: '0',
+                detailsFontSize: '12', detailsFontWeight: 'normal', detailsFontStyle: 'normal', detailsColor: '#6e6e73', detailsBgColor: 'transparent', detailsTextAlign: 'center', detailsPaddingTop: '0', detailsPaddingBottom: '9', detailsPaddingLeftRight: '0',
+                stockVinFontSize: '12', stockVinFontWeight: 'normal', stockVinFontStyle: 'normal', stockVinColor: '#86868b', stockVinBgColor: 'transparent', stockVinTextAlign: 'center', stockVinPaddingTop: '8', stockVinPaddingBottom: '0', stockVinPaddingLeftRight: '0',
+                mileageFontSize: '12', mileageFontWeight: 'normal', mileageFontStyle: 'normal', mileageColor: '#86868b', mileageBgColor: 'transparent', mileageTextAlign: 'center', mileagePaddingTop: '3', mileagePaddingBottom: '0', mileagePaddingLeftRight: '0',
+                disclaimerFontSize: '9', disclaimerFontWeight: 'normal', disclaimerFontStyle: 'normal', disclaimerColor: '#86868b', disclaimerBgColor: 'transparent', disclaimerTextAlign: 'center', disclaimerPaddingTop: '12', disclaimerPaddingBottom: '0', disclaimerPaddingLeftRight: '0',
+                btnFontSize: '12', btnPaddingTop: '9', btnPaddingBottom: '9', btnPaddingLeftRight: '15', btnColor: '#007aff', btnTextColor: '#ffffff', btnAlign: 'center', btnWidthType: 'full',
+                vehicleFontSize2: '18', vehicleFontWeight2: 'normal', vehicleFontStyle2: 'normal', vehicleColor2: '#1d1d1f', vehicleBgColor2: 'transparent', vehicleTextAlign2: 'center', vehiclePaddingTop2: '0', vehiclePaddingBottom2: '6', vehiclePaddingLeftRight2: '0',
+                mainOfferFontSize2: '21', mainOfferFontWeight2: 'normal', mainOfferFontStyle2: 'normal', mainOfferColor2: '#007aff', mainOfferBgColor2: 'transparent', mainOfferTextAlign2: 'center', mainOfferPaddingTop2: '0', mainOfferPaddingBottom2: '6', mainOfferPaddingLeftRight2: '0',
+                detailsFontSize2: '12', detailsFontWeight2: 'normal', detailsFontStyle2: 'normal', detailsColor2: '#6e6e73', detailsBgColor2: 'transparent', detailsTextAlign2: 'center', detailsPaddingTop2: '0', detailsPaddingBottom2: '9', detailsPaddingLeftRight2: '0',
+                stockVinFontSize2: '12', stockVinFontWeight2: 'normal', stockVinFontStyle2: 'normal', stockVinColor2: '#86868b', stockVinBgColor2: 'transparent', stockVinTextAlign2: 'center', stockVinPaddingTop2: '8', stockVinPaddingBottom2: '0', stockVinPaddingLeftRight2: '0',
+                mileageFontSize2: '12', mileageFontWeight2: 'normal', mileageFontStyle2: 'normal', mileageColor2: '#86868b', mileageBgColor2: 'transparent', mileageTextAlign2: 'center', mileagePaddingTop2: '3', mileagePaddingBottom2: '0', mileagePaddingLeftRight2: '0',
+                disclaimerFontSize2: '9', disclaimerFontWeight2: 'normal', disclaimerFontStyle2: 'normal', disclaimerColor2: '#86868b', disclaimerBgColor2: 'transparent', disclaimerTextAlign2: 'center', disclaimerPaddingTop2: '12', disclaimerPaddingBottom2: '0', disclaimerPaddingLeftRight2: '0',
+                btnFontSize2: '12', btnPaddingTop2: '9', btnPaddingBottom2: '9', btnPaddingLeftRight2: '15', btnColor2: '#007aff', btnTextColor2: '#ffffff', btnAlign2: 'center', btnWidthType2: 'full',
+                paddingTop: '15', paddingBottom: '15', paddingLeftRight: '15', backgroundColor: '#ffffff',
+                textLayout: 'center'
+            };
+        default:
+            return {};
+    }
+};
+
+const resetComponentStyles = (id: string) => {
+    const comp = activeComponents.find(c => c.id === id);
+    if (!comp) return;
+
+    const defaults = getDefaultComponentData(comp.type);
+    const contentKeys = CONTENT_KEYS[comp.type] || [];
+
+    for (const key of Object.keys(comp.data)) {
+        if (contentKeys.includes(key)) continue;
+        if (STRUCTURAL_KEYS.includes(key)) continue;
+        if (key in defaults) {
+            comp.data[key] = defaults[key];
+        }
+    }
+
+    saveToHistory();
+    renderComponents();
+    saveDraft();
+    showToast('Styles reset to defaults', 'success');
+};
+
+const clearComponentContent = (id: string) => {
+    const comp = activeComponents.find(c => c.id === id);
+    if (!comp) return;
+
+    const contentKeys = CONTENT_KEYS[comp.type] || [];
+    if (contentKeys.length === 0) return;
+
+    for (const key of contentKeys) {
+        if (!(key in comp.data)) continue;
+
+        if (key === 'additionalOffers' || key === 'additionalOffers2') {
+            comp.data[key] = '[]';
+        } else if (key === 'showImage' || key === 'showImage2' || key === 'imageEnabled' || key === 'imageEnabled2') {
+            comp.data[key] = 'false';
+        } else if (key === 'stockVinType' || key === 'stockVinType2') {
+            comp.data[key] = 'stock';
+        } else {
+            comp.data[key] = '';
+        }
+    }
+
+    saveToHistory();
+    renderComponents();
+    saveDraft();
+    showToast('Content cleared', 'success');
+};
+
 const addNewComponent = (type: string) => {
     const id = Date.now().toString();
-    let data: Record<string, string> = {};
-    
-    if (type === 'header') {
-        data = {
-            text: 'Your Header Title',
-            fontSize: designSettings.globalFontSize || '18',
-            textColor: designSettings.globalBodyColor || '#1d1d1f',
-            backgroundColor: 'transparent',
-            fontWeight: 'bold',
-            fontStyle: 'normal',
-            textDecoration: 'none',
-            textAlign: 'center',
-            paddingTop: '15',
-            paddingBottom: '15',
-            paddingLeftRight: '15'
-        };
-    } else if (type === 'text_block') {
-        data = {
-            text: 'This is a sample text block. You can use merge fields here.',
-            fontSize: designSettings.globalFontSize || '12',
-            textColor: designSettings.globalBodyColor || '#3c3c43',
-            backgroundColor: 'transparent',
-            fontWeight: 'normal',
-            fontStyle: 'normal',
-            textDecoration: 'none',
-            textAlign: 'left',
-            paddingTop: '8',
-            paddingBottom: '8',
-            paddingLeftRight: '15'
-        };
-    } else if (type === 'image') {
-        data = {
-            src: 'https://via.placeholder.com/600x300',
-            alt: 'Image description',
-            link: '',
-            width: '100%',
-            align: 'center',
-            paddingTop: '0',
-            paddingBottom: '0',
-            paddingLeftRight: '0',
-            backgroundColor: 'transparent'
-        };
-    } else if (type === 'button') {
-        data = {
-            text: 'Click Here',
-            link: 'https://example.com',
-            fontSize: '12',
-            textColor: '#ffffff',
-            backgroundColor: designSettings.globalLinkColor || '#007aff',
-            align: 'center',
-            paddingTop: '9',
-            paddingBottom: '9',
-            paddingLeftRight: '15',
-            widthType: 'auto'
-        };
-    } else if (type === 'divider') {
-        data = {
-            width: '100',
-            thickness: '1',
-            lineColor: '#CCCCCC',
-            alignment: 'center',
-            paddingTop: '12',
-            paddingBottom: '12',
-            paddingLeftRight: '0'
-        };
-    } else if (type === 'spacer') {
-        data = {
-            height: '30',
-            backgroundColor: 'transparent',
-            matchEmailBackground: 'true',
-        };
-    } else if (type === 'disclaimers') {
-        data = {
-            text: '*Terms and conditions apply. See dealer for details.',
-            fontSize: '9',
-            textColor: '#86868b',
-            backgroundColor: 'transparent',
-            fontWeight: 'normal',
-            fontStyle: 'normal',
-            textDecoration: 'none',
-            textAlign: 'center',
-            paddingTop: '12',
-            paddingBottom: '12',
-            paddingLeftRight: '15'
-        };
-    } else if (type === 'service_offer') {
-        data = {
-            layout: 'single',
-            // Offer 1 Content
-            showImage: 'false',
-            imageUrl: '',
-            imageAlt: '',
-            imageLink: '',
-            serviceTitle: 'Oil Change Special',
-            couponCode: 'OILCHANGE50',
-            serviceDetails: 'Get $50 off your next oil change service. Includes up to 5 quarts of synthetic blend oil and filter replacement.',
-            disclaimer: '*Valid at participating dealers only. Cannot be combined with other offers.',
-            buttonText: 'Schedule Now',
-            buttonLink: '',
-            // Offer 2 Content
-            showImage2: 'false',
-            imageUrl2: '',
-            imageAlt2: '',
-            imageLink2: '',
-            serviceTitle2: 'Tire Rotation Deal',
-            couponCode2: 'TIRES25',
-            serviceDetails2: 'Get $25 off your next tire rotation. Keep your tires wearing evenly and extend their life.',
-            disclaimer2: '*Valid at participating dealers only. Cannot be combined with other offers.',
-            buttonText2: 'Book Service',
-            buttonLink2: '',
-            // Styling Offer 1
-            containerPaddingTop: '15', containerPaddingBottom: '15', containerPaddingLeft: '15', containerPaddingRight: '15',
-            imageWidth: '100', imageAlignment: 'center', imagePaddingTop: '8', imagePaddingBottom: '8',
-            titleFontSize: '18', titleFontWeight: 'bold', titleFontStyle: 'normal', titleTextColor: '#000000', titleBgColor: 'transparent', titleAlignment: 'center', titlePaddingTop: '8', titlePaddingBottom: '8', titlePaddingLeftRight: '0',
-            couponFontSize: '15', couponFontWeight: 'bold', couponFontStyle: 'normal', couponTextColor: '#0066FF', couponBgColor: '#F0F7FF', couponAlignment: 'center', couponPaddingTop: '6', couponPaddingBottom: '6', couponPaddingLeftRight: '12', couponShowBorder: 'false', couponBorderStyle: 'dashed', couponBorderColor: '#0066FF',
-            detailsFontSize: '12', detailsFontWeight: 'normal', detailsFontStyle: 'normal', detailsTextColor: '#333333', detailsBgColor: 'transparent', detailsAlignment: 'center', detailsLineHeight: '1.5', detailsPaddingTop: '9', detailsPaddingBottom: '9', detailsPaddingLeftRight: '0',
-            disclaimerFontSize: '9', disclaimerFontWeight: 'normal', disclaimerFontStyle: 'normal', disclaimerTextColor: '#666666', disclaimerBgColor: 'transparent', disclaimerAlignment: 'center', disclaimerPaddingTop: '6', disclaimerPaddingBottom: '6', disclaimerPaddingLeftRight: '0',
-            buttonFontSize: '12', buttonAlignment: 'center', buttonBgColor: '#0066FF', buttonTextColor: '#FFFFFF', buttonPaddingTop: '9', buttonPaddingBottom: '9', buttonPaddingLeftRight: '15', buttonWidth: 'auto',
-            // Styling Offer 2
-            imageWidth2: '100', imageAlignment2: 'center', imagePaddingTop2: '8', imagePaddingBottom2: '8',
-            titleFontSize2: '18', titleFontWeight2: 'bold', titleFontStyle2: 'normal', titleTextColor2: '#000000', titleBgColor2: 'transparent', titleAlignment2: 'center', titlePaddingTop2: '8', titlePaddingBottom2: '8', titlePaddingLeftRight2: '0',
-            couponFontSize2: '15', couponFontWeight2: 'bold', couponFontStyle2: 'normal', couponTextColor2: '#0066FF', couponBgColor2: '#F0F7FF', couponAlignment2: 'center', couponPaddingTop2: '6', couponPaddingBottom2: '6', couponPaddingLeftRight2: '12', couponShowBorder2: 'false', couponBorderStyle2: 'dashed', couponBorderColor2: '#0066FF',
-            detailsFontSize2: '12', detailsFontWeight2: 'normal', detailsFontStyle2: 'normal', detailsTextColor2: '#333333', detailsBgColor2: 'transparent', detailsAlignment2: 'center', detailsLineHeight2: '1.5', detailsPaddingTop2: '9', detailsPaddingBottom2: '9', detailsPaddingLeftRight2: '0',
-            disclaimerFontSize2: '9', disclaimerFontWeight2: 'normal', disclaimerFontStyle2: 'normal', disclaimerTextColor2: '#666666', disclaimerBgColor2: 'transparent', disclaimerAlignment2: 'center', disclaimerPaddingTop2: '6', disclaimerPaddingBottom2: '6', disclaimerPaddingLeftRight2: '0',
-            buttonFontSize2: '12', buttonAlignment2: 'center', buttonBgColor2: '#0066FF', buttonTextColor2: '#FFFFFF', buttonPaddingTop2: '9', buttonPaddingBottom2: '9', buttonPaddingLeftRight2: '15', buttonWidth2: 'auto',
-            textLayout: 'center'
-        };
-    } else if (type === 'sales_offer') {
-        data = {
-            layout: 'center',
-            // Offer 1
-            imageEnabled: 'true',
-            imageSrc: 'https://via.placeholder.com/600x300',
-            imageAlt: 'New Sales Offer',
-            imageLink: '',
-            imageWidth: '100%',
-            vehicleText: 'New {{customer.last_transaction.vehicle.year}} {{customer.last_transaction.vehicle.make}} {{customer.last_transaction.vehicle.model}}',
-            mainOfferText: '$2,500 Trade-In Bonus',
-            detailsText: 'Upgrade your current ride today with our exclusive seasonal offer.',
-            stockVinType: 'stock',
-            stockVinValue: '{{customer.last_transaction.vehicle.vin}}',
-            mileageValue: '{{customer.last_transaction.vehicle.mileage}}',
-            disclaimerText: '*Terms and conditions apply. Offer valid through end of month.',
-            additionalOffers: '[]',
-            btnText: 'View Details',
-            btnLink: '{{dealership.tracked_website_homepage_url}}',
-            // Offer 2
-            imageEnabled2: 'true',
-            imageSrc2: 'https://via.placeholder.com/600x300',
-            imageAlt2: 'Used Sales Offer',
-            imageLink2: '',
-            imageWidth2: '100%',
-            vehicleText2: 'Pre-Owned Vehicle Special',
-            mainOfferText2: 'Low APR Financing',
-            detailsText2: 'Get behind the wheel of a quality pre-owned vehicle with great financing options.',
-            stockVinType2: 'stock',
-            stockVinValue2: '',
-            mileageValue2: '',
-            disclaimerText2: '*With approved credit. See dealer for details.',
-            additionalOffers2: '[]',
-            btnText2: 'View Inventory',
-            btnLink2: '{{dealership.tracked_website_specials_url}}',
-            // Styling Offer 1
-            vehicleFontSize: '18', vehicleFontWeight: 'normal', vehicleFontStyle: 'normal', vehicleColor: '#1d1d1f', vehicleBgColor: 'transparent', vehicleTextAlign: 'center', vehiclePaddingTop: '0', vehiclePaddingBottom: '6', vehiclePaddingLeftRight: '0',
-            mainOfferFontSize: '21', mainOfferFontWeight: 'normal', mainOfferFontStyle: 'normal', mainOfferColor: '#007aff', mainOfferBgColor: 'transparent', mainOfferTextAlign: 'center', mainOfferPaddingTop: '0', mainOfferPaddingBottom: '6', mainOfferPaddingLeftRight: '0',
-            detailsFontSize: '12', detailsFontWeight: 'normal', detailsFontStyle: 'normal', detailsColor: '#6e6e73', detailsBgColor: 'transparent', detailsTextAlign: 'center', detailsPaddingTop: '0', detailsPaddingBottom: '9', detailsPaddingLeftRight: '0',
-            stockVinFontSize: '12', stockVinFontWeight: 'normal', stockVinFontStyle: 'normal', stockVinColor: '#86868b', stockVinBgColor: 'transparent', stockVinTextAlign: 'center', stockVinPaddingTop: '8', stockVinPaddingBottom: '0', stockVinPaddingLeftRight: '0',
-            mileageFontSize: '12', mileageFontWeight: 'normal', mileageFontStyle: 'normal', mileageColor: '#86868b', mileageBgColor: 'transparent', mileageTextAlign: 'center', mileagePaddingTop: '3', mileagePaddingBottom: '0', mileagePaddingLeftRight: '0',
-            disclaimerFontSize: '9', disclaimerFontWeight: 'normal', disclaimerFontStyle: 'normal', disclaimerColor: '#86868b', disclaimerBgColor: 'transparent', disclaimerTextAlign: 'center', disclaimerPaddingTop: '12', disclaimerPaddingBottom: '0', disclaimerPaddingLeftRight: '0',
-            btnFontSize: '12', btnPaddingTop: '9', btnPaddingBottom: '9', btnPaddingLeftRight: '15', btnColor: '#007aff', btnTextColor: '#ffffff', btnAlign: 'center', btnWidthType: 'full',
-            // Styling Offer 2 (mirrors offer 1)
-            vehicleFontSize2: '18', vehicleFontWeight2: 'normal', vehicleFontStyle2: 'normal', vehicleColor2: '#1d1d1f', vehicleBgColor2: 'transparent', vehicleTextAlign2: 'center', vehiclePaddingTop2: '0', vehiclePaddingBottom2: '6', vehiclePaddingLeftRight2: '0',
-            mainOfferFontSize2: '21', mainOfferFontWeight2: 'normal', mainOfferFontStyle2: 'normal', mainOfferColor2: '#007aff', mainOfferBgColor2: 'transparent', mainOfferTextAlign2: 'center', mainOfferPaddingTop2: '0', mainOfferPaddingBottom2: '6', mainOfferPaddingLeftRight2: '0',
-            detailsFontSize2: '12', detailsFontWeight2: 'normal', detailsFontStyle2: 'normal', detailsColor2: '#6e6e73', detailsBgColor2: 'transparent', detailsTextAlign2: 'center', detailsPaddingTop2: '0', detailsPaddingBottom2: '9', detailsPaddingLeftRight2: '0',
-            stockVinFontSize2: '12', stockVinFontWeight2: 'normal', stockVinFontStyle2: 'normal', stockVinColor2: '#86868b', stockVinBgColor2: 'transparent', stockVinTextAlign2: 'center', stockVinPaddingTop2: '8', stockVinPaddingBottom2: '0', stockVinPaddingLeftRight2: '0',
-            mileageFontSize2: '12', mileageFontWeight2: 'normal', mileageFontStyle2: 'normal', mileageColor2: '#86868b', mileageBgColor2: 'transparent', mileageTextAlign2: 'center', mileagePaddingTop2: '3', mileagePaddingBottom2: '0', mileagePaddingLeftRight2: '0',
-            disclaimerFontSize2: '9', disclaimerFontWeight2: 'normal', disclaimerFontStyle2: 'normal', disclaimerColor2: '#86868b', disclaimerBgColor2: 'transparent', disclaimerTextAlign2: 'center', disclaimerPaddingTop2: '12', disclaimerPaddingBottom2: '0', disclaimerPaddingLeftRight2: '0',
-            btnFontSize2: '12', btnPaddingTop2: '9', btnPaddingBottom2: '9', btnPaddingLeftRight2: '15', btnColor2: '#007aff', btnTextColor2: '#ffffff', btnAlign2: 'center', btnWidthType2: 'full',
-            // Container styles
-            paddingTop: '15',
-            paddingBottom: '15',
-            paddingLeftRight: '15',
-            backgroundColor: '#ffffff',
-            textLayout: 'center'
-        };
-    }
+    const data = getDefaultComponentData(type);
 
     activeComponents.push({ id, type, data });
     saveToHistory();
@@ -1325,6 +1681,12 @@ const renderComponents = () => {
                 </div>
                 <div class="flex items-center" style="gap: 3px;">
                     ${offerHeaderControls}
+                    <button type="button" class="btn btn-ghost btn-sm reset-comp-btn" title="Reset styles to defaults">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"></path><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                    </button>
+                    <button type="button" class="btn btn-ghost btn-sm clear-comp-btn" title="Clear content">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
+                    </button>
                     <button type="button" class="btn btn-ghost btn-sm duplicate-comp-btn" title="Duplicate section">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                     </button>
@@ -1566,6 +1928,16 @@ const renderComponents = () => {
                 updateComponentData(comp.id, key, newVal);
                 btn.classList.toggle('active');
             });
+        });
+
+        item.querySelector('.reset-comp-btn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            resetComponentStyles(comp.id);
+        });
+
+        item.querySelector('.clear-comp-btn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            clearComponentContent(comp.id);
         });
 
         item.querySelector('.duplicate-comp-btn')?.addEventListener('click', (e) => {
@@ -2452,6 +2824,149 @@ const paddingControlsHtml = (data: Record<string, string>, paddingConfigs: { key
     return `<div class="grid grid-cols-3">${controls}</div>`;
 };
 
+const getDefaultFieldStyles = (compType: string, fieldKey: string, subOfferIndex?: number): Record<string, string> => {
+    switch (compType) {
+        case 'header':
+            return {
+                fontSize: designSettings.globalFontSize || '18',
+                textColor: designSettings.globalBodyColor || '#1d1d1f',
+                backgroundColor: 'transparent',
+                fontWeight: 'bold',
+                fontStyle: 'normal',
+                textAlign: 'center',
+                paddingTop: '15', paddingBottom: '15', paddingLeftRight: '15'
+            };
+        case 'text_block':
+            return {
+                fontSize: designSettings.globalFontSize || '12',
+                textColor: designSettings.globalBodyColor || '#3c3c43',
+                backgroundColor: 'transparent',
+                fontWeight: 'normal',
+                fontStyle: 'normal',
+                textAlign: 'left',
+                paddingTop: '8', paddingBottom: '8', paddingLeftRight: '15'
+            };
+        case 'disclaimers':
+            return {
+                fontSize: '9',
+                textColor: '#86868b',
+                backgroundColor: 'transparent',
+                fontWeight: 'normal',
+                fontStyle: 'normal',
+                textAlign: 'center',
+                paddingTop: '12', paddingBottom: '12', paddingLeftRight: '15'
+            };
+        case 'button':
+            return {
+                fontSize: '12',
+                textColor: '#ffffff',
+                backgroundColor: designSettings.globalLinkColor || '#007aff',
+                align: 'center',
+                paddingTop: '9', paddingBottom: '9', paddingLeftRight: '15',
+                widthType: 'auto'
+            };
+        case 'divider':
+            return {
+                width: '100', thickness: '1', lineColor: '#CCCCCC',
+                alignment: 'center',
+                paddingTop: '12', paddingBottom: '12', paddingLeftRight: '0'
+            };
+        case 'spacer':
+            return {
+                height: '30', backgroundColor: 'transparent', matchEmailBackground: 'true'
+            };
+        case 'image':
+            return {
+                width: '100%', align: 'center',
+                paddingTop: '0', paddingBottom: '0', paddingLeftRight: '0'
+            };
+        case 'service_offer': {
+            const suffix = fieldKey.endsWith('2') ? '2' : '';
+            const baseKey = fieldKey.replace(/2$/, '');
+            switch (baseKey) {
+                case 'serviceOfferTitle': {
+                    const p = 'title';
+                    return {
+                        [`${p}FontSize${suffix}`]: '18', [`${p}FontWeight${suffix}`]: 'bold', [`${p}FontStyle${suffix}`]: 'normal',
+                        [`${p}TextColor${suffix}`]: '#000000', [`${p}BgColor${suffix}`]: 'transparent', [`${p}Alignment${suffix}`]: 'center',
+                        [`${p}PaddingTop${suffix}`]: '8', [`${p}PaddingBottom${suffix}`]: '8', [`${p}PaddingLeftRight${suffix}`]: '0'
+                    };
+                }
+                case 'serviceOfferCoupon': {
+                    const p = 'coupon';
+                    return {
+                        [`${p}FontSize${suffix}`]: '15', [`${p}FontWeight${suffix}`]: 'bold', [`${p}FontStyle${suffix}`]: 'normal',
+                        [`${p}TextColor${suffix}`]: '#0066FF', [`${p}BgColor${suffix}`]: '#F0F7FF', [`${p}Alignment${suffix}`]: 'center',
+                        [`${p}PaddingTop${suffix}`]: '6', [`${p}PaddingBottom${suffix}`]: '6', [`${p}PaddingLeftRight${suffix}`]: '12'
+                    };
+                }
+                case 'serviceOfferDetails': {
+                    const p = 'details';
+                    return {
+                        [`${p}FontSize${suffix}`]: '12', [`${p}FontWeight${suffix}`]: 'normal', [`${p}FontStyle${suffix}`]: 'normal',
+                        [`${p}TextColor${suffix}`]: '#333333', [`${p}BgColor${suffix}`]: 'transparent', [`${p}Alignment${suffix}`]: 'center',
+                        [`${p}PaddingTop${suffix}`]: '9', [`${p}PaddingBottom${suffix}`]: '9', [`${p}PaddingLeftRight${suffix}`]: '0'
+                    };
+                }
+                case 'serviceOfferDisclaimer': {
+                    const p = 'disclaimer';
+                    return {
+                        [`${p}FontSize${suffix}`]: '9', [`${p}FontWeight${suffix}`]: 'normal', [`${p}FontStyle${suffix}`]: 'normal',
+                        [`${p}TextColor${suffix}`]: '#666666', [`${p}BgColor${suffix}`]: 'transparent', [`${p}Alignment${suffix}`]: 'center',
+                        [`${p}PaddingTop${suffix}`]: '6', [`${p}PaddingBottom${suffix}`]: '6', [`${p}PaddingLeftRight${suffix}`]: '0'
+                    };
+                }
+                case 'serviceOfferButton':
+                    return {
+                        [`buttonFontSize${suffix}`]: '12', [`buttonAlignment${suffix}`]: 'center',
+                        [`buttonBgColor${suffix}`]: '#0066FF', [`buttonTextColor${suffix}`]: '#FFFFFF',
+                        [`buttonPaddingTop${suffix}`]: '9', [`buttonPaddingBottom${suffix}`]: '9', [`buttonPaddingLeftRight${suffix}`]: '15',
+                        [`buttonWidth${suffix}`]: 'auto'
+                    };
+                case 'serviceOfferImage':
+                    return {
+                        [`imageWidth${suffix}`]: '100', [`imageAlignment${suffix}`]: 'center',
+                        [`imagePaddingTop${suffix}`]: '8', [`imagePaddingBottom${suffix}`]: '8'
+                    };
+                default: return {};
+            }
+        }
+        case 'sales_offer': {
+            const suffix = fieldKey.endsWith('2') ? '2' : '';
+            const prefix = fieldKey.replace(/2$/, '');
+
+            if (fieldKey.startsWith('salesOfferButton')) {
+                return {
+                    [`btnFontSize${suffix}`]: '12', [`btnPaddingTop${suffix}`]: '9', [`btnPaddingBottom${suffix}`]: '9', [`btnPaddingLeftRight${suffix}`]: '15',
+                    [`btnColor${suffix}`]: '#007aff', [`btnTextColor${suffix}`]: '#ffffff', [`btnAlign${suffix}`]: 'center', [`btnWidthType${suffix}`]: 'full'
+                };
+            }
+
+            const finalPrefix = prefix.replace(/2$/, '');
+            const keySuffix = subOfferIndex !== undefined ? '' : suffix;
+
+            const defaultsByPrefix: Record<string, Record<string, string>> = {
+                vehicle: { FontSize: '18', FontWeight: 'normal', FontStyle: 'normal', Color: '#1d1d1f', BgColor: 'transparent', TextAlign: 'center', PaddingTop: '0', PaddingBottom: '6', PaddingLeftRight: '0' },
+                mainOffer: { FontSize: '21', FontWeight: 'normal', FontStyle: 'normal', Color: '#007aff', BgColor: 'transparent', TextAlign: 'center', PaddingTop: '0', PaddingBottom: '6', PaddingLeftRight: '0' },
+                details: { FontSize: '12', FontWeight: 'normal', FontStyle: 'normal', Color: '#6e6e73', BgColor: 'transparent', TextAlign: 'center', PaddingTop: '0', PaddingBottom: '9', PaddingLeftRight: '0' },
+                stockVin: { FontSize: '12', FontWeight: 'normal', FontStyle: 'normal', Color: '#86868b', BgColor: 'transparent', TextAlign: 'center', PaddingTop: '8', PaddingBottom: '0', PaddingLeftRight: '0' },
+                mileage: { FontSize: '12', FontWeight: 'normal', FontStyle: 'normal', Color: '#86868b', BgColor: 'transparent', TextAlign: 'center', PaddingTop: '3', PaddingBottom: '0', PaddingLeftRight: '0' },
+                disclaimer: { FontSize: '9', FontWeight: 'normal', FontStyle: 'normal', Color: '#86868b', BgColor: 'transparent', TextAlign: 'center', PaddingTop: '12', PaddingBottom: '0', PaddingLeftRight: '0' }
+            };
+
+            const prefixDefaults = defaultsByPrefix[finalPrefix];
+            if (!prefixDefaults) return {};
+
+            const result: Record<string, string> = {};
+            for (const [prop, val] of Object.entries(prefixDefaults)) {
+                result[`${finalPrefix}${prop}${keySuffix}`] = val;
+            }
+            return result;
+        }
+        default: return {};
+    }
+};
+
 const renderStandardStylingPanel = (
     data: Record<string, string>,
     config: Record<string, any>,
@@ -2472,7 +2987,10 @@ const renderStandardStylingPanel = (
                 <span style="color: var(--label-tertiary); font-size: 9px; padding-bottom: 2px;">›</span>
                 <span style="font-size: 10px; font-weight: 600; color: var(--label-primary);">${activeField.fieldLabel}</span>
             </div>
-            <button type="button" id="close-styling-panel-btn" class="btn btn-ghost" style="width: 18px; height: 18px; padding: 0; border-radius: 50%; line-height: 1;">&times;</button>
+            <div style="display: flex; align-items: center; gap: 4px;">
+                <button type="button" id="reset-field-styles-btn" class="btn btn-ghost" style="font-size: 9px; padding: 2px 6px; border-radius: 4px; color: var(--label-secondary); line-height: 1;">Reset</button>
+                <button type="button" id="close-styling-panel-btn" class="btn btn-ghost" style="width: 18px; height: 18px; padding: 0; border-radius: 50%; line-height: 1;">&times;</button>
+            </div>
         </div>
         <div class="design-option-group" style="border-top: 1px solid var(--separator-secondary); padding-top: var(--spacing-md);">
     `;
@@ -2542,6 +3060,17 @@ const renderStandardStylingPanel = (
             activeField.element.classList.remove('field-active');
         }
         activeField = null;
+        renderStylingPanel();
+    });
+
+    dynamicStylingContainer.querySelector('#reset-field-styles-btn')?.addEventListener('click', () => {
+        if (!activeField) return;
+        const comp = activeComponents.find(c => c.id === activeField!.componentId);
+        if (!comp) return;
+        const defaults = getDefaultFieldStyles(comp.type, activeField.fieldKey, activeField.subOfferIndex);
+        for (const [key, value] of Object.entries(defaults)) {
+            updateFn(key, value);
+        }
         renderStylingPanel();
     });
 
@@ -3227,3 +3756,4 @@ initGlobalTextStyles();
 renderComponents();
 renderSavedTemplates();
 initKeyboardShortcuts();
+autocompleteDropdown = document.getElementById('autocomplete-dropdown');
