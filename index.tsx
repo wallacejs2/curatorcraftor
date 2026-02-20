@@ -189,6 +189,44 @@ const MERGE_FIELDS: MergeFieldGroup[] = [
   }
 ];
 
+interface FlatMergeFieldItem {
+  label: string;
+  value: string;
+  group: string;
+  subgroup?: string;
+  searchText: string;
+}
+
+const FLAT_MERGE_FIELDS: FlatMergeFieldItem[] = (() => {
+  const result: FlatMergeFieldItem[] = [];
+  MERGE_FIELDS.forEach(group => {
+    if (group.items) {
+      group.items.forEach(item => {
+        result.push({
+          label: item.label,
+          value: item.value,
+          group: group.title,
+          searchText: `${item.label} ${item.value}`.toLowerCase()
+        });
+      });
+    }
+    if (group.subgroups) {
+      group.subgroups.forEach(sub => {
+        sub.items.forEach(item => {
+          result.push({
+            label: item.label,
+            value: item.value,
+            group: group.title,
+            subgroup: sub.title,
+            searchText: `${item.label} ${item.value}`.toLowerCase()
+          });
+        });
+      });
+    }
+  });
+  return result;
+})();
+
 // Application State
 let designSettings: DesignSettings = {
   fontFamily: "'Arial', sans-serif",
@@ -397,6 +435,14 @@ mobileViewBtn?.addEventListener('click', () => {
 
 let lastFocusedInput: HTMLInputElement | HTMLTextAreaElement | null = null;
 
+// --- Autocomplete State ---
+let autocompleteDropdown: HTMLElement | null = null;
+let autocompleteVisible = false;
+let autocompleteSelectedIndex = -1;
+let autocompleteFilteredItems: FlatMergeFieldItem[] = [];
+let autocompleteTriggerStart = -1;
+let autocompleteTargetInput: HTMLInputElement | HTMLTextAreaElement | null = null;
+
 document.addEventListener('focusin', (e) => {
   const target = e.target as HTMLElement;
   const componentId = target.closest('.component-item')?.getAttribute('data-id');
@@ -450,6 +496,273 @@ const insertMergeField = (value: string) => {
         showToast('Please click a text field first to insert the merge field.', 'info');
     }
 };
+
+// --- Merge Field Autocomplete ---
+
+const filterMergeFields = (query: string): FlatMergeFieldItem[] => {
+  if (!query) return FLAT_MERGE_FIELDS;
+  const lowerQuery = query.toLowerCase().trim();
+  if (!lowerQuery) return FLAT_MERGE_FIELDS;
+  return FLAT_MERGE_FIELDS.filter(item => item.searchText.includes(lowerQuery));
+};
+
+const highlightMatch = (text: string, query: string): string => {
+  if (!query) return text;
+  const lowerText = text.toLowerCase();
+  const lowerQuery = query.toLowerCase();
+  const matchIndex = lowerText.indexOf(lowerQuery);
+  if (matchIndex === -1) return text;
+  const before = text.substring(0, matchIndex);
+  const match = text.substring(matchIndex, matchIndex + query.length);
+  const after = text.substring(matchIndex + query.length);
+  return `${before}<span class="match-highlight">${match}</span>${after}`;
+};
+
+const positionAutocomplete = (inputEl: HTMLInputElement | HTMLTextAreaElement) => {
+  if (!autocompleteDropdown) return;
+  const rect = inputEl.getBoundingClientRect();
+  const dropdownHeight = 350;
+  const viewportHeight = window.innerHeight;
+
+  let top = rect.bottom + window.scrollY + 4;
+  let left = rect.left + window.scrollX;
+
+  if (rect.bottom + dropdownHeight > viewportHeight) {
+    top = rect.top + window.scrollY - dropdownHeight - 4;
+  }
+
+  const dropdownWidth = 300;
+  if (left + dropdownWidth > window.innerWidth) {
+    left = window.innerWidth - dropdownWidth - 8;
+  }
+
+  autocompleteDropdown.style.top = `${top}px`;
+  autocompleteDropdown.style.left = `${left}px`;
+};
+
+const renderAutocompleteDropdown = (items: FlatMergeFieldItem[], query: string) => {
+  if (!autocompleteDropdown) {
+    autocompleteDropdown = document.getElementById('autocomplete-dropdown');
+  }
+  if (!autocompleteDropdown) return;
+
+  if (items.length === 0) {
+    hideAutocomplete();
+    return;
+  }
+
+  let html = '<div class="autocomplete-list">';
+  let currentGroup = '';
+  let itemIndex = 0;
+
+  items.forEach((item) => {
+    const groupKey = item.subgroup ? `${item.group} \u203A ${item.subgroup}` : item.group;
+    if (groupKey !== currentGroup) {
+      currentGroup = groupKey;
+      html += `<div class="autocomplete-group-header">${groupKey}</div>`;
+    }
+
+    const highlightedLabel = highlightMatch(item.label, query);
+    const selectedClass = itemIndex === autocompleteSelectedIndex ? ' selected' : '';
+
+    html += `<div class="autocomplete-item${selectedClass}" data-index="${itemIndex}">
+      <span class="autocomplete-item-name">${highlightedLabel}</span>
+    </div>`;
+    itemIndex++;
+  });
+
+  html += '</div>';
+  html += `<div class="autocomplete-footer">
+    <span><kbd>\u2191</kbd><kbd>\u2193</kbd> navigate</span>
+    <span><kbd>Enter</kbd> select</span>
+    <span><kbd>Esc</kbd> close</span>
+  </div>`;
+
+  autocompleteDropdown.innerHTML = html;
+
+  autocompleteDropdown.querySelectorAll('.autocomplete-item').forEach(el => {
+    el.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      const idx = parseInt((el as HTMLElement).dataset.index || '0');
+      selectAutocompleteItem(idx);
+    });
+  });
+};
+
+const showAutocomplete = (inputEl: HTMLInputElement | HTMLTextAreaElement) => {
+  if (!autocompleteDropdown) {
+    autocompleteDropdown = document.getElementById('autocomplete-dropdown');
+  }
+  if (!autocompleteDropdown) return;
+  autocompleteTargetInput = inputEl;
+  positionAutocomplete(inputEl);
+  autocompleteDropdown.classList.add('visible');
+  autocompleteVisible = true;
+};
+
+const hideAutocomplete = () => {
+  if (!autocompleteDropdown) return;
+  autocompleteDropdown.classList.remove('visible');
+  autocompleteVisible = false;
+  autocompleteSelectedIndex = -1;
+  autocompleteTriggerStart = -1;
+  autocompleteTargetInput = null;
+  autocompleteFilteredItems = [];
+};
+
+const selectAutocompleteItem = (index: number) => {
+  const item = autocompleteFilteredItems[index];
+  if (!item || !autocompleteTargetInput) return;
+  if (!document.contains(autocompleteTargetInput)) {
+    hideAutocomplete();
+    return;
+  }
+
+  const input = autocompleteTargetInput;
+  const text = input.value;
+  const cursorPos = input.selectionStart || 0;
+
+  const before = text.substring(0, autocompleteTriggerStart);
+  const after = text.substring(cursorPos);
+
+  input.value = before + item.value + after;
+
+  const newCursorPos = autocompleteTriggerStart + item.value.length;
+  input.selectionStart = input.selectionEnd = newCursorPos;
+  input.focus();
+
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+  hideAutocomplete();
+};
+
+const updateAutocompleteSelection = () => {
+  if (!autocompleteDropdown) return;
+  const items = autocompleteDropdown.querySelectorAll('.autocomplete-item');
+  items.forEach((el, i) => {
+    el.classList.toggle('selected', i === autocompleteSelectedIndex);
+  });
+  const selectedEl = items[autocompleteSelectedIndex] as HTMLElement;
+  if (selectedEl) {
+    selectedEl.scrollIntoView({ block: 'nearest' });
+  }
+};
+
+// Autocomplete: detect '{{' trigger on input
+document.addEventListener('input', (e) => {
+  const target = e.target as HTMLElement;
+  if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') return;
+
+  const input = target as HTMLInputElement | HTMLTextAreaElement;
+  const cursorPos = input.selectionStart;
+  if (cursorPos === null) return;
+
+  const text = input.value;
+  const textBeforeCursor = text.substring(0, cursorPos);
+
+  const lastTrigger = textBeforeCursor.lastIndexOf('{{');
+
+  if (lastTrigger === -1) {
+    if (autocompleteVisible) hideAutocomplete();
+    return;
+  }
+
+  const textAfterTrigger = textBeforeCursor.substring(lastTrigger);
+  if (textAfterTrigger.includes('}}')) {
+    if (autocompleteVisible) hideAutocomplete();
+    return;
+  }
+
+  const query = textBeforeCursor.substring(lastTrigger + 2);
+
+  autocompleteTriggerStart = lastTrigger;
+  autocompleteFilteredItems = filterMergeFields(query);
+  autocompleteSelectedIndex = 0;
+
+  if (autocompleteFilteredItems.length > 0) {
+    renderAutocompleteDropdown(autocompleteFilteredItems, query);
+    showAutocomplete(input);
+  } else {
+    hideAutocomplete();
+  }
+});
+
+// Autocomplete: keyboard navigation (capture phase to intercept before global handler)
+document.addEventListener('keydown', (e) => {
+  if (!autocompleteVisible) return;
+
+  switch (e.key) {
+    case 'ArrowDown':
+      e.preventDefault();
+      e.stopPropagation();
+      autocompleteSelectedIndex = (autocompleteSelectedIndex + 1) % autocompleteFilteredItems.length;
+      updateAutocompleteSelection();
+      break;
+
+    case 'ArrowUp':
+      e.preventDefault();
+      e.stopPropagation();
+      autocompleteSelectedIndex = (autocompleteSelectedIndex - 1 + autocompleteFilteredItems.length) % autocompleteFilteredItems.length;
+      updateAutocompleteSelection();
+      break;
+
+    case 'Enter':
+      e.preventDefault();
+      e.stopPropagation();
+      if (autocompleteSelectedIndex >= 0) {
+        selectAutocompleteItem(autocompleteSelectedIndex);
+      }
+      break;
+
+    case 'Escape':
+      e.preventDefault();
+      e.stopPropagation();
+      hideAutocomplete();
+      break;
+
+    case 'Tab':
+      hideAutocomplete();
+      break;
+  }
+}, true);
+
+// Autocomplete: close on outside click
+document.addEventListener('mousedown', (e) => {
+  if (!autocompleteVisible) return;
+  if (!autocompleteDropdown) return;
+
+  const target = e.target as HTMLElement;
+  if (autocompleteDropdown.contains(target)) return;
+  if (target === autocompleteTargetInput) return;
+
+  hideAutocomplete();
+});
+
+// Autocomplete: close on blur (with delay to allow dropdown mousedown)
+document.addEventListener('focusout', (e) => {
+  if (!autocompleteVisible) return;
+  const target = e.target as HTMLElement;
+  if (target !== autocompleteTargetInput) return;
+
+  setTimeout(() => {
+    const activeEl = document.activeElement;
+    if (activeEl !== autocompleteTargetInput) {
+      hideAutocomplete();
+    }
+  }, 150);
+});
+
+// Autocomplete: reposition on scroll/resize
+window.addEventListener('scroll', () => {
+  if (autocompleteVisible && autocompleteTargetInput) {
+    positionAutocomplete(autocompleteTargetInput);
+  }
+}, true);
+
+window.addEventListener('resize', () => {
+  if (autocompleteVisible && autocompleteTargetInput) {
+    positionAutocomplete(autocompleteTargetInput);
+  }
+});
 
 const renderMergeFieldsSidebar = () => {
     if (!mergeFieldsSidebar) return;
@@ -3227,3 +3540,4 @@ initGlobalTextStyles();
 renderComponents();
 renderSavedTemplates();
 initKeyboardShortcuts();
+autocompleteDropdown = document.getElementById('autocomplete-dropdown');
