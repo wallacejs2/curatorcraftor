@@ -203,32 +203,24 @@
             </div>
           </section>
 
-          <section class="grid grid-cols-2" id="output-container" style="display: none;">
+          <section class="grid grid-cols-1" id="output-container" style="display: none;">
             <div class="card">
               <div class="card-header">
                 <h3 class="text-xl">Preview</h3>
-                <div class="toggle-group">
-                  <button id="desktop-view-btn" class="toggle-btn active" data-view="desktop">Desktop</button>
-                  <button id="mobile-view-btn" class="toggle-btn" data-view="mobile">Mobile</button>
+                <div class="flex gap-2" style="align-items: center;">
+                  <div class="toggle-group">
+                    <button id="desktop-view-btn" class="toggle-btn active" data-view="desktop">Desktop</button>
+                    <button id="mobile-view-btn" class="toggle-btn" data-view="mobile">Mobile</button>
+                  </div>
+                  <button id="download-btn" class="btn btn-secondary btn-sm">Download HTML</button>
+                  <button id="copy-btn" class="btn btn-primary btn-sm">Copy HTML</button>
                 </div>
               </div>
               <div class="preview-container">
                 <iframe id="preview-pane" title="Email Preview" class="preview-frame desktop" sandbox="allow-same-origin"></iframe>
               </div>
             </div>
-            
-            <div class="card">
-              <div class="card-header">
-                <h3 class="text-xl">HTML Code</h3>
-                <div class="flex gap-2">
-                  <button id="download-btn" class="btn btn-secondary btn-sm">Download HTML</button>
-                  <button id="copy-btn" class="btn btn-primary btn-sm">Copy HTML</button>
-                </div>
-              </div>
-              <div class="code-container">
-                <pre><code id="code-block" class="code-block"></code></pre>
-              </div>
-            </div>
+            <div style="display:none;"><pre><code id="code-block"></code></pre></div>
           </section>
 
           <section class="card" id="output-placeholder">
