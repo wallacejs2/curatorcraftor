@@ -628,6 +628,20 @@ const addNewComponent = (type: string) => {
             backgroundColor: 'transparent',
             matchEmailBackground: 'true',
         };
+    } else if (type === 'disclaimers') {
+        data = {
+            text: '*Terms and conditions apply. See dealer for details.',
+            fontSize: '9',
+            textColor: '#86868b',
+            backgroundColor: 'transparent',
+            fontWeight: 'normal',
+            fontStyle: 'normal',
+            textDecoration: 'none',
+            textAlign: 'center',
+            paddingTop: '12',
+            paddingBottom: '12',
+            paddingLeftRight: '15'
+        };
     } else if (type === 'service_offer') {
         data = {
             layout: 'single',
@@ -1070,6 +1084,7 @@ const renderComponents = () => {
         switch (comp.type) {
             case 'header':
             case 'text_block':
+            case 'disclaimers':
                 sourceFieldKey = 'text';
                 break;
             case 'image':
@@ -1105,6 +1120,13 @@ const renderComponents = () => {
                 <div class="form-group">
                     <label class="form-label">Text Content</label>
                     <textarea class="form-control" data-key="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="textBlock" data-field-label="Text Block Content">${comp.data.text || ''}</textarea>
+                </div>
+            `;
+        } else if (comp.type === 'disclaimers') {
+            componentFormHtml = `
+                <div class="form-group">
+                    <label class="form-label">Disclaimer Text</label>
+                    <textarea class="form-control" data-key="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="disclaimers" data-field-label="Disclaimer Text">${comp.data.text || ''}</textarea>
                 </div>
             `;
         } else if (comp.type === 'image') {
@@ -1243,6 +1265,7 @@ const renderComponents = () => {
             spacer: 'expand_all',
             service_offer: 'handyman',
             sales_offer: 'sell',
+            disclaimers: 'contract',
         };
         const typeIcon = componentTypeIcons[comp.type] || 'widgets';
 
@@ -1643,7 +1666,7 @@ function generateEmailHtml(): string {
     const d = comp.data || {};
     const isTransparent = d.backgroundColor === 'transparent';
     
-    if (comp.type === 'header' || comp.type === 'text_block') {
+    if (comp.type === 'header' || comp.type === 'text_block' || comp.type === 'disclaimers') {
       const styles = [
           `padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px`,
           `background-color: ${d.backgroundColor || 'transparent'}`,
@@ -2615,6 +2638,7 @@ const renderStylingPanel = () => {
     switch (comp.type) {
         case 'header':
         case 'text_block':
+        case 'disclaimers':
             renderStandardStylingPanel(comp.data, {
                 typography: { fontSize: 'fontSize', fontWeight: 'fontWeight', fontStyle: 'fontStyle'},
                 colors: [
@@ -2623,7 +2647,7 @@ const renderStylingPanel = () => {
                 ],
                 alignment: { textAlign: 'textAlign'},
                 padding: [
-                    {key: 'paddingTop', label: 'Padding T'}, 
+                    {key: 'paddingTop', label: 'Padding T'},
                     {key: 'paddingBottom', label: 'Padding B'},
                     {key: 'paddingLeftRight', label: 'Padding L/R'}
                 ]
@@ -3048,6 +3072,9 @@ const propagateBodyColor = (color: string) => {
     activeComponents.forEach(comp => {
         if (['header', 'text_block'].includes(comp.type)) {
             comp.data.textColor = color;
+        }
+        if (comp.type === 'disclaimers') {
+            comp.data.textColor = tertiary;
         }
         if (comp.type === 'sales_offer') {
             ['', '2'].forEach(sfx => {
