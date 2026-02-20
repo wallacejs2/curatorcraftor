@@ -1605,3 +1605,25 @@ textarea.form-control.compact {
   border-radius: 0;
   border: none;
 }
+
+/* --- Component Library --- */
+.library-type-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--fill-tertiary);
+  color: var(--label-secondary);
+  line-height: 1.4;
+}
+
+.library-item {
+  transition: background var(--transition-fast);
+}
+
+.library-item:hover {
+  background: var(--fill-tertiary) !important;
+}
