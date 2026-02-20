@@ -823,7 +823,7 @@ const renderMergeFieldsSidebar = () => {
         if (group.subgroups) {
             group.subgroups.forEach(sub => {
                 const subHeader = document.createElement('div');
-                subHeader.style.cssText = 'font-size: 9px; font-weight: 700; color: var(--label-tertiary); margin-top: 9px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em;';
+                subHeader.style.cssText = 'font-size: 9px; font-weight: 700; color: var(--label-tertiary); margin-top: var(--spacing-sm); margin-bottom: var(--spacing-xs); text-transform: uppercase; letter-spacing: 0.05em;';
                 subHeader.textContent = sub.title;
                 content.appendChild(subHeader);
                 sub.items.forEach(item => content.appendChild(createItemEl(item)));
@@ -1404,7 +1404,7 @@ const renderComponents = () => {
     componentsContainer.innerHTML = '';
     if (activeComponents.length === 0) {
         componentsContainer.innerHTML = `
-            <div id="empty-state-message" style="text-align: center; padding: 30px 15px; border: 2px dashed var(--separator-primary); border-radius: var(--radius-lg); color: var(--label-secondary);">
+            <div id="empty-state-message" style="text-align: center; padding: var(--spacing-2xl) var(--spacing-lg); border: 2px dashed var(--separator-primary); border-radius: var(--radius-lg); color: var(--label-secondary);">
                 <p>No sections added yet. Click "+ Add Section" to begin.</p>
             </div>
         `;
@@ -2616,7 +2616,7 @@ const renderSavedTemplates = () => {
     }
     savedTemplatesList.innerHTML = templates.map(t => `
         <div class="card" style="margin-bottom: 6px; background: var(--background-secondary);">
-            <div class="card-body" style="padding: 9px; display: flex; justify-content: space-between; align-items: center;">
+            <div class="card-body" style="padding: var(--spacing-sm) var(--spacing-md); display: flex; justify-content: space-between; align-items: center;">
                 <div>
                     <h4 class="text-base font-bold">${t.name}</h4>
                     <p class="text-xs" style="color: var(--label-tertiary);">${new Date(t.createdAt).toLocaleString()}</p>
@@ -2983,9 +2983,9 @@ const renderStandardStylingPanel = (
     let html = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
             <div style="display: flex; align-items: center; gap: 3px;">
-                <span style="font-size: 8px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--label-tertiary);">${formattedCompType}</span>
+                <span style="font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--label-tertiary);">${formattedCompType}</span>
                 <span style="color: var(--label-tertiary); font-size: 9px; padding-bottom: 2px;">›</span>
-                <span style="font-size: 10px; font-weight: 600; color: var(--label-primary);">${activeField.fieldLabel}</span>
+                <span style="font-size: 11px; font-weight: 600; color: var(--label-primary);">${activeField.fieldLabel}</span>
             </div>
             <div style="display: flex; align-items: center; gap: 4px;">
                 <button type="button" id="reset-field-styles-btn" class="btn btn-ghost" style="font-size: 9px; padding: 2px 6px; border-radius: 4px; color: var(--label-secondary); line-height: 1;">Reset</button>

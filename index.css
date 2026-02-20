@@ -16,7 +16,7 @@
   --system-green: #34c759;
   --system-green-dark: #2ca34a;
   
-  --font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
   --font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
   
   --spacing-xs: 4px;
@@ -480,7 +480,7 @@ textarea.form-control.compact {
 }
 
 .compact-offer-header span {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
     color: var(--label-tertiary);
     text-transform: uppercase;
@@ -668,7 +668,7 @@ textarea.form-control.compact {
 .button-style-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: var(--spacing-md);
 }
 .button-style-option {
   cursor: pointer;
@@ -699,10 +699,10 @@ textarea.form-control.compact {
   border: 1px solid transparent;
 }
 .design-option-group {
-  margin-bottom: 24px;
+  margin-bottom: var(--spacing-xl);
 }
 .design-option-group h4 {
-  margin-bottom: 12px;
+  margin-bottom: var(--spacing-md);
   font-size: 14px;
 }
 
@@ -758,14 +758,14 @@ textarea.form-control.compact {
 
 /* Sidebar Merge Fields */
 .sidebar-group {
-  margin-bottom: 16px;
+  margin-bottom: var(--spacing-lg);
   border-bottom: 1px solid var(--separator-secondary);
-  padding-bottom: 8px;
+  padding-bottom: var(--spacing-sm);
 }
 .sidebar-group summary {
   font-weight: 600;
-  font-size: 14px;
-  margin-bottom: 8px;
+  font-size: 13px;
+  margin-bottom: var(--spacing-sm);
   cursor: pointer;
   list-style: none;
   display: flex;
@@ -773,10 +773,10 @@ textarea.form-control.compact {
   align-items: center;
 }
 .merge-field-item {
-  padding: 8px 12px;
+  padding: var(--spacing-sm) var(--spacing-md);
   background: var(--background-secondary);
-  border-radius: 5px;
-  margin-bottom: 4px;
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--spacing-xs);
   font-size: 13px;
   cursor: pointer;
   transition: background 0.2s;
@@ -944,8 +944,8 @@ textarea.form-control.compact {
 
 .merge-fields-sidebar.open { transform: translateX(0); }
 
-.sidebar-header { padding: 20px; border-bottom: 1px solid var(--separator-secondary); display: flex; justify-content: space-between; align-items: center; }
-.sidebar-content { flex: 1; overflow-y: auto; padding: 20px; }
+.sidebar-header { padding: var(--spacing-xl); border-bottom: 1px solid var(--separator-secondary); display: flex; justify-content: space-between; align-items: center; }
+.sidebar-content { flex: 1; overflow-y: auto; padding: var(--spacing-xl); }
 .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.2); z-index: 1000; visibility: hidden; opacity: 0; transition: all 0.3s; }
 .sidebar-overlay.visible { visibility: visible; opacity: 1; }
 
@@ -989,9 +989,9 @@ textarea.form-control.compact {
   pointer-events: auto;
   transition-delay: 0s;
 }
-.quick-picker-modal { background: white; width: 400px; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.2); }
-.quick-picker-header { padding: 16px; border-bottom: 1px solid var(--separator-secondary); display: flex; justify-content: space-between; align-items: center; }
-.quick-picker-content { padding: 16px; overflow-y: auto; max-height: 400px; }
+.quick-picker-modal { background: white; width: 400px; border-radius: var(--radius-lg); overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.2); }
+.quick-picker-header { padding: var(--spacing-lg); border-bottom: 1px solid var(--separator-secondary); display: flex; justify-content: space-between; align-items: center; }
+.quick-picker-content { padding: var(--spacing-lg); overflow-y: auto; max-height: 400px; }
 
 /* Custom Overrides for Polish */
 .remove-comp-btn, .remove-sub-offer {
@@ -1097,19 +1097,19 @@ textarea.form-control.compact {
   box-shadow: 0 10px 40px rgba(0,0,0,0.2);
 }
 .shortcuts-header {
-  padding: 16px;
+  padding: var(--spacing-lg);
   border-bottom: 1px solid var(--separator-secondary);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 .shortcuts-content {
-  padding: 16px;
+  padding: var(--spacing-lg);
   overflow-y: auto;
   max-height: 70vh;
 }
 .shortcut-category {
-  margin-bottom: 24px;
+  margin-bottom: var(--spacing-xl);
 }
 .shortcut-category h4 {
   font-size: 13px;
@@ -1117,8 +1117,8 @@ textarea.form-control.compact {
   color: var(--label-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
   border-bottom: 1px solid var(--separator-secondary);
 }
 .shortcut-item {
@@ -1194,10 +1194,10 @@ textarea.form-control.compact {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
+  padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
 }
 .autocomplete-item:hover {
   background-color: var(--background-secondary);
@@ -1360,7 +1360,7 @@ textarea.form-control.compact {
 .button-style-stack {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--spacing-sm);
 }
 .button-style-stack .button-style-option {
   padding: var(--spacing-xs) var(--spacing-sm);
