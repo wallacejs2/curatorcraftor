@@ -121,6 +121,7 @@ const CONTENT_KEYS: Record<string, string[]> = {
         'stockVinType2', 'stockVinValue2', 'mileageValue2',
         'disclaimerText2', 'additionalOffers2', 'btnText2', 'btnLink2',
     ],
+    footer: ['links'],
 };
 const STRUCTURAL_KEYS = ['layout', 'textLayout'];
 
@@ -1097,6 +1098,23 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 paddingTop: '15', paddingBottom: '15', paddingLeftRight: '15', backgroundColor: '#ffffff',
                 textLayout: 'center'
             };
+        case 'footer':
+            return {
+                layout: 'inline',
+                links: JSON.stringify([
+                    { text: 'Privacy Policy', url: '{{dealership.tracked_website_homepage_url}}' },
+                    { text: 'Unsubscribe', url: '{{unsubscribe_url}}' },
+                    { text: 'Contact Us', url: '{{dealership.tracked_website_homepage_url}}' },
+                ]),
+                fontSize: '12',
+                textColor: designSettings.globalLinkColor || '#007aff',
+                backgroundColor: 'transparent',
+                separatorColor: '#c7c7cc',
+                paddingTop: '15',
+                paddingBottom: '15',
+                paddingLeftRight: '15',
+                linkSpacing: '12',
+            };
         default:
             return {};
     }
@@ -1133,7 +1151,7 @@ const clearComponentContent = (id: string) => {
     for (const key of contentKeys) {
         if (!(key in comp.data)) continue;
 
-        if (key === 'additionalOffers' || key === 'additionalOffers2') {
+        if (key === 'additionalOffers' || key === 'additionalOffers2' || key === 'links') {
             comp.data[key] = '[]';
         } else if (key === 'showImage' || key === 'showImage2' || key === 'imageEnabled' || key === 'imageEnabled2') {
             comp.data[key] = 'false';
@@ -1464,6 +1482,7 @@ const COMPONENT_TYPE_ICONS: Record<string, string> = {
     service_offer: 'handyman',
     sales_offer: 'sell',
     disclaimers: 'contract',
+    footer: 'link',
 };
 
 const getComponentTypeIcon = (type: string): string => COMPONENT_TYPE_ICONS[type] || 'widgets';
@@ -1519,6 +1538,9 @@ const renderComponents = () => {
                 break;
             case 'button':
                 sourceFieldKey = 'text';
+                break;
+            case 'footer':
+                sourceFieldKey = null;
                 break;
             case 'sales_offer':
                 sourceFieldKey = 'vehicleText';
@@ -1589,6 +1611,54 @@ const renderComponents = () => {
                         <input type="text" class="form-control compact" data-key="link" data-stylable="true" data-component-id="${comp.id}" data-field-key="button" data-field-label="Button Link" value="${comp.data.link || ''}" placeholder="https://example.com">
                     </div>
                 </div>
+            `;
+        } else if (comp.type === 'footer') {
+            let footerLinks: {text: string; url: string}[] = [];
+            try { footerLinks = JSON.parse(comp.data.links || '[]'); } catch { footerLinks = []; }
+
+            const layoutToggle = `
+                <div class="component-row" style="margin-bottom: 8px;">
+                    <div class="component-row-item" style="flex: 1;">
+                        <label class="form-label">Layout</label>
+                        <div class="footer-layout-toggle">
+                            <button type="button" class="footer-layout-btn ${comp.data.layout === 'inline' ? 'active' : ''}" data-key="layout" data-value="inline" title="Side by Side">
+                                <span class="material-symbols-rounded" style="font-size: 16px;">view_column</span> Inline
+                            </button>
+                            <button type="button" class="footer-layout-btn ${comp.data.layout === 'stacked' ? 'active' : ''}" data-key="layout" data-value="stacked" title="Stacked">
+                                <span class="material-symbols-rounded" style="font-size: 16px;">view_agenda</span> Stacked
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const linksHtml = footerLinks.map((link, i) => `
+                <div class="footer-link-item" data-link-index="${i}">
+                    <div class="footer-link-fields">
+                        <div class="component-row">
+                            <div class="component-row-item">
+                                <label class="form-label">Text</label>
+                                <input type="text" class="form-control compact footer-link-field" data-link-index="${i}" data-link-field="text" value="${link.text || ''}" placeholder="Link text">
+                            </div>
+                            <div class="component-row-item">
+                                <label class="form-label">URL</label>
+                                <input type="text" class="form-control compact footer-link-field" data-link-index="${i}" data-link-field="url" value="${link.url || ''}" placeholder="https://...">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-ghost btn-sm remove-footer-link" data-link-index="${i}" title="Remove" style="color: var(--destructive); flex-shrink: 0; padding: 2px;">
+                        <span class="material-symbols-rounded" style="font-size: 16px;">close</span>
+                    </button>
+                </div>
+            `).join('');
+
+            componentFormHtml = `
+                ${layoutToggle}
+                <div class="footer-links-list">${linksHtml}</div>
+                <button type="button" class="add-footer-link-btn">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Add Footer Link
+                </button>
             `;
         } else if (comp.type === 'divider') {
             componentFormHtml = `
@@ -1876,8 +1946,55 @@ const renderComponents = () => {
             });
         }
 
+        if (comp.type === 'footer') {
+            // Layout toggle
+            item.querySelectorAll('.footer-layout-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const value = (btn as HTMLElement).dataset.value || 'inline';
+                    updateComponentData(comp.id, 'layout', value);
+                    renderComponents();
+                });
+            });
+
+            // Add footer link
+            item.querySelectorAll('.add-footer-link-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const current = JSON.parse(comp.data.links || '[]');
+                    current.push({ text: 'New Link', url: '' });
+                    updateComponentData(comp.id, 'links', JSON.stringify(current));
+                    renderComponents();
+                });
+            });
+
+            // Remove footer link
+            item.querySelectorAll('.remove-footer-link').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const idx = parseInt(btn.getAttribute('data-link-index') || '0');
+                    const current = JSON.parse(comp.data.links || '[]');
+                    current.splice(idx, 1);
+                    updateComponentData(comp.id, 'links', JSON.stringify(current));
+                    renderComponents();
+                });
+            });
+
+            // Edit footer link fields
+            item.querySelectorAll('.footer-link-field').forEach(input => {
+                input.addEventListener('input', (e: any) => {
+                    const target = e.target;
+                    const idx = parseInt(target.getAttribute('data-link-index') || '0');
+                    const field = target.getAttribute('data-link-field');
+                    if (!field) return;
+                    const current = JSON.parse(comp.data.links || '[]');
+                    if (current[idx]) {
+                        current[idx][field] = target.value;
+                        updateComponentData(comp.id, 'links', JSON.stringify(current));
+                    }
+                });
+            });
+        }
+
         item.querySelectorAll('input, textarea, select, button.layout-toggle, button.text-layout-toggle').forEach(input => {
-            if (!input.classList.contains('sub-offer-field')) {
+            if (!input.classList.contains('sub-offer-field') && !input.classList.contains('footer-link-field')) {
                 const eventType = (input.tagName === 'BUTTON' || (input as HTMLInputElement).type === 'checkbox') ? 'click' : 'input';
                 input.addEventListener(eventType, (e) => {
                     const target = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | HTMLButtonElement;
@@ -2169,6 +2286,54 @@ function generateEmailHtml(): string {
                 </td>
             </tr>
         `;
+    } else if (comp.type === 'footer') {
+        let footerLinks: {text: string; url: string}[] = [];
+        try { footerLinks = JSON.parse(d.links || '[]'); } catch { footerLinks = []; }
+        const isStacked = d.layout === 'stacked';
+        const linkColor = d.textColor || '#007aff';
+        const separatorColor = d.separatorColor || '#c7c7cc';
+        const fontSize = d.fontSize || '12';
+        const spacing = parseInt(d.linkSpacing || '12');
+        const bgColor = d.backgroundColor || 'transparent';
+        const isTransparentBg = bgColor === 'transparent';
+
+        const linkStyle = `color: ${linkColor}; text-decoration: none; font-size: ${fontSize}px; font-family: ${designSettings.fontFamily}; line-height: 1.4;`;
+
+        if (isStacked) {
+            const linksHtml = footerLinks.map((link, i) => {
+                let html = `<tr><td align="center" style="padding: ${i === 0 ? 0 : spacing}px 0 0 0;"><a href="${DOMPurify.sanitize(link.url || '#')}" target="_blank" style="${linkStyle}">${DOMPurify.sanitize(link.text || '')}</a></td></tr>`;
+                return html;
+            }).join('');
+
+            sectionsHtml += `
+                <tr>
+                    <td align="center" ${!isTransparentBg ? `bgcolor="${bgColor}"` : ''} style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
+                        <table border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
+                            ${linksHtml}
+                        </table>
+                    </td>
+                </tr>
+            `;
+        } else {
+            const linksHtml = footerLinks.map((link, i) => {
+                let html = '';
+                if (i > 0) {
+                    html += `<td style="padding: 0 ${spacing}px; color: ${separatorColor}; font-size: ${fontSize}px; line-height: 1;">·</td>`;
+                }
+                html += `<td><a href="${DOMPurify.sanitize(link.url || '#')}" target="_blank" style="${linkStyle}">${DOMPurify.sanitize(link.text || '')}</a></td>`;
+                return html;
+            }).join('');
+
+            sectionsHtml += `
+                <tr>
+                    <td align="center" ${!isTransparentBg ? `bgcolor="${bgColor}"` : ''} style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
+                        <table border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
+                            <tr>${linksHtml}</tr>
+                        </table>
+                    </td>
+                </tr>
+            `;
+        }
     } else if (comp.type === 'divider') {
         const { width, thickness, lineColor, alignment, paddingTop, paddingBottom, paddingLeftRight } = d;
         const alignValue = alignment === 'left' ? 'left' : alignment === 'right' ? 'right' : 'center';
@@ -3151,6 +3316,15 @@ const getDefaultFieldStyles = (compType: string, fieldKey: string, subOfferIndex
                 paddingTop: '9', paddingBottom: '9', paddingLeftRight: '15',
                 widthType: 'auto'
             };
+        case 'footer':
+            return {
+                fontSize: '12',
+                textColor: designSettings.globalLinkColor || '#007aff',
+                backgroundColor: 'transparent',
+                separatorColor: '#c7c7cc',
+                paddingTop: '15', paddingBottom: '15', paddingLeftRight: '15',
+                linkSpacing: '12',
+            };
         case 'divider':
             return {
                 width: '100', thickness: '1', lineColor: '#CCCCCC',
@@ -3486,7 +3660,24 @@ const renderStylingPanel = () => {
                 showButtonStyle: true
             }, baseUpdateFn);
             break;
-        
+
+        case 'footer':
+            renderStandardStylingPanel(comp.data, {
+                typography: { fontSize: 'fontSize' },
+                colors: [
+                    { key: 'textColor', label: 'Link Color' },
+                    { key: 'separatorColor', label: 'Separator Color' },
+                    { key: 'backgroundColor', label: 'Background' }
+                ],
+                padding: [
+                    { key: 'paddingTop', label: 'Padding T' },
+                    { key: 'paddingBottom', label: 'Padding B' },
+                    { key: 'paddingLeftRight', label: 'Padding L/R' },
+                    { key: 'linkSpacing', label: 'Link Spacing' }
+                ],
+            }, baseUpdateFn);
+            break;
+
         case 'sales_offer':
             {
                 let dataObject = comp.data;
@@ -3937,6 +4128,7 @@ const propagateLinkColor = (color: string) => {
             comp.data.btnColor = color; comp.data.btnColor2 = color;
             comp.data.mainOfferColor = color; comp.data.mainOfferColor2 = color;
         }
+        if (comp.type === 'footer') comp.data.textColor = color;
     });
     saveDraft();
     saveToHistory();
