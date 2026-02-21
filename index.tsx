@@ -940,8 +940,8 @@ document.querySelectorAll('.right-panel-tab').forEach(tab => {
   });
 });
 
-// Add Section picker inside right panel
-document.querySelectorAll('.panel-picker-option').forEach(opt => {
+// Add Component buttons in design sidebar
+document.querySelectorAll('.sidebar-component-option').forEach(opt => {
   opt.addEventListener('click', () => {
     const type = opt.getAttribute('data-type');
     if (type) {
