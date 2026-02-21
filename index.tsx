@@ -121,6 +121,7 @@ const CONTENT_KEYS: Record<string, string[]> = {
         'stockVinType2', 'stockVinValue2', 'mileageValue2',
         'disclaimerText2', 'additionalOffers2', 'btnText2', 'btnLink2',
     ],
+    footer: ['links'],
 };
 const STRUCTURAL_KEYS = ['layout', 'textLayout'];
 
@@ -312,6 +313,12 @@ const mobileViewBtn = document.getElementById('mobile-view-btn');
 // Close buttons
 const closeDesignSidebar = document.getElementById('close-design-sidebar');
 const closeMergeSidebar = document.getElementById('close-sidebar');
+
+// Right Panel Elements
+const rightPanel = document.getElementById('right-panel');
+const rightPanelOverlay = document.getElementById('right-panel-overlay');
+const closeRightPanel = document.getElementById('close-right-panel');
+const floatingPanelBtn = document.getElementById('floating-panel-btn');
 
 // Design Settings Controls
 const fontSelect = document.getElementById('design-font-family') as HTMLSelectElement;
@@ -906,6 +913,44 @@ floatingMergeBtn?.addEventListener('click', () => {
   document.body.style.overflow = 'hidden';
 });
 
+// Right Panel: toggle, close, tab switching
+const openRightPanel = () => {
+  rightPanel?.classList.add('open');
+  rightPanelOverlay?.classList.add('visible');
+  if (window.innerWidth <= 1024) document.body.style.overflow = 'hidden';
+};
+const closeRightPanelFunc = () => {
+  rightPanel?.classList.remove('open');
+  rightPanelOverlay?.classList.remove('visible');
+  document.body.style.overflow = '';
+};
+
+floatingPanelBtn?.addEventListener('click', openRightPanel);
+closeRightPanel?.addEventListener('click', closeRightPanelFunc);
+rightPanelOverlay?.addEventListener('click', closeRightPanelFunc);
+
+// Tab switching inside right panel
+document.querySelectorAll('.right-panel-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const targetTab = tab.getAttribute('data-tab');
+    document.querySelectorAll('.right-panel-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.right-panel-tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    const targetContent = document.getElementById(`right-panel-${targetTab}`);
+    targetContent?.classList.add('active');
+  });
+});
+
+// Add Component buttons in design sidebar
+document.querySelectorAll('.sidebar-component-option').forEach(opt => {
+  opt.addEventListener('click', () => {
+    const type = opt.getAttribute('data-type');
+    if (type) {
+      addNewComponent(type);
+    }
+  });
+});
+
 const getDefaultComponentData = (type: string): Record<string, string> => {
     switch (type) {
         case 'header':
@@ -1053,6 +1098,28 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 paddingTop: '15', paddingBottom: '15', paddingLeftRight: '15', backgroundColor: '#ffffff',
                 textLayout: 'center'
             };
+        case 'footer':
+            return {
+                layout: 'inline',
+                links: JSON.stringify([
+                    { text: 'Privacy Policy', url: '{{dealership.tracked_website_homepage_url}}' },
+                    { text: 'Unsubscribe', url: '{{unsubscribe_url}}' },
+                    { text: 'Contact Us', url: '{{dealership.tracked_website_homepage_url}}' },
+                ]),
+                fontSize: '12',
+                fontWeight: 'normal',
+                fontStyle: 'normal',
+                textDecoration: 'none',
+                textAlign: 'center',
+                textColor: designSettings.globalLinkColor || '#007aff',
+                backgroundColor: 'transparent',
+                separatorColor: '#c7c7cc',
+                separatorStyle: 'dot',
+                paddingTop: '15',
+                paddingBottom: '15',
+                paddingLeftRight: '15',
+                linkSpacing: '12',
+            };
         default:
             return {};
     }
@@ -1089,7 +1156,7 @@ const clearComponentContent = (id: string) => {
     for (const key of contentKeys) {
         if (!(key in comp.data)) continue;
 
-        if (key === 'additionalOffers' || key === 'additionalOffers2') {
+        if (key === 'additionalOffers' || key === 'additionalOffers2' || key === 'links') {
             comp.data[key] = '[]';
         } else if (key === 'showImage' || key === 'showImage2' || key === 'imageEnabled' || key === 'imageEnabled2') {
             comp.data[key] = 'false';
@@ -1420,6 +1487,7 @@ const COMPONENT_TYPE_ICONS: Record<string, string> = {
     service_offer: 'handyman',
     sales_offer: 'sell',
     disclaimers: 'contract',
+    footer: 'link',
 };
 
 const getComponentTypeIcon = (type: string): string => COMPONENT_TYPE_ICONS[type] || 'widgets';
@@ -1475,6 +1543,9 @@ const renderComponents = () => {
                 break;
             case 'button':
                 sourceFieldKey = 'text';
+                break;
+            case 'footer':
+                sourceFieldKey = null;
                 break;
             case 'sales_offer':
                 sourceFieldKey = 'vehicleText';
@@ -1545,6 +1616,72 @@ const renderComponents = () => {
                         <input type="text" class="form-control compact" data-key="link" data-stylable="true" data-component-id="${comp.id}" data-field-key="button" data-field-label="Button Link" value="${comp.data.link || ''}" placeholder="https://example.com">
                     </div>
                 </div>
+            `;
+        } else if (comp.type === 'footer') {
+            let footerLinks: {text: string; url: string}[] = [];
+            try { footerLinks = JSON.parse(comp.data.links || '[]'); } catch { footerLinks = []; }
+
+            const layoutToggle = `
+                <div class="component-row" style="margin-bottom: 8px;">
+                    <div class="component-row-item" style="flex: 1;">
+                        <label class="form-label">Layout</label>
+                        <div class="footer-layout-toggle">
+                            <button type="button" class="footer-layout-btn ${comp.data.layout === 'inline' ? 'active' : ''}" data-key="layout" data-value="inline" title="Side by Side">
+                                <span class="material-symbols-rounded" style="font-size: 16px;">view_column</span> Inline
+                            </button>
+                            <button type="button" class="footer-layout-btn ${comp.data.layout === 'stacked' ? 'active' : ''}" data-key="layout" data-value="stacked" title="Stacked">
+                                <span class="material-symbols-rounded" style="font-size: 16px;">view_agenda</span> Stacked
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const separatorLabel = comp.data.separatorStyle === 'pipe' ? '|' : comp.data.separatorStyle === 'dash' ? '—' : '·';
+            const linksHtml = footerLinks.map((link, i) => `
+                <div class="footer-link-item" data-link-index="${i}">
+                    <div class="footer-link-fields">
+                        <div class="component-row">
+                            <div class="component-row-item">
+                                <label class="form-label">Text</label>
+                                <input type="text" class="form-control compact footer-link-field" data-link-index="${i}" data-link-field="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="footerLinks" data-field-label="Link Text" value="${link.text || ''}" placeholder="Link text">
+                            </div>
+                            <div class="component-row-item">
+                                <label class="form-label">URL</label>
+                                <input type="text" class="form-control compact footer-link-field" data-link-index="${i}" data-link-field="url" value="${link.url || ''}" placeholder="https://...">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-ghost btn-sm remove-footer-link" data-link-index="${i}" title="Remove" style="color: var(--destructive); flex-shrink: 0; padding: 2px;">
+                        <span class="material-symbols-rounded" style="font-size: 16px;">close</span>
+                    </button>
+                </div>
+            `).join('');
+
+            const separatorPreview = comp.data.layout === 'inline' ? `
+                <div class="footer-separator-preview" data-stylable="true" data-component-id="${comp.id}" data-field-key="footerSeparator" data-field-label="Separator" tabindex="0">
+                    <span class="footer-separator-sample" style="color: ${comp.data.separatorColor || '#c7c7cc'}; font-size: ${comp.data.fontSize || 12}px;">
+                        Link ${separatorLabel} Link ${separatorLabel} Link
+                    </span>
+                </div>
+            ` : '';
+
+            const containerPreview = `
+                <div class="footer-container-preview" data-stylable="true" data-component-id="${comp.id}" data-field-key="footerContainer" data-field-label="Container" tabindex="0">
+                    <span class="material-symbols-rounded" style="font-size: 14px; color: var(--label-tertiary);">settings</span>
+                    <span style="font-size: 11px; color: var(--label-secondary);">Container &amp; Alignment</span>
+                </div>
+            `;
+
+            componentFormHtml = `
+                ${layoutToggle}
+                <div class="footer-links-list">${linksHtml}</div>
+                <button type="button" class="add-footer-link-btn">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Add Footer Link
+                </button>
+                ${separatorPreview}
+                ${containerPreview}
             `;
         } else if (comp.type === 'divider') {
             componentFormHtml = `
@@ -1832,8 +1969,55 @@ const renderComponents = () => {
             });
         }
 
+        if (comp.type === 'footer') {
+            // Layout toggle
+            item.querySelectorAll('.footer-layout-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const value = (btn as HTMLElement).dataset.value || 'inline';
+                    updateComponentData(comp.id, 'layout', value);
+                    renderComponents();
+                });
+            });
+
+            // Add footer link
+            item.querySelectorAll('.add-footer-link-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const current = JSON.parse(comp.data.links || '[]');
+                    current.push({ text: 'New Link', url: '' });
+                    updateComponentData(comp.id, 'links', JSON.stringify(current));
+                    renderComponents();
+                });
+            });
+
+            // Remove footer link
+            item.querySelectorAll('.remove-footer-link').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const idx = parseInt(btn.getAttribute('data-link-index') || '0');
+                    const current = JSON.parse(comp.data.links || '[]');
+                    current.splice(idx, 1);
+                    updateComponentData(comp.id, 'links', JSON.stringify(current));
+                    renderComponents();
+                });
+            });
+
+            // Edit footer link fields
+            item.querySelectorAll('.footer-link-field').forEach(input => {
+                input.addEventListener('input', (e: any) => {
+                    const target = e.target;
+                    const idx = parseInt(target.getAttribute('data-link-index') || '0');
+                    const field = target.getAttribute('data-link-field');
+                    if (!field) return;
+                    const current = JSON.parse(comp.data.links || '[]');
+                    if (current[idx]) {
+                        current[idx][field] = target.value;
+                        updateComponentData(comp.id, 'links', JSON.stringify(current));
+                    }
+                });
+            });
+        }
+
         item.querySelectorAll('input, textarea, select, button.layout-toggle, button.text-layout-toggle').forEach(input => {
-            if (!input.classList.contains('sub-offer-field')) {
+            if (!input.classList.contains('sub-offer-field') && !input.classList.contains('footer-link-field')) {
                 const eventType = (input.tagName === 'BUTTON' || (input as HTMLInputElement).type === 'checkbox') ? 'click' : 'input';
                 input.addEventListener(eventType, (e) => {
                     const target = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | HTMLButtonElement;
@@ -2125,6 +2309,67 @@ function generateEmailHtml(): string {
                 </td>
             </tr>
         `;
+    } else if (comp.type === 'footer') {
+        let footerLinks: {text: string; url: string}[] = [];
+        try { footerLinks = JSON.parse(d.links || '[]'); } catch { footerLinks = []; }
+        const isStacked = d.layout === 'stacked';
+        const linkColor = d.textColor || '#007aff';
+        const separatorColor = d.separatorColor || '#c7c7cc';
+        const fontSize = d.fontSize || '12';
+        const fontWeight = d.fontWeight || 'normal';
+        const fontStyleVal = d.fontStyle || 'normal';
+        const textDecor = d.textDecoration || 'none';
+        const textAlign = d.textAlign || 'center';
+        const spacing = parseInt(d.linkSpacing || '12');
+        const bgColor = d.backgroundColor || 'transparent';
+        const isTransparentBg = bgColor === 'transparent';
+        const sepChar = d.separatorStyle === 'pipe' ? '|' : d.separatorStyle === 'dash' ? '&mdash;' : '&middot;';
+
+        const linkStyle = [
+            `color: ${linkColor}`,
+            `text-decoration: ${textDecor}`,
+            `font-size: ${fontSize}px`,
+            `font-weight: ${fontWeight}`,
+            `font-style: ${fontStyleVal}`,
+            `font-family: ${designSettings.fontFamily}`,
+            `line-height: 1.4`,
+        ].join(';');
+
+        if (isStacked) {
+            const linksHtml = footerLinks.map((link, i) => {
+                let html = `<tr><td align="${textAlign}" style="padding: ${i === 0 ? 0 : spacing}px 0 0 0;"><a href="${DOMPurify.sanitize(link.url || '#')}" target="_blank" style="${linkStyle}">${DOMPurify.sanitize(link.text || '')}</a></td></tr>`;
+                return html;
+            }).join('');
+
+            sectionsHtml += `
+                <tr>
+                    <td align="${textAlign}" ${!isTransparentBg ? `bgcolor="${bgColor}"` : ''} style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
+                        <table border="0" cellspacing="0" cellpadding="0" style="margin: ${textAlign === 'center' ? '0 auto' : '0'};">
+                            ${linksHtml}
+                        </table>
+                    </td>
+                </tr>
+            `;
+        } else {
+            const linksHtml = footerLinks.map((link, i) => {
+                let html = '';
+                if (i > 0) {
+                    html += `<td style="padding: 0 ${spacing}px; color: ${separatorColor}; font-size: ${fontSize}px; line-height: 1;">${sepChar}</td>`;
+                }
+                html += `<td><a href="${DOMPurify.sanitize(link.url || '#')}" target="_blank" style="${linkStyle}">${DOMPurify.sanitize(link.text || '')}</a></td>`;
+                return html;
+            }).join('');
+
+            sectionsHtml += `
+                <tr>
+                    <td align="${textAlign}" ${!isTransparentBg ? `bgcolor="${bgColor}"` : ''} style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
+                        <table border="0" cellspacing="0" cellpadding="0" style="margin: ${textAlign === 'center' ? '0 auto' : '0'};">
+                            <tr>${linksHtml}</tr>
+                        </table>
+                    </td>
+                </tr>
+            `;
+        }
     } else if (comp.type === 'divider') {
         const { width, thickness, lineColor, alignment, paddingTop, paddingBottom, paddingLeftRight } = d;
         const alignValue = alignment === 'left' ? 'left' : alignment === 'right' ? 'right' : 'center';
@@ -2769,6 +3014,116 @@ const renderComponentLibrary = () => {
 
 // --- End Component Library ---
 
+// --- Starter Templates ---
+
+const STARTER_TEMPLATES: Record<string, { name: string; components: EmailComponent[] }> = {
+    single_offer: {
+        name: 'Single Offer',
+        components: [
+            { id: 's1', type: 'header', data: { text: 'Exclusive Offer Just for You', fontSize: '22', textColor: '#1d1d1f', backgroundColor: 'transparent', fontWeight: 'bold', fontStyle: 'normal', textDecoration: 'none', textAlign: 'center', paddingTop: '20', paddingBottom: '10', paddingLeftRight: '15' } },
+            { id: 's2', type: 'sales_offer', data: { ...getDefaultComponentData('sales_offer'), layout: 'center', vehicleText: 'New {{customer.last_transaction.vehicle.year}} {{customer.last_transaction.vehicle.make}} {{customer.last_transaction.vehicle.model}}', mainOfferText: '$2,500 Trade-In Bonus', detailsText: 'Upgrade your current ride today with our exclusive seasonal offer.', disclaimerText: '*Terms and conditions apply. Offer valid through end of month.', btnText: 'View Details', btnLink: '{{dealership.tracked_website_homepage_url}}' } },
+            { id: 's3', type: 'disclaimers', data: { text: '*Terms and conditions apply. See dealer for details. Cannot be combined with other offers.', fontSize: '9', textColor: '#86868b', backgroundColor: 'transparent', fontWeight: 'normal', fontStyle: 'normal', textDecoration: 'none', textAlign: 'center', paddingTop: '12', paddingBottom: '12', paddingLeftRight: '15' } },
+        ],
+    },
+    two_column_offers: {
+        name: '2-Column Offers',
+        components: [
+            { id: 's1', type: 'header', data: { text: 'This Month\'s Best Deals', fontSize: '22', textColor: '#1d1d1f', backgroundColor: 'transparent', fontWeight: 'bold', fontStyle: 'normal', textDecoration: 'none', textAlign: 'center', paddingTop: '20', paddingBottom: '10', paddingLeftRight: '15' } },
+            { id: 's2', type: 'service_offer', data: { ...getDefaultComponentData('service_offer'), layout: 'two_column', serviceTitle: 'Oil Change Special', couponCode: 'OILCHANGE50', serviceDetails: 'Get $50 off your next oil change. Includes synthetic blend oil and filter.', disclaimer: '*Valid at participating dealers only.', buttonText: 'Schedule Now', serviceTitle2: 'Tire Rotation Deal', couponCode2: 'TIRES25', serviceDetails2: 'Get $25 off your next tire rotation. Keep your tires wearing evenly.', disclaimer2: '*Cannot be combined with other offers.', buttonText2: 'Book Service' } },
+            { id: 's3', type: 'disclaimers', data: { text: '*Offers valid at participating dealers. See dealer for complete details.', fontSize: '9', textColor: '#86868b', backgroundColor: 'transparent', fontWeight: 'normal', fontStyle: 'normal', textDecoration: 'none', textAlign: 'center', paddingTop: '12', paddingBottom: '12', paddingLeftRight: '15' } },
+        ],
+    },
+    service_and_sales: {
+        name: 'Service + Sales',
+        components: [
+            { id: 's1', type: 'header', data: { text: 'Your Monthly Update', fontSize: '22', textColor: '#1d1d1f', backgroundColor: 'transparent', fontWeight: 'bold', fontStyle: 'normal', textDecoration: 'none', textAlign: 'center', paddingTop: '20', paddingBottom: '10', paddingLeftRight: '15' } },
+            { id: 's2', type: 'service_offer', data: { ...getDefaultComponentData('service_offer'), layout: 'single', serviceTitle: 'Brake Inspection Special', couponCode: 'BRAKES30', serviceDetails: 'Complimentary multi-point brake inspection plus $30 off any brake service.', disclaimer: '*Valid at participating dealers only.', buttonText: 'Book Now' } },
+            { id: 's3', type: 'divider', data: { width: '80', thickness: '1', lineColor: '#E5E5EA', alignment: 'center', paddingTop: '15', paddingBottom: '15', paddingLeftRight: '0' } },
+            { id: 's4', type: 'sales_offer', data: { ...getDefaultComponentData('sales_offer'), layout: 'center', vehicleText: 'New {{customer.last_transaction.vehicle.year}} {{customer.last_transaction.vehicle.make}} {{customer.last_transaction.vehicle.model}}', mainOfferText: '0% APR for 60 Months', detailsText: 'Drive home your dream vehicle with zero-interest financing.', disclaimerText: '*With approved credit. See dealer for details.', btnText: 'Shop Inventory', btnLink: '{{dealership.tracked_website_homepage_url}}' } },
+            { id: 's5', type: 'disclaimers', data: { text: '*All offers subject to availability. See dealer for full terms and conditions.', fontSize: '9', textColor: '#86868b', backgroundColor: 'transparent', fontWeight: 'normal', fontStyle: 'normal', textDecoration: 'none', textAlign: 'center', paddingTop: '12', paddingBottom: '12', paddingLeftRight: '15' } },
+        ],
+    },
+    recall_notice: {
+        name: 'Recall Notice',
+        components: [
+            { id: 's1', type: 'header', data: { text: 'Important Safety Recall Notice', fontSize: '22', textColor: '#d00000', backgroundColor: 'transparent', fontWeight: 'bold', fontStyle: 'normal', textDecoration: 'none', textAlign: 'center', paddingTop: '20', paddingBottom: '10', paddingLeftRight: '15' } },
+            { id: 's2', type: 'text_block', data: { text: 'Dear {{customer.first_name}},\n\nA safety recall has been issued for your {{customer.last_transaction.vehicle.year}} {{customer.last_transaction.vehicle.make}} {{customer.last_transaction.vehicle.model}}. This recall affects a critical component and we recommend scheduling your free recall service as soon as possible.\n\nYour safety is our top priority. This service is provided at no cost to you.', fontSize: '13', textColor: '#1d1d1f', backgroundColor: 'transparent', fontWeight: 'normal', fontStyle: 'normal', textDecoration: 'none', textAlign: 'left', paddingTop: '10', paddingBottom: '10', paddingLeftRight: '15' } },
+            { id: 's3', type: 'button', data: { text: 'Schedule Recall Service', link: '{{dealership.tracked_website_homepage_url}}', fontSize: '13', textColor: '#ffffff', backgroundColor: '#d00000', align: 'center', paddingTop: '12', paddingBottom: '12', paddingLeftRight: '15', widthType: 'full' } },
+            { id: 's4', type: 'disclaimers', data: { text: '*This is an important safety notice. Please contact us at {{dealership.phone}} if you have any questions. Recall service is always free of charge.', fontSize: '9', textColor: '#86868b', backgroundColor: 'transparent', fontWeight: 'normal', fontStyle: 'normal', textDecoration: 'none', textAlign: 'center', paddingTop: '15', paddingBottom: '12', paddingLeftRight: '15' } },
+        ],
+    },
+};
+
+const loadStarterTemplate = (templateKey: string) => {
+    const starter = STARTER_TEMPLATES[templateKey];
+    if (!starter) return;
+
+    // Assign unique IDs to each component
+    const components = starter.components.map(c => ({
+        ...c,
+        id: Date.now().toString() + Math.random().toString(36).slice(2, 7),
+        data: { ...c.data },
+    }));
+
+    activeComponents = components;
+    saveToHistory();
+    renderComponents();
+    saveDraft();
+    showToast(`Loaded starter: ${starter.name}`, 'success');
+};
+
+// --- Starter Components ---
+
+const STARTER_COMPONENTS: Record<string, { name: string; type: string; data: Record<string, string> }> = {
+    hero_header: {
+        name: 'Hero Header',
+        type: 'header',
+        data: { text: 'Your Headline Here', fontSize: '24', textColor: '#1d1d1f', backgroundColor: 'transparent', fontWeight: 'bold', fontStyle: 'normal', textDecoration: 'none', textAlign: 'center', paddingTop: '25', paddingBottom: '15', paddingLeftRight: '15' },
+    },
+    service_coupon: {
+        name: 'Service Coupon',
+        type: 'service_offer',
+        data: { ...getDefaultComponentData('service_offer'), layout: 'single', serviceTitle: 'Oil Change Special', couponCode: 'SAVE50', serviceDetails: 'Get $50 off your next oil change service. Includes synthetic blend oil and filter replacement.', disclaimer: '*Valid at participating dealers only.', buttonText: 'Schedule Now' },
+    },
+    vehicle_offer: {
+        name: 'Vehicle Offer',
+        type: 'sales_offer',
+        data: { ...getDefaultComponentData('sales_offer'), layout: 'center', vehicleText: 'New {{customer.last_transaction.vehicle.year}} {{customer.last_transaction.vehicle.make}} {{customer.last_transaction.vehicle.model}}', mainOfferText: '$2,500 Trade-In Bonus', detailsText: 'Upgrade your vehicle today with our exclusive offer.', disclaimerText: '*Terms and conditions apply.', btnText: 'View Details', btnLink: '{{dealership.tracked_website_homepage_url}}' },
+    },
+    cta_button: {
+        name: 'CTA Button',
+        type: 'button',
+        data: { text: 'Shop Now', link: '{{dealership.tracked_website_homepage_url}}', fontSize: '13', textColor: '#ffffff', backgroundColor: '#007aff', align: 'center', paddingTop: '12', paddingBottom: '12', paddingLeftRight: '15', widthType: 'full' },
+    },
+};
+
+const addStarterComponent = (componentKey: string) => {
+    const starter = STARTER_COMPONENTS[componentKey];
+    if (!starter) return;
+
+    const newComponent: EmailComponent = {
+        id: Date.now().toString(),
+        type: starter.type,
+        data: { ...starter.data },
+    };
+
+    activeComponents.push(newComponent);
+    saveToHistory();
+    renderComponents();
+    saveDraft();
+    showToast(`Added: ${starter.name}`, 'success');
+
+    setTimeout(() => {
+        selectComponent(newComponent.id);
+        const newElement = document.querySelector(`.component-item[data-id='${newComponent.id}']`);
+        if (newElement) {
+            newElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, 100);
+};
+
+// --- End Starter Templates & Components ---
+
 const loadDraft = () => {
     try {
         const data = localStorage.getItem(LS_DRAFT_KEY);
@@ -2997,6 +3352,30 @@ const getDefaultFieldStyles = (compType: string, fieldKey: string, subOfferIndex
                 paddingTop: '9', paddingBottom: '9', paddingLeftRight: '15',
                 widthType: 'auto'
             };
+        case 'footer': {
+            if (fieldKey === 'footerLinks') {
+                return {
+                    fontSize: '12', fontWeight: 'normal', fontStyle: 'normal',
+                    textDecoration: 'none', textColor: designSettings.globalLinkColor || '#007aff',
+                };
+            }
+            if (fieldKey === 'footerSeparator') {
+                return { separatorColor: '#c7c7cc', separatorStyle: 'dot', linkSpacing: '12' };
+            }
+            if (fieldKey === 'footerContainer') {
+                return {
+                    textAlign: 'center', backgroundColor: 'transparent',
+                    paddingTop: '15', paddingBottom: '15', paddingLeftRight: '15',
+                };
+            }
+            return {
+                fontSize: '12', fontWeight: 'normal', fontStyle: 'normal',
+                textDecoration: 'none', textAlign: 'center',
+                textColor: designSettings.globalLinkColor || '#007aff',
+                backgroundColor: 'transparent', separatorColor: '#c7c7cc', separatorStyle: 'dot',
+                paddingTop: '15', paddingBottom: '15', paddingLeftRight: '15', linkSpacing: '12',
+            };
+        }
         case 'divider':
             return {
                 width: '100', thickness: '1', lineColor: '#CCCCCC',
@@ -3332,7 +3711,88 @@ const renderStylingPanel = () => {
                 showButtonStyle: true
             }, baseUpdateFn);
             break;
-        
+
+        case 'footer': {
+            const footerFieldKey = activeField.fieldKey;
+            if (footerFieldKey === 'footerLinks') {
+                renderStandardStylingPanel(comp.data, {
+                    typography: { fontSize: 'fontSize', fontWeight: 'fontWeight', fontStyle: 'fontStyle' },
+                    colors: [
+                        { key: 'textColor', label: 'Link Color' },
+                    ],
+                    customHtml: () => {
+                        const currentDecor = comp.data.textDecoration || 'none';
+                        return `
+                            <div class="styling-section">
+                                <h4 class="styling-section-title">Text Decoration</h4>
+                                <div style="display: flex; gap: 4px;">
+                                    <button type="button" class="btn btn-secondary format-toggle style-control ${currentDecor === 'underline' ? 'active' : ''}" data-style-key="textDecoration" data-val-on="underline" data-val-off="none" style="font-size: 11px; width: 27px; height: 27px; padding: 0; border-radius: var(--radius-md); text-decoration: underline;">U</button>
+                                </div>
+                            </div>
+                        `;
+                    },
+                }, baseUpdateFn);
+            } else if (footerFieldKey === 'footerSeparator') {
+                renderStandardStylingPanel(comp.data, {
+                    colors: [
+                        { key: 'separatorColor', label: 'Separator Color' },
+                    ],
+                    customHtml: () => {
+                        const currentStyle = comp.data.separatorStyle || 'dot';
+                        return `
+                            <div class="styling-section">
+                                <h4 class="styling-section-title">Separator Style</h4>
+                                <div class="footer-separator-style-picker">
+                                    <button type="button" class="btn btn-secondary style-control format-toggle ${currentStyle === 'dot' ? 'active' : ''}" data-style-key="separatorStyle" data-val-on="dot" data-val-off="dot" style="font-size: 13px; min-width: 36px; height: 27px; padding: 0 6px; border-radius: var(--radius-md);">·</button>
+                                    <button type="button" class="btn btn-secondary style-control format-toggle ${currentStyle === 'pipe' ? 'active' : ''}" data-style-key="separatorStyle" data-val-on="pipe" data-val-off="pipe" style="font-size: 13px; min-width: 36px; height: 27px; padding: 0 6px; border-radius: var(--radius-md);">|</button>
+                                    <button type="button" class="btn btn-secondary style-control format-toggle ${currentStyle === 'dash' ? 'active' : ''}" data-style-key="separatorStyle" data-val-on="dash" data-val-off="dash" style="font-size: 13px; min-width: 36px; height: 27px; padding: 0 6px; border-radius: var(--radius-md);">—</button>
+                                </div>
+                            </div>
+                            <div class="styling-section">
+                                <h4 class="styling-section-title">Spacing</h4>
+                                <div class="grid grid-cols-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Link Spacing (px)</label>
+                                        <input type="number" class="form-control style-control" data-style-key="linkSpacing" value="${comp.data.linkSpacing || '12'}" min="0" max="60">
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    },
+                }, baseUpdateFn);
+            } else if (footerFieldKey === 'footerContainer') {
+                renderStandardStylingPanel(comp.data, {
+                    colors: [
+                        { key: 'backgroundColor', label: 'Background' },
+                    ],
+                    alignment: { textAlign: 'textAlign' },
+                    padding: [
+                        { key: 'paddingTop', label: 'Padding T' },
+                        { key: 'paddingBottom', label: 'Padding B' },
+                        { key: 'paddingLeftRight', label: 'Padding L/R' },
+                    ],
+                }, baseUpdateFn);
+            } else {
+                // Fallback: show all footer controls
+                renderStandardStylingPanel(comp.data, {
+                    typography: { fontSize: 'fontSize', fontWeight: 'fontWeight', fontStyle: 'fontStyle' },
+                    colors: [
+                        { key: 'textColor', label: 'Link Color' },
+                        { key: 'separatorColor', label: 'Separator Color' },
+                        { key: 'backgroundColor', label: 'Background' }
+                    ],
+                    alignment: { textAlign: 'textAlign' },
+                    padding: [
+                        { key: 'paddingTop', label: 'Padding T' },
+                        { key: 'paddingBottom', label: 'Padding B' },
+                        { key: 'paddingLeftRight', label: 'Padding L/R' },
+                        { key: 'linkSpacing', label: 'Link Spacing' }
+                    ],
+                }, baseUpdateFn);
+            }
+            break;
+        }
+
         case 'sales_offer':
             {
                 let dataObject = comp.data;
@@ -3783,6 +4243,7 @@ const propagateLinkColor = (color: string) => {
             comp.data.btnColor = color; comp.data.btnColor2 = color;
             comp.data.mainOfferColor = color; comp.data.mainOfferColor2 = color;
         }
+        if (comp.type === 'footer') comp.data.textColor = color;
     });
     saveDraft();
     saveToHistory();
@@ -3882,6 +4343,23 @@ function initGlobalTextStyles() {
 
 
 saveTemplateBtn?.addEventListener('click', saveTemplate);
+
+// Starter template click handlers
+document.querySelectorAll('[data-starter-template]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-starter-template');
+        if (key) loadStarterTemplate(key);
+    });
+});
+
+// Starter component click handlers
+document.querySelectorAll('[data-starter-component]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-starter-component');
+        if (key) addStarterComponent(key);
+    });
+});
+
 loadCollapsedStates();
 renderMergeFieldsSidebar();
 loadDraft();
