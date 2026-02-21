@@ -1954,3 +1954,198 @@ textarea.form-control.compact {
 .library-item:hover {
   background: var(--fill-tertiary) !important;
 }
+
+/* ========================================
+   Apple-Style UX Improvements
+   ======================================== */
+
+/* --- Press-Down Micro-Interactions --- */
+.btn:active {
+  transform: scale(0.97);
+}
+
+.toggle-btn:active {
+  transform: scale(0.95);
+}
+
+.card-header:active {
+  transform: scale(0.995);
+}
+
+.color-scheme-card:active {
+  transform: scale(0.95);
+}
+
+.sidebar-component-option:active {
+  transform: scale(0.95);
+}
+
+.merge-field-item:active {
+  transform: scale(0.98);
+}
+
+.library-item:active {
+  transform: scale(0.98);
+}
+
+.fab:active {
+  transform: scale(0.9);
+}
+
+/* --- Highlight Pulse (New Component Added) --- */
+@keyframes highlightPulse {
+  0% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.4); }
+  50% { box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0); }
+}
+
+.highlight-pulse {
+  animation: highlightPulse 1s ease-out;
+}
+
+/* --- Undo Toast Button --- */
+.toast--undoable {
+  pointer-events: auto;
+}
+
+.toast-undo-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 8px;
+  transition: background 0.15s ease;
+  font-family: inherit;
+}
+
+.toast-undo-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.toast-undo-btn:active {
+  transform: scale(0.95);
+}
+
+/* --- Skeleton Loading --- */
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-md);
+}
+
+.skeleton-preview {
+  padding: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  height: 600px;
+}
+
+.skeleton-header {
+  height: 60px;
+  width: 100%;
+}
+
+.skeleton-text {
+  height: 16px;
+  width: 80%;
+}
+
+.skeleton-text.short {
+  width: 50%;
+}
+
+.skeleton-text.medium {
+  width: 65%;
+}
+
+.skeleton-image {
+  height: 200px;
+  width: 100%;
+}
+
+.skeleton-button {
+  height: 40px;
+  width: 160px;
+  margin: 0 auto;
+  border-radius: 20px;
+}
+
+.skeleton-footer {
+  height: 12px;
+  width: 40%;
+  margin: 0 auto;
+}
+
+/* --- Tooltip System (JS-positioned, immune to overflow:hidden) --- */
+.tooltip-popup {
+  position: fixed;
+  background: rgba(29, 29, 31, 0.9);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-50%) translateY(-100%) scale(0.95);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 9999;
+}
+
+.tooltip-popup.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-100%) scale(1);
+}
+
+/* --- Library Card Layout --- */
+.library-card {
+  padding: var(--spacing-md);
+  border: 1px solid var(--separator-secondary);
+  border-radius: var(--radius-md);
+  background: var(--background-secondary);
+  margin-bottom: var(--spacing-sm);
+  transition: background var(--transition-fast);
+}
+
+.library-card:hover {
+  background: var(--fill-tertiary);
+}
+
+.library-card-info {
+  margin-bottom: var(--spacing-sm);
+}
+
+.library-card-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--label-primary);
+  word-wrap: break-word;
+  margin-bottom: 2px;
+}
+
+.library-card-meta {
+  font-size: 11px;
+  color: var(--label-tertiary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.library-card-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}

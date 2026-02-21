@@ -335,7 +335,7 @@ const ALIGNMENT_ICONS = {
 };
 
 // Toast Notification
-const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success', onUndo?: () => void) => {
     let toastWrapper = document.getElementById('toast-wrapper');
     if (!toastWrapper) {
         toastWrapper = document.createElement('div');
@@ -345,7 +345,7 @@ const showToast = (message: string, type: 'success' | 'error' | 'info' = 'succes
     }
 
     const toast = document.createElement('div');
-    toast.className = `toast toast--${type}`;
+    toast.className = `toast toast--${type}${onUndo ? ' toast--undoable' : ''}`;
     toast.setAttribute('role', 'status');
     toast.setAttribute('aria-live', 'polite');
 
@@ -354,18 +354,34 @@ const showToast = (message: string, type: 'success' | 'error' | 'info' = 'succes
         error: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`,
         info: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`
     };
-    
+
     toast.innerHTML = `
         ${icons[type]}
         <span>${message}</span>
+        ${onUndo ? '<button class="toast-undo-btn">Undo</button>' : ''}
     `;
 
     toastWrapper.appendChild(toast);
+
+    if (onUndo) {
+        const undoBtn = toast.querySelector('.toast-undo-btn') as HTMLButtonElement;
+        undoBtn.addEventListener('click', () => {
+            onUndo();
+            toast.classList.remove('show');
+            toast.addEventListener('transitionend', () => {
+                toast.remove();
+                if (toastWrapper && !toastWrapper.hasChildNodes()) {
+                    toastWrapper.remove();
+                }
+            }, { once: true });
+        });
+    }
 
     requestAnimationFrame(() => {
         toast.classList.add('show');
     });
 
+    const dismissDelay = onUndo ? 5000 : 3000;
     setTimeout(() => {
         toast.classList.remove('show');
         toast.addEventListener('transitionend', () => {
@@ -374,8 +390,42 @@ const showToast = (message: string, type: 'success' | 'error' | 'info' = 'succes
                 toastWrapper.remove();
             }
         }, { once: true });
-    }, 3000);
+    }, dismissDelay);
 }
+
+
+// --- Tooltip System (JS-positioned, immune to overflow:hidden) ---
+const tooltipEl = document.createElement('div');
+tooltipEl.className = 'tooltip-popup';
+document.body.appendChild(tooltipEl);
+let tooltipTimeout: number;
+
+document.addEventListener('mouseover', (e) => {
+    const target = (e.target as HTMLElement).closest('[data-tooltip]') as HTMLElement | null;
+    if (!target) return;
+
+    const text = target.getAttribute('data-tooltip');
+    if (!text) return;
+
+    tooltipEl.textContent = text;
+
+    const rect = target.getBoundingClientRect();
+    tooltipEl.style.left = `${rect.left + rect.width / 2}px`;
+    tooltipEl.style.top = `${rect.top - 6}px`;
+
+    window.clearTimeout(tooltipTimeout);
+    tooltipTimeout = window.setTimeout(() => {
+        tooltipEl.classList.add('visible');
+    }, 10);
+});
+
+document.addEventListener('mouseout', (e) => {
+    const target = (e.target as HTMLElement).closest('[data-tooltip]') as HTMLElement | null;
+    if (!target) return;
+
+    window.clearTimeout(tooltipTimeout);
+    tooltipEl.classList.remove('visible');
+});
 
 
 // Local Storage Keys
@@ -1182,9 +1232,21 @@ const addNewComponent = (type: string) => {
     renderComponents();
     saveDraft();
     showToast(`${type.replace(/_/g, ' ').charAt(0).toUpperCase() + type.replace(/_/g, ' ').slice(1)} added`, 'success');
+
+    setTimeout(() => {
+        const newElement = document.querySelector(`.component-item[data-id='${id}']`);
+        if (newElement) {
+            newElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            newElement.classList.add('highlight-pulse');
+            setTimeout(() => newElement.classList.remove('highlight-pulse'), 1000);
+        }
+    }, 100);
 };
 
 const removeComponent = (id: string) => {
+    const removedIndex = activeComponents.findIndex(c => c.id === id);
+    const removedComponent = removedIndex !== -1 ? JSON.parse(JSON.stringify(activeComponents[removedIndex])) as EmailComponent : null;
+
     activeComponents = activeComponents.filter(c => c.id !== id);
     if (selectedComponentId === id) {
         selectedComponentId = null;
@@ -1194,7 +1256,12 @@ const removeComponent = (id: string) => {
     saveToHistory();
     renderComponents();
     saveDraft();
-    showToast('Section removed', 'success');
+    showToast('Section removed', 'success', removedComponent ? () => {
+        activeComponents.splice(removedIndex, 0, removedComponent);
+        saveToHistory();
+        renderComponents();
+        saveDraft();
+    } : undefined);
 };
 
 const duplicateComponent = (id: string) => {
@@ -1221,6 +1288,8 @@ const duplicateComponent = (id: string) => {
         const newElement = document.querySelector(`.component-item[data-id='${newId}']`);
         if (newElement) {
             newElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            newElement.classList.add('highlight-pulse');
+            setTimeout(() => newElement.classList.remove('highlight-pulse'), 1000);
         }
     }, 100);
 };
@@ -1348,7 +1417,7 @@ function generateSubOffersHtml(comp: EmailComponent, suffix: string): string {
         <div class="sub-offer-item" data-index="${index}">
             <div class="sub-offer-header">
                 <span class="sub-offer-label">Additional Offer ${index + 1}</span>
-                <button type="button" class="btn btn-ghost btn-sm remove-sub-offer" data-index="${index}" data-offer-index="${suffix || '1'}" title="Remove">
+                <button type="button" class="btn btn-ghost btn-sm remove-sub-offer" data-index="${index}" data-offer-index="${suffix || '1'}" data-tooltip="Remove">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                 </button>
             </div>
@@ -1626,10 +1695,10 @@ const renderComponents = () => {
                     <div class="component-row-item" style="flex: 1;">
                         <label class="form-label">Layout</label>
                         <div class="footer-layout-toggle">
-                            <button type="button" class="footer-layout-btn ${comp.data.layout === 'inline' ? 'active' : ''}" data-key="layout" data-value="inline" title="Side by Side">
+                            <button type="button" class="footer-layout-btn ${comp.data.layout === 'inline' ? 'active' : ''}" data-key="layout" data-value="inline" data-tooltip="Side by Side">
                                 <span class="material-symbols-rounded" style="font-size: 16px;">view_column</span> Inline
                             </button>
-                            <button type="button" class="footer-layout-btn ${comp.data.layout === 'stacked' ? 'active' : ''}" data-key="layout" data-value="stacked" title="Stacked">
+                            <button type="button" class="footer-layout-btn ${comp.data.layout === 'stacked' ? 'active' : ''}" data-key="layout" data-value="stacked" data-tooltip="Stacked">
                                 <span class="material-symbols-rounded" style="font-size: 16px;">view_agenda</span> Stacked
                             </button>
                         </div>
@@ -1652,7 +1721,7 @@ const renderComponents = () => {
                             </div>
                         </div>
                     </div>
-                    <button type="button" class="btn btn-ghost btn-sm remove-footer-link" data-link-index="${i}" title="Remove" style="color: var(--destructive); flex-shrink: 0; padding: 2px;">
+                    <button type="button" class="btn btn-ghost btn-sm remove-footer-link" data-link-index="${i}" data-tooltip="Remove" style="color: var(--destructive); flex-shrink: 0; padding: 2px;">
                         <span class="material-symbols-rounded" style="font-size: 16px;">close</span>
                     </button>
                 </div>
@@ -1787,10 +1856,10 @@ const renderComponents = () => {
             const isSGrid = comp.data.layout === 'grid';
             offerHeaderControls = `
                 <div class="toggle-group header-toggle-group">
-                    <button type="button" class="toggle-btn layout-toggle ${isSLeft ? 'active' : ''}" data-key="layout" data-value="left" title="Image Left"><span class="material-symbols-rounded">splitscreen_left</span></button>
-                    <button type="button" class="toggle-btn layout-toggle ${isSCenter ? 'active' : ''}" data-key="layout" data-value="center" title="Center"><span class="material-symbols-rounded">splitscreen_top</span></button>
-                    <button type="button" class="toggle-btn layout-toggle ${isSRight ? 'active' : ''}" data-key="layout" data-value="right" title="Image Right"><span class="material-symbols-rounded">splitscreen_right</span></button>
-                    <button type="button" class="toggle-btn layout-toggle ${isSGrid ? 'active' : ''}" data-key="layout" data-value="grid" title="Grid"><span class="material-symbols-rounded">splitscreen_add</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSLeft ? 'active' : ''}" data-key="layout" data-value="left" data-tooltip="Image Left"><span class="material-symbols-rounded">splitscreen_left</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSCenter ? 'active' : ''}" data-key="layout" data-value="center" data-tooltip="Center"><span class="material-symbols-rounded">splitscreen_top</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSRight ? 'active' : ''}" data-key="layout" data-value="right" data-tooltip="Image Right"><span class="material-symbols-rounded">splitscreen_right</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSGrid ? 'active' : ''}" data-key="layout" data-value="grid" data-tooltip="Grid"><span class="material-symbols-rounded">splitscreen_add</span></button>
                 </div>
                 <span class="header-toggle-divider"></span>
             `;
@@ -1798,8 +1867,8 @@ const renderComponents = () => {
             const isSvcGrid = comp.data.layout === 'grid';
             offerHeaderControls = `
                 <div class="toggle-group header-toggle-group">
-                    <button type="button" class="toggle-btn layout-toggle ${!isSvcGrid ? 'active' : ''}" data-key="layout" data-value="single" title="Single Column">1</button>
-                    <button type="button" class="toggle-btn layout-toggle ${isSvcGrid ? 'active' : ''}" data-key="layout" data-value="grid" title="Two Columns">2×2</button>
+                    <button type="button" class="toggle-btn layout-toggle ${!isSvcGrid ? 'active' : ''}" data-key="layout" data-value="single" data-tooltip="Single Column">1</button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSvcGrid ? 'active' : ''}" data-key="layout" data-value="grid" data-tooltip="Two Columns">2×2</button>
                 </div>
                 <span class="header-toggle-divider"></span>
             `;
@@ -1807,9 +1876,9 @@ const renderComponents = () => {
         if (comp.type === 'sales_offer' || comp.type === 'service_offer') {
             offerHeaderControls += `
                 <div class="toggle-group header-toggle-group">
-                    <button type="button" class="toggle-btn text-layout-toggle ${currentTextLayout === 'left' ? 'active' : ''}" data-key="textLayout" data-value="left" title="Align Left"><span class="material-symbols-rounded">format_align_left</span></button>
-                    <button type="button" class="toggle-btn text-layout-toggle ${currentTextLayout === 'center' ? 'active' : ''}" data-key="textLayout" data-value="center" title="Align Center"><span class="material-symbols-rounded">format_align_center</span></button>
-                    <button type="button" class="toggle-btn text-layout-toggle ${currentTextLayout === 'right' ? 'active' : ''}" data-key="textLayout" data-value="right" title="Align Right"><span class="material-symbols-rounded">format_align_right</span></button>
+                    <button type="button" class="toggle-btn text-layout-toggle ${currentTextLayout === 'left' ? 'active' : ''}" data-key="textLayout" data-value="left" data-tooltip="Align Left"><span class="material-symbols-rounded">format_align_left</span></button>
+                    <button type="button" class="toggle-btn text-layout-toggle ${currentTextLayout === 'center' ? 'active' : ''}" data-key="textLayout" data-value="center" data-tooltip="Align Center"><span class="material-symbols-rounded">format_align_center</span></button>
+                    <button type="button" class="toggle-btn text-layout-toggle ${currentTextLayout === 'right' ? 'active' : ''}" data-key="textLayout" data-value="right" data-tooltip="Align Right"><span class="material-symbols-rounded">format_align_right</span></button>
                 </div>
                 <span class="header-toggle-divider"></span>
             `;
@@ -1817,7 +1886,7 @@ const renderComponents = () => {
 
         item.innerHTML = `
             <div class="card-header">
-                <span class="drag-handle" title="Drag to reorder">
+                <span class="drag-handle" data-tooltip="Drag to reorder">
                     <svg width="9" height="12" viewBox="0 0 12 16" fill="currentColor">
                         <circle cx="3" cy="3" r="1.5"></circle>
                         <circle cx="9" cy="3" r="1.5"></circle>
@@ -1834,19 +1903,19 @@ const renderComponents = () => {
                 </div>
                 <div class="flex items-center" style="gap: 3px;">
                     ${offerHeaderControls}
-                    <button type="button" class="btn btn-ghost btn-sm save-to-library-btn" title="Save to Component Library">
+                    <button type="button" class="btn btn-ghost btn-sm save-to-library-btn" data-tooltip="Save to Library">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
                     </button>
-                    <button type="button" class="btn btn-ghost btn-sm reset-comp-btn" title="Reset styles to defaults">
+                    <button type="button" class="btn btn-ghost btn-sm reset-comp-btn" data-tooltip="Reset Styles">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"></path><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
                     </button>
-                    <button type="button" class="btn btn-ghost btn-sm clear-comp-btn" title="Clear content">
+                    <button type="button" class="btn btn-ghost btn-sm clear-comp-btn" data-tooltip="Clear Content">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
                     </button>
-                    <button type="button" class="btn btn-ghost btn-sm duplicate-comp-btn" title="Duplicate section">
+                    <button type="button" class="btn btn-ghost btn-sm duplicate-comp-btn" data-tooltip="Duplicate">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                     </button>
-                    <button type="button" class="btn btn-ghost btn-sm remove-comp-btn">
+                    <button type="button" class="btn btn-ghost btn-sm remove-comp-btn" data-tooltip="Delete">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                     </button>
                 </div>
@@ -2773,16 +2842,38 @@ emailForm.addEventListener('submit', (e: Event) => {
     spinner.classList.remove('hidden');
     checkmark.classList.add('hidden');
 
+    // Show skeleton loading in preview area
+    outputPlaceholder.style.display = 'none';
+    outputContainer.style.display = 'grid';
+    const previewContainer = outputContainer.querySelector('.preview-container') as HTMLElement;
+    if (previewPane) previewPane.style.display = 'none';
+    const skeletonEl = document.createElement('div');
+    skeletonEl.className = 'skeleton-preview';
+    skeletonEl.innerHTML = `
+        <div class="skeleton skeleton-header"></div>
+        <div class="skeleton skeleton-text"></div>
+        <div class="skeleton skeleton-text short"></div>
+        <div class="skeleton skeleton-image"></div>
+        <div class="skeleton skeleton-text medium"></div>
+        <div class="skeleton skeleton-text"></div>
+        <div class="skeleton skeleton-button"></div>
+        <div class="skeleton skeleton-footer"></div>
+    `;
+    if (previewContainer) previewContainer.appendChild(skeletonEl);
+
     setTimeout(() => {
         try {
             const html = generateEmailHtml();
             const codeBlock = document.getElementById('code-block') as HTMLElement;
             if (codeBlock) codeBlock.textContent = html;
-            if (previewPane) previewPane.srcdoc = html;
+            if (previewPane) {
+                previewPane.srcdoc = html;
+                previewPane.style.display = '';
+            }
 
-            outputPlaceholder.style.display = 'none';
-            outputContainer.style.display = 'grid';
-            
+            // Remove skeleton
+            skeletonEl.remove();
+
             spinner.classList.add('hidden');
             checkmark.classList.remove('hidden');
             btnText.textContent = 'Complete';
@@ -2793,6 +2884,8 @@ emailForm.addEventListener('submit', (e: Event) => {
             showToast('Error generating template. Check console for details.', 'error');
             spinner.classList.add('hidden');
             btnText.textContent = 'Generate Template';
+            skeletonEl.remove();
+            if (previewPane) previewPane.style.display = '';
         } finally {
             setTimeout(() => {
                 formElements.forEach(el => (el as HTMLButtonElement).disabled = false);
@@ -2855,10 +2948,18 @@ const saveTemplate = () => {
 };
 
 const deleteTemplate = (id: string) => {
-    const templates = getSavedTemplates().filter(t => t.id !== id);
+    const allTemplates = getSavedTemplates();
+    const removedTemplate = allTemplates.find(t => t.id === id);
+    const removedIndex = allTemplates.findIndex(t => t.id === id);
+    const templates = allTemplates.filter(t => t.id !== id);
     localStorage.setItem(LS_TEMPLATES_KEY, JSON.stringify(templates));
     renderSavedTemplates();
-    showToast('Template deleted', 'success');
+    showToast('Template deleted', 'success', removedTemplate ? () => {
+        const current = getSavedTemplates();
+        current.splice(removedIndex, 0, removedTemplate);
+        localStorage.setItem(LS_TEMPLATES_KEY, JSON.stringify(current));
+        renderSavedTemplates();
+    } : undefined);
 };
 
 const loadTemplate = (id: string) => {
@@ -2884,16 +2985,14 @@ const renderSavedTemplates = () => {
         return;
     }
     savedTemplatesList.innerHTML = templates.map(t => `
-        <div class="card" style="margin-bottom: 6px; background: var(--background-secondary);">
-            <div class="card-body" style="padding: var(--spacing-sm) var(--spacing-md); display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <h4 class="text-base font-bold">${t.name}</h4>
-                    <p class="text-xs" style="color: var(--label-tertiary);">${new Date(t.createdAt).toLocaleString()}</p>
-                </div>
-                <div class="flex gap-2">
-                    <button class="btn btn-primary btn-sm load-tpl-btn" data-id="${t.id}">Load</button>
-                    <button class="btn btn-ghost btn-sm del-tpl-btn" data-id="${t.id}" style="color: var(--destructive); height: 24px;">Delete</button>
-                </div>
+        <div class="library-card">
+            <div class="library-card-info">
+                <h4 class="library-card-name">${t.name}</h4>
+                <p class="library-card-meta">${new Date(t.createdAt).toLocaleString()}</p>
+            </div>
+            <div class="library-card-actions">
+                <button class="btn btn-primary btn-sm load-tpl-btn" data-id="${t.id}">Load</button>
+                <button class="btn btn-ghost btn-sm del-tpl-btn" data-id="${t.id}" style="color: var(--destructive);">Delete</button>
             </div>
         </div>
     `).join('');
@@ -2963,15 +3062,25 @@ const addComponentFromLibrary = (libraryId: string) => {
         const newElement = document.querySelector(`.component-item[data-id='${newComponent.id}']`);
         if (newElement) {
             newElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            newElement.classList.add('highlight-pulse');
+            setTimeout(() => newElement.classList.remove('highlight-pulse'), 1000);
         }
     }, 100);
 };
 
 const deleteLibraryComponent = (id: string) => {
-    const library = getSavedLibraryComponents().filter(item => item.id !== id);
+    const allLibrary = getSavedLibraryComponents();
+    const removedItem = allLibrary.find(item => item.id === id);
+    const removedIndex = allLibrary.findIndex(item => item.id === id);
+    const library = allLibrary.filter(item => item.id !== id);
     localStorage.setItem(LS_LIBRARY_KEY, JSON.stringify(library));
     renderComponentLibrary();
-    showToast('Component removed from library', 'success');
+    showToast('Component removed from library', 'success', removedItem ? () => {
+        const current = getSavedLibraryComponents();
+        current.splice(removedIndex, 0, removedItem);
+        localStorage.setItem(LS_LIBRARY_KEY, JSON.stringify(current));
+        renderComponentLibrary();
+    } : undefined);
 };
 
 const renderComponentLibrary = () => {
@@ -2984,22 +3093,20 @@ const renderComponentLibrary = () => {
     }
 
     componentLibraryList.innerHTML = library.map(item => `
-        <div class="library-item card" style="margin-bottom: 6px; background: var(--background-secondary);">
-            <div class="card-body" style="padding: var(--spacing-sm) var(--spacing-md); display: flex; justify-content: space-between; align-items: center;">
-                <div style="display: flex; align-items: center; gap: var(--spacing-sm); min-width: 0;">
-                    <span class="material-symbols-rounded" style="font-size: 16px; color: var(--label-secondary); flex-shrink: 0;">${getComponentTypeIcon(item.type)}</span>
-                    <div style="min-width: 0;">
-                        <h4 class="text-base font-bold" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.name}</h4>
-                        <div style="display: flex; align-items: center; gap: var(--spacing-xs);">
-                            <span class="library-type-badge">${formatComponentTypeName(item.type)}</span>
-                            <span class="text-xs" style="color: var(--label-tertiary);">${new Date(item.createdAt).toLocaleDateString()}</span>
-                        </div>
-                    </div>
+        <div class="library-card">
+            <div class="library-card-info">
+                <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                    <span class="material-symbols-rounded" style="font-size: 16px; color: var(--label-secondary);">${getComponentTypeIcon(item.type)}</span>
+                    <h4 class="library-card-name">${item.name}</h4>
                 </div>
-                <div class="flex gap-2" style="flex-shrink: 0;">
-                    <button class="btn btn-primary btn-sm add-from-library-btn" data-id="${item.id}">Add</button>
-                    <button class="btn btn-ghost btn-sm del-library-btn" data-id="${item.id}" style="color: var(--destructive); height: 24px;">Delete</button>
+                <div class="library-card-meta">
+                    <span class="library-type-badge">${formatComponentTypeName(item.type)}</span>
+                    <span>${new Date(item.createdAt).toLocaleDateString()}</span>
                 </div>
+            </div>
+            <div class="library-card-actions">
+                <button class="btn btn-primary btn-sm add-from-library-btn" data-id="${item.id}">Add</button>
+                <button class="btn btn-ghost btn-sm del-library-btn" data-id="${item.id}" style="color: var(--destructive);">Delete</button>
             </div>
         </div>
     `).join('');
@@ -3189,7 +3296,7 @@ const alignmentControlHtml = (dataStyleKey: string, currentValue: string, disabl
             data-style-key="${dataStyleKey}" 
             data-value="${opt}"
             ${disabled ? 'disabled' : ''}
-            title="Align ${opt}"
+            data-tooltip="Align ${opt}"
         >
             ${ALIGNMENT_ICONS[opt as keyof typeof ALIGNMENT_ICONS]}
         </button>
@@ -3225,7 +3332,7 @@ const buttonWidthControlHtml = (currentValue: string, dataStyleKey: string): str
             class="btn-width-option style-control ${mappedValue === opt.value ? 'active' : ''}" 
             data-style-key="${dataStyleKey}" 
             data-value="${opt.value}"
-            title="${opt.label}"
+            data-tooltip="${opt.label}"
         >
             <span>${opt.label}</span>
             <div class="width-indicator-wrapper">
@@ -4274,7 +4381,7 @@ function initGlobalTextStyles() {
                  data-scheme-id="${scheme.id}"
                  data-body-color="${scheme.bodyColor}"
                  data-accent-color="${scheme.accentColor}"
-                 title="${scheme.name}">
+                 data-tooltip="${scheme.name}">
               <div class="scheme-swatches">
                 <div class="scheme-swatch" style="background:${scheme.bodyColor};"></div>
                 <div class="scheme-swatch" style="background:${scheme.accentColor};"></div>
@@ -4285,7 +4392,7 @@ function initGlobalTextStyles() {
     // Append custom scheme card with live color pickers
     const isCustom = designSettings.colorScheme === 'custom';
     grid.innerHTML += `
-        <div class="color-scheme-card${isCustom ? ' selected' : ''}" data-scheme-id="custom" title="Custom">
+        <div class="color-scheme-card${isCustom ? ' selected' : ''}" data-scheme-id="custom" data-tooltip="Custom">
           <div class="scheme-swatches">
             <div class="color-input-container mini" onclick="this.querySelector('input[type=color]').click()">
               <div class="color-swatch-display" style="background-color:${designSettings.globalBodyColor};"></div>
