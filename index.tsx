@@ -2813,6 +2813,116 @@ const renderComponentLibrary = () => {
 
 // --- End Component Library ---
 
+// --- Starter Templates ---
+
+const STARTER_TEMPLATES: Record<string, { name: string; components: EmailComponent[] }> = {
+    single_offer: {
+        name: 'Single Offer',
+        components: [
+            { id: 's1', type: 'header', data: { text: 'Exclusive Offer Just for You', fontSize: '22', textColor: '#1d1d1f', backgroundColor: 'transparent', fontWeight: 'bold', fontStyle: 'normal', textDecoration: 'none', textAlign: 'center', paddingTop: '20', paddingBottom: '10', paddingLeftRight: '15' } },
+            { id: 's2', type: 'sales_offer', data: { ...getDefaultComponentData('sales_offer'), layout: 'center', vehicleText: 'New {{customer.last_transaction.vehicle.year}} {{customer.last_transaction.vehicle.make}} {{customer.last_transaction.vehicle.model}}', mainOfferText: '$2,500 Trade-In Bonus', detailsText: 'Upgrade your current ride today with our exclusive seasonal offer.', disclaimerText: '*Terms and conditions apply. Offer valid through end of month.', btnText: 'View Details', btnLink: '{{dealership.tracked_website_homepage_url}}' } },
+            { id: 's3', type: 'disclaimers', data: { text: '*Terms and conditions apply. See dealer for details. Cannot be combined with other offers.', fontSize: '9', textColor: '#86868b', backgroundColor: 'transparent', fontWeight: 'normal', fontStyle: 'normal', textDecoration: 'none', textAlign: 'center', paddingTop: '12', paddingBottom: '12', paddingLeftRight: '15' } },
+        ],
+    },
+    two_column_offers: {
+        name: '2-Column Offers',
+        components: [
+            { id: 's1', type: 'header', data: { text: 'This Month\'s Best Deals', fontSize: '22', textColor: '#1d1d1f', backgroundColor: 'transparent', fontWeight: 'bold', fontStyle: 'normal', textDecoration: 'none', textAlign: 'center', paddingTop: '20', paddingBottom: '10', paddingLeftRight: '15' } },
+            { id: 's2', type: 'service_offer', data: { ...getDefaultComponentData('service_offer'), layout: 'two_column', serviceTitle: 'Oil Change Special', couponCode: 'OILCHANGE50', serviceDetails: 'Get $50 off your next oil change. Includes synthetic blend oil and filter.', disclaimer: '*Valid at participating dealers only.', buttonText: 'Schedule Now', serviceTitle2: 'Tire Rotation Deal', couponCode2: 'TIRES25', serviceDetails2: 'Get $25 off your next tire rotation. Keep your tires wearing evenly.', disclaimer2: '*Cannot be combined with other offers.', buttonText2: 'Book Service' } },
+            { id: 's3', type: 'disclaimers', data: { text: '*Offers valid at participating dealers. See dealer for complete details.', fontSize: '9', textColor: '#86868b', backgroundColor: 'transparent', fontWeight: 'normal', fontStyle: 'normal', textDecoration: 'none', textAlign: 'center', paddingTop: '12', paddingBottom: '12', paddingLeftRight: '15' } },
+        ],
+    },
+    service_and_sales: {
+        name: 'Service + Sales',
+        components: [
+            { id: 's1', type: 'header', data: { text: 'Your Monthly Update', fontSize: '22', textColor: '#1d1d1f', backgroundColor: 'transparent', fontWeight: 'bold', fontStyle: 'normal', textDecoration: 'none', textAlign: 'center', paddingTop: '20', paddingBottom: '10', paddingLeftRight: '15' } },
+            { id: 's2', type: 'service_offer', data: { ...getDefaultComponentData('service_offer'), layout: 'single', serviceTitle: 'Brake Inspection Special', couponCode: 'BRAKES30', serviceDetails: 'Complimentary multi-point brake inspection plus $30 off any brake service.', disclaimer: '*Valid at participating dealers only.', buttonText: 'Book Now' } },
+            { id: 's3', type: 'divider', data: { width: '80', thickness: '1', lineColor: '#E5E5EA', alignment: 'center', paddingTop: '15', paddingBottom: '15', paddingLeftRight: '0' } },
+            { id: 's4', type: 'sales_offer', data: { ...getDefaultComponentData('sales_offer'), layout: 'center', vehicleText: 'New {{customer.last_transaction.vehicle.year}} {{customer.last_transaction.vehicle.make}} {{customer.last_transaction.vehicle.model}}', mainOfferText: '0% APR for 60 Months', detailsText: 'Drive home your dream vehicle with zero-interest financing.', disclaimerText: '*With approved credit. See dealer for details.', btnText: 'Shop Inventory', btnLink: '{{dealership.tracked_website_homepage_url}}' } },
+            { id: 's5', type: 'disclaimers', data: { text: '*All offers subject to availability. See dealer for full terms and conditions.', fontSize: '9', textColor: '#86868b', backgroundColor: 'transparent', fontWeight: 'normal', fontStyle: 'normal', textDecoration: 'none', textAlign: 'center', paddingTop: '12', paddingBottom: '12', paddingLeftRight: '15' } },
+        ],
+    },
+    recall_notice: {
+        name: 'Recall Notice',
+        components: [
+            { id: 's1', type: 'header', data: { text: 'Important Safety Recall Notice', fontSize: '22', textColor: '#d00000', backgroundColor: 'transparent', fontWeight: 'bold', fontStyle: 'normal', textDecoration: 'none', textAlign: 'center', paddingTop: '20', paddingBottom: '10', paddingLeftRight: '15' } },
+            { id: 's2', type: 'text_block', data: { text: 'Dear {{customer.first_name}},\n\nA safety recall has been issued for your {{customer.last_transaction.vehicle.year}} {{customer.last_transaction.vehicle.make}} {{customer.last_transaction.vehicle.model}}. This recall affects a critical component and we recommend scheduling your free recall service as soon as possible.\n\nYour safety is our top priority. This service is provided at no cost to you.', fontSize: '13', textColor: '#1d1d1f', backgroundColor: 'transparent', fontWeight: 'normal', fontStyle: 'normal', textDecoration: 'none', textAlign: 'left', paddingTop: '10', paddingBottom: '10', paddingLeftRight: '15' } },
+            { id: 's3', type: 'button', data: { text: 'Schedule Recall Service', link: '{{dealership.tracked_website_homepage_url}}', fontSize: '13', textColor: '#ffffff', backgroundColor: '#d00000', align: 'center', paddingTop: '12', paddingBottom: '12', paddingLeftRight: '15', widthType: 'full' } },
+            { id: 's4', type: 'disclaimers', data: { text: '*This is an important safety notice. Please contact us at {{dealership.phone}} if you have any questions. Recall service is always free of charge.', fontSize: '9', textColor: '#86868b', backgroundColor: 'transparent', fontWeight: 'normal', fontStyle: 'normal', textDecoration: 'none', textAlign: 'center', paddingTop: '15', paddingBottom: '12', paddingLeftRight: '15' } },
+        ],
+    },
+};
+
+const loadStarterTemplate = (templateKey: string) => {
+    const starter = STARTER_TEMPLATES[templateKey];
+    if (!starter) return;
+
+    // Assign unique IDs to each component
+    const components = starter.components.map(c => ({
+        ...c,
+        id: Date.now().toString() + Math.random().toString(36).slice(2, 7),
+        data: { ...c.data },
+    }));
+
+    activeComponents = components;
+    saveToHistory();
+    renderComponents();
+    saveDraft();
+    showToast(`Loaded starter: ${starter.name}`, 'success');
+};
+
+// --- Starter Components ---
+
+const STARTER_COMPONENTS: Record<string, { name: string; type: string; data: Record<string, string> }> = {
+    hero_header: {
+        name: 'Hero Header',
+        type: 'header',
+        data: { text: 'Your Headline Here', fontSize: '24', textColor: '#1d1d1f', backgroundColor: 'transparent', fontWeight: 'bold', fontStyle: 'normal', textDecoration: 'none', textAlign: 'center', paddingTop: '25', paddingBottom: '15', paddingLeftRight: '15' },
+    },
+    service_coupon: {
+        name: 'Service Coupon',
+        type: 'service_offer',
+        data: { ...getDefaultComponentData('service_offer'), layout: 'single', serviceTitle: 'Oil Change Special', couponCode: 'SAVE50', serviceDetails: 'Get $50 off your next oil change service. Includes synthetic blend oil and filter replacement.', disclaimer: '*Valid at participating dealers only.', buttonText: 'Schedule Now' },
+    },
+    vehicle_offer: {
+        name: 'Vehicle Offer',
+        type: 'sales_offer',
+        data: { ...getDefaultComponentData('sales_offer'), layout: 'center', vehicleText: 'New {{customer.last_transaction.vehicle.year}} {{customer.last_transaction.vehicle.make}} {{customer.last_transaction.vehicle.model}}', mainOfferText: '$2,500 Trade-In Bonus', detailsText: 'Upgrade your vehicle today with our exclusive offer.', disclaimerText: '*Terms and conditions apply.', btnText: 'View Details', btnLink: '{{dealership.tracked_website_homepage_url}}' },
+    },
+    cta_button: {
+        name: 'CTA Button',
+        type: 'button',
+        data: { text: 'Shop Now', link: '{{dealership.tracked_website_homepage_url}}', fontSize: '13', textColor: '#ffffff', backgroundColor: '#007aff', align: 'center', paddingTop: '12', paddingBottom: '12', paddingLeftRight: '15', widthType: 'full' },
+    },
+};
+
+const addStarterComponent = (componentKey: string) => {
+    const starter = STARTER_COMPONENTS[componentKey];
+    if (!starter) return;
+
+    const newComponent: EmailComponent = {
+        id: Date.now().toString(),
+        type: starter.type,
+        data: { ...starter.data },
+    };
+
+    activeComponents.push(newComponent);
+    saveToHistory();
+    renderComponents();
+    saveDraft();
+    showToast(`Added: ${starter.name}`, 'success');
+
+    setTimeout(() => {
+        selectComponent(newComponent.id);
+        const newElement = document.querySelector(`.component-item[data-id='${newComponent.id}']`);
+        if (newElement) {
+            newElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, 100);
+};
+
+// --- End Starter Templates & Components ---
+
 const loadDraft = () => {
     try {
         const data = localStorage.getItem(LS_DRAFT_KEY);
@@ -3926,6 +4036,23 @@ function initGlobalTextStyles() {
 
 
 saveTemplateBtn?.addEventListener('click', saveTemplate);
+
+// Starter template click handlers
+document.querySelectorAll('[data-starter-template]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-starter-template');
+        if (key) loadStarterTemplate(key);
+    });
+});
+
+// Starter component click handlers
+document.querySelectorAll('[data-starter-component]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-starter-component');
+        if (key) addStarterComponent(key);
+    });
+});
+
 loadCollapsedStates();
 renderMergeFieldsSidebar();
 loadDraft();
