@@ -394,6 +394,40 @@ const showToast = (message: string, type: 'success' | 'error' | 'info' = 'succes
 }
 
 
+// --- Tooltip System (JS-positioned, immune to overflow:hidden) ---
+const tooltipEl = document.createElement('div');
+tooltipEl.className = 'tooltip-popup';
+document.body.appendChild(tooltipEl);
+let tooltipTimeout: number;
+
+document.addEventListener('mouseover', (e) => {
+    const target = (e.target as HTMLElement).closest('[data-tooltip]') as HTMLElement | null;
+    if (!target) return;
+
+    const text = target.getAttribute('data-tooltip');
+    if (!text) return;
+
+    tooltipEl.textContent = text;
+
+    const rect = target.getBoundingClientRect();
+    tooltipEl.style.left = `${rect.left + rect.width / 2}px`;
+    tooltipEl.style.top = `${rect.top - 6}px`;
+
+    window.clearTimeout(tooltipTimeout);
+    tooltipTimeout = window.setTimeout(() => {
+        tooltipEl.classList.add('visible');
+    }, 10);
+});
+
+document.addEventListener('mouseout', (e) => {
+    const target = (e.target as HTMLElement).closest('[data-tooltip]') as HTMLElement | null;
+    if (!target) return;
+
+    window.clearTimeout(tooltipTimeout);
+    tooltipEl.classList.remove('visible');
+});
+
+
 // Local Storage Keys
 const LS_TEMPLATES_KEY = 'craftor_saved_templates';
 const LS_DRAFT_KEY = 'craftor_current_draft';
@@ -1661,10 +1695,10 @@ const renderComponents = () => {
                     <div class="component-row-item" style="flex: 1;">
                         <label class="form-label">Layout</label>
                         <div class="footer-layout-toggle">
-                            <button type="button" class="footer-layout-btn ${comp.data.layout === 'inline' ? 'active' : ''}" data-key="layout" data-value="inline" title="Side by Side">
+                            <button type="button" class="footer-layout-btn ${comp.data.layout === 'inline' ? 'active' : ''}" data-key="layout" data-value="inline" data-tooltip="Side by Side">
                                 <span class="material-symbols-rounded" style="font-size: 16px;">view_column</span> Inline
                             </button>
-                            <button type="button" class="footer-layout-btn ${comp.data.layout === 'stacked' ? 'active' : ''}" data-key="layout" data-value="stacked" title="Stacked">
+                            <button type="button" class="footer-layout-btn ${comp.data.layout === 'stacked' ? 'active' : ''}" data-key="layout" data-value="stacked" data-tooltip="Stacked">
                                 <span class="material-symbols-rounded" style="font-size: 16px;">view_agenda</span> Stacked
                             </button>
                         </div>
@@ -1833,8 +1867,8 @@ const renderComponents = () => {
             const isSvcGrid = comp.data.layout === 'grid';
             offerHeaderControls = `
                 <div class="toggle-group header-toggle-group">
-                    <button type="button" class="toggle-btn layout-toggle ${!isSvcGrid ? 'active' : ''}" data-key="layout" data-value="single" title="Single Column">1</button>
-                    <button type="button" class="toggle-btn layout-toggle ${isSvcGrid ? 'active' : ''}" data-key="layout" data-value="grid" title="Two Columns">2×2</button>
+                    <button type="button" class="toggle-btn layout-toggle ${!isSvcGrid ? 'active' : ''}" data-key="layout" data-value="single" data-tooltip="Single Column">1</button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSvcGrid ? 'active' : ''}" data-key="layout" data-value="grid" data-tooltip="Two Columns">2×2</button>
                 </div>
                 <span class="header-toggle-divider"></span>
             `;
@@ -2951,16 +2985,14 @@ const renderSavedTemplates = () => {
         return;
     }
     savedTemplatesList.innerHTML = templates.map(t => `
-        <div class="card" style="margin-bottom: 6px; background: var(--background-secondary);">
-            <div class="card-body" style="padding: var(--spacing-sm) var(--spacing-md); display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <h4 class="text-base font-bold">${t.name}</h4>
-                    <p class="text-xs" style="color: var(--label-tertiary);">${new Date(t.createdAt).toLocaleString()}</p>
-                </div>
-                <div class="flex gap-2">
-                    <button class="btn btn-primary btn-sm load-tpl-btn" data-id="${t.id}">Load</button>
-                    <button class="btn btn-ghost btn-sm del-tpl-btn" data-id="${t.id}" style="color: var(--destructive); height: 24px;">Delete</button>
-                </div>
+        <div class="library-card">
+            <div class="library-card-info">
+                <h4 class="library-card-name">${t.name}</h4>
+                <p class="library-card-meta">${new Date(t.createdAt).toLocaleString()}</p>
+            </div>
+            <div class="library-card-actions">
+                <button class="btn btn-primary btn-sm load-tpl-btn" data-id="${t.id}">Load</button>
+                <button class="btn btn-ghost btn-sm del-tpl-btn" data-id="${t.id}" style="color: var(--destructive);">Delete</button>
             </div>
         </div>
     `).join('');
@@ -3061,22 +3093,20 @@ const renderComponentLibrary = () => {
     }
 
     componentLibraryList.innerHTML = library.map(item => `
-        <div class="library-item card" style="margin-bottom: 6px; background: var(--background-secondary);">
-            <div class="card-body" style="padding: var(--spacing-sm) var(--spacing-md); display: flex; justify-content: space-between; align-items: center;">
-                <div style="display: flex; align-items: center; gap: var(--spacing-sm); min-width: 0;">
-                    <span class="material-symbols-rounded" style="font-size: 16px; color: var(--label-secondary); flex-shrink: 0;">${getComponentTypeIcon(item.type)}</span>
-                    <div style="min-width: 0;">
-                        <h4 class="text-base font-bold" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.name}</h4>
-                        <div style="display: flex; align-items: center; gap: var(--spacing-xs);">
-                            <span class="library-type-badge">${formatComponentTypeName(item.type)}</span>
-                            <span class="text-xs" style="color: var(--label-tertiary);">${new Date(item.createdAt).toLocaleDateString()}</span>
-                        </div>
-                    </div>
+        <div class="library-card">
+            <div class="library-card-info">
+                <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                    <span class="material-symbols-rounded" style="font-size: 16px; color: var(--label-secondary);">${getComponentTypeIcon(item.type)}</span>
+                    <h4 class="library-card-name">${item.name}</h4>
                 </div>
-                <div class="flex gap-2" style="flex-shrink: 0;">
-                    <button class="btn btn-primary btn-sm add-from-library-btn" data-id="${item.id}">Add</button>
-                    <button class="btn btn-ghost btn-sm del-library-btn" data-id="${item.id}" style="color: var(--destructive); height: 24px;">Delete</button>
+                <div class="library-card-meta">
+                    <span class="library-type-badge">${formatComponentTypeName(item.type)}</span>
+                    <span>${new Date(item.createdAt).toLocaleDateString()}</span>
                 </div>
+            </div>
+            <div class="library-card-actions">
+                <button class="btn btn-primary btn-sm add-from-library-btn" data-id="${item.id}">Add</button>
+                <button class="btn btn-ghost btn-sm del-library-btn" data-id="${item.id}" style="color: var(--destructive);">Delete</button>
             </div>
         </div>
     `).join('');
@@ -3302,7 +3332,7 @@ const buttonWidthControlHtml = (currentValue: string, dataStyleKey: string): str
             class="btn-width-option style-control ${mappedValue === opt.value ? 'active' : ''}" 
             data-style-key="${dataStyleKey}" 
             data-value="${opt.value}"
-            title="${opt.label}"
+            data-tooltip="${opt.label}"
         >
             <span>${opt.label}</span>
             <div class="width-indicator-wrapper">

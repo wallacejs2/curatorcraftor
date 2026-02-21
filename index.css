@@ -2087,17 +2087,9 @@ textarea.form-control.compact {
   margin: 0 auto;
 }
 
-/* --- Tooltip System --- */
-[data-tooltip] {
-  position: relative;
-}
-
-[data-tooltip]::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%) scale(0.95);
+/* --- Tooltip System (JS-positioned, immune to overflow:hidden) --- */
+.tooltip-popup {
+  position: fixed;
   background: rgba(29, 29, 31, 0.9);
   color: white;
   padding: 4px 10px;
@@ -2107,13 +2099,53 @@ textarea.form-control.compact {
   white-space: nowrap;
   pointer-events: none;
   opacity: 0;
+  transform: translateX(-50%) translateY(-100%) scale(0.95);
   transition: opacity 0.15s ease, transform 0.15s ease;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  z-index: 1000;
+  z-index: 9999;
 }
 
-[data-tooltip]:hover::after {
+.tooltip-popup.visible {
   opacity: 1;
-  transform: translateX(-50%) scale(1);
+  transform: translateX(-50%) translateY(-100%) scale(1);
+}
+
+/* --- Library Card Layout --- */
+.library-card {
+  padding: var(--spacing-md);
+  border: 1px solid var(--separator-secondary);
+  border-radius: var(--radius-md);
+  background: var(--background-secondary);
+  margin-bottom: var(--spacing-sm);
+  transition: background var(--transition-fast);
+}
+
+.library-card:hover {
+  background: var(--fill-tertiary);
+}
+
+.library-card-info {
+  margin-bottom: var(--spacing-sm);
+}
+
+.library-card-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--label-primary);
+  word-wrap: break-word;
+  margin-bottom: 2px;
+}
+
+.library-card-meta {
+  font-size: 11px;
+  color: var(--label-tertiary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.library-card-actions {
+  display: flex;
+  gap: var(--spacing-sm);
 }
