@@ -132,52 +132,6 @@
         <!-- Dynamic Field Styling Container -->
         <div id="dynamic-styling-container"></div>
 
-        <!-- Add Components -->
-        <div class="design-option-group">
-          <h4>Add Components</h4>
-          <div class="sidebar-component-list">
-            <button type="button" class="sidebar-component-option" data-type="header">
-              <span class="material-symbols-rounded sidebar-component-icon">format_h1</span>
-              <span>Header</span>
-            </button>
-            <button type="button" class="sidebar-component-option" data-type="text_block">
-              <span class="material-symbols-rounded sidebar-component-icon">format_align_justify</span>
-              <span>Text Block</span>
-            </button>
-            <button type="button" class="sidebar-component-option" data-type="image">
-              <span class="material-symbols-rounded sidebar-component-icon">image</span>
-              <span>Image</span>
-            </button>
-            <button type="button" class="sidebar-component-option" data-type="button">
-              <span class="material-symbols-rounded sidebar-component-icon">radio_button_checked</span>
-              <span>Button</span>
-            </button>
-            <button type="button" class="sidebar-component-option" data-type="footer">
-              <span class="material-symbols-rounded sidebar-component-icon">link</span>
-              <span>Footer</span>
-            </button>
-            <button type="button" class="sidebar-component-option" data-type="divider">
-              <span class="material-symbols-rounded sidebar-component-icon">horizontal_rule</span>
-              <span>Divider</span>
-            </button>
-            <button type="button" class="sidebar-component-option" data-type="spacer">
-              <span class="material-symbols-rounded sidebar-component-icon">expand_all</span>
-              <span>Spacer</span>
-            </button>
-            <button type="button" class="sidebar-component-option" data-type="disclaimers">
-              <span class="material-symbols-rounded sidebar-component-icon">contract</span>
-              <span>Disclaimers</span>
-            </button>
-            <button type="button" class="sidebar-component-option" data-type="service_offer">
-              <span class="material-symbols-rounded sidebar-component-icon">handyman</span>
-              <span>Service Offer</span>
-            </button>
-            <button type="button" class="sidebar-component-option" data-type="sales_offer">
-              <span class="material-symbols-rounded sidebar-component-icon">sell</span>
-              <span>Sales Offer</span>
-            </button>
-          </div>
-        </div>
       </div>
     </aside>
 
@@ -198,18 +152,55 @@
           </section>
 
           <section class="card mb-6">
-            <div class="card-header">
-              <h2 class="text-2xl">Customize Your Email</h2>
-              <div class="flex items-center gap-2">
-                <button type="button" id="shortcuts-help-btn" class="btn btn-ghost btn-sm" data-tooltip="Keyboard Shortcuts (?)">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                </button>
-                <button type="button" id="collapse-all-btn" class="btn btn-ghost btn-sm">
-                  Collapse All
-                </button>
-                <button type="button" id="merge-fields-toggle" class="btn btn-ghost btn-sm">
-                  Insert Merge Fields
-                </button>
+            <div class="card-header card-header--two-row">
+              <div class="card-header-top">
+                <h2 class="text-2xl">Customize Your Email</h2>
+                <div class="flex items-center gap-2">
+                  <button type="button" id="shortcuts-help-btn" class="btn btn-ghost btn-sm" data-tooltip="Keyboard Shortcuts (?)">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                  </button>
+                  <button type="button" id="collapse-all-btn" class="btn btn-ghost btn-sm">
+                    Collapse All
+                  </button>
+                  <button type="button" id="merge-fields-toggle" class="btn btn-ghost btn-sm">
+                    Insert Merge Fields
+                  </button>
+                </div>
+              </div>
+              <div class="card-header-quickadd">
+                <span class="quickadd-label">Add</span>
+                <div class="quickadd-icons">
+                  <button type="button" class="quickadd-btn" data-type="header" data-tooltip="Header">
+                    <span class="material-symbols-rounded">format_h1</span>
+                  </button>
+                  <button type="button" class="quickadd-btn" data-type="text_block" data-tooltip="Text Block">
+                    <span class="material-symbols-rounded">format_align_justify</span>
+                  </button>
+                  <button type="button" class="quickadd-btn" data-type="image" data-tooltip="Image">
+                    <span class="material-symbols-rounded">image</span>
+                  </button>
+                  <button type="button" class="quickadd-btn" data-type="button" data-tooltip="Button">
+                    <span class="material-symbols-rounded">radio_button_checked</span>
+                  </button>
+                  <button type="button" class="quickadd-btn" data-type="footer" data-tooltip="Footer">
+                    <span class="material-symbols-rounded">link</span>
+                  </button>
+                  <button type="button" class="quickadd-btn" data-type="divider" data-tooltip="Divider">
+                    <span class="material-symbols-rounded">horizontal_rule</span>
+                  </button>
+                  <button type="button" class="quickadd-btn" data-type="spacer" data-tooltip="Spacer">
+                    <span class="material-symbols-rounded">expand_all</span>
+                  </button>
+                  <button type="button" class="quickadd-btn" data-type="disclaimers" data-tooltip="Disclaimers">
+                    <span class="material-symbols-rounded">contract</span>
+                  </button>
+                  <button type="button" class="quickadd-btn" data-type="service_offer" data-tooltip="Service Offer">
+                    <span class="material-symbols-rounded">handyman</span>
+                  </button>
+                  <button type="button" class="quickadd-btn" data-type="sales_offer" data-tooltip="Sales Offer">
+                    <span class="material-symbols-rounded">sell</span>
+                  </button>
+                </div>
               </div>
             </div>
             <div class="card-body">

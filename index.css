@@ -118,6 +118,82 @@ main {
   user-select: none;
 }
 
+.card-header--two-row {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  padding-bottom: 0;
+}
+
+.card-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 42px;
+}
+
+.card-header-quickadd {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs) 0 var(--spacing-sm);
+  border-top: 1px solid var(--separator-secondary);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.card-header-quickadd::-webkit-scrollbar {
+  display: none;
+}
+
+.quickadd-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--label-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.quickadd-icons {
+  display: flex;
+  gap: 2px;
+  flex-wrap: nowrap;
+}
+
+.quickadd-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 26px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--label-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+  padding: 0;
+  font-family: inherit;
+}
+
+.quickadd-btn .material-symbols-rounded {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.quickadd-btn:hover {
+  background: var(--background-primary);
+  color: var(--system-blue);
+  box-shadow: var(--shadow-sm);
+}
+
+.quickadd-btn:active {
+  transform: scale(0.9);
+}
+
 .card-body {
   padding: var(--spacing-xl);
 }
@@ -1024,44 +1100,6 @@ textarea.form-control.compact {
 
 #close-right-panel {
   display: none;
-}
-
-/* Stacked component list in design sidebar */
-.sidebar-component-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.sidebar-component-option {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--background-secondary);
-  border: 1px solid var(--separator-secondary);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--label-primary);
-  transition: all var(--transition-fast);
-  text-align: left;
-}
-
-.sidebar-component-option:hover {
-  background: var(--background-primary);
-  border-color: var(--system-blue);
-  color: var(--system-blue);
-  box-shadow: var(--shadow-sm);
-}
-
-.sidebar-component-icon {
-  font-size: 18px;
-  color: var(--system-blue);
-  flex-shrink: 0;
 }
 
 .main-content-area {

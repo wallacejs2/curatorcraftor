@@ -991,10 +991,10 @@ document.querySelectorAll('.right-panel-tab').forEach(tab => {
   });
 });
 
-// Add Component buttons in design sidebar
-document.querySelectorAll('.sidebar-component-option').forEach(opt => {
-  opt.addEventListener('click', () => {
-    const type = opt.getAttribute('data-type');
+// Quick-add component buttons in card header
+document.querySelectorAll('.quickadd-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const type = btn.getAttribute('data-type');
     if (type) {
       addNewComponent(type);
     }
