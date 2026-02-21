@@ -150,34 +150,6 @@
             </p>
           </section>
 
-          <!-- Saved Templates Section -->
-          <section class="card mb-6">
-            <div class="card-header">
-              <h2 class="text-2xl">Saved Templates</h2>
-              <button type="button" id="save-template-btn" class="btn btn-primary btn-sm">
-                Save Current Template
-              </button>
-            </div>
-            <div class="card-body">
-              <div id="saved-templates-list" class="grid grid-cols-1">
-                <!-- Templates will be injected here -->
-                <p class="text-sm" style="color: var(--label-secondary); text-align: center;">No saved templates found.</p>
-              </div>
-            </div>
-          </section>
-
-          <!-- Component Library Section -->
-          <section class="card mb-6">
-            <div class="card-header">
-              <h2 class="text-2xl">Component Library</h2>
-            </div>
-            <div class="card-body">
-              <div id="component-library-list" class="grid grid-cols-1">
-                <p class="text-sm" style="color: var(--label-secondary); text-align: center;">No saved components. Use the <span class="material-symbols-rounded" style="font-size: 14px; vertical-align: middle;">bookmark</span> icon on any section to add it to your library.</p>
-              </div>
-            </div>
-          </section>
-
           <section class="card mb-6">
             <div class="card-header">
               <h2 class="text-2xl">Customize Your Email</h2>
@@ -249,6 +221,37 @@
       </div>
     </div>
     
+    <!-- Right Side Panel: Templates & Component Library -->
+    <aside id="right-panel" class="right-panel">
+      <div class="right-panel-header">
+        <div class="right-panel-tabs">
+          <button type="button" class="right-panel-tab active" data-tab="templates">Templates</button>
+          <button type="button" class="right-panel-tab" data-tab="library">Library</button>
+        </div>
+        <button type="button" id="close-right-panel" class="btn btn-secondary btn-sm" style="width: 24px; height: 24px; padding: 0; border-radius: 50%;">&times;</button>
+      </div>
+      <div class="right-panel-content">
+        <!-- Templates Tab -->
+        <div id="right-panel-templates" class="right-panel-tab-content active">
+          <div style="padding: 0 0 var(--spacing-md) 0;">
+            <button type="button" id="save-template-btn" class="btn btn-primary w-full btn-sm">
+              Save Current Template
+            </button>
+          </div>
+          <div id="saved-templates-list">
+            <p class="text-sm" style="color: var(--label-secondary); text-align: center;">No saved templates found.</p>
+          </div>
+        </div>
+        <!-- Component Library Tab -->
+        <div id="right-panel-library" class="right-panel-tab-content">
+          <div id="component-library-list">
+            <p class="text-sm" style="color: var(--label-secondary); text-align: center;">No saved components. Use the <span class="material-symbols-rounded" style="font-size: 14px; vertical-align: middle;">bookmark</span> icon on any section to add it to your library.</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+    <div id="right-panel-overlay" class="sidebar-overlay"></div>
+
     <div id="design-sidebar-overlay" class="sidebar-overlay"></div>
     <!-- Merge Fields Sidebar (Right) -->
     <div id="merge-fields-sidebar" class="merge-fields-sidebar">
@@ -327,6 +330,9 @@
 
 
     <!-- Floating Action Buttons -->
+    <button type="button" id="floating-panel-btn" class="fab fab-panel" title="Templates & Library">
+      <span class="material-symbols-rounded" style="font-size: 22px;">dashboard_customize</span>
+    </button>
     <button type="button" id="floating-merge-btn" class="fab fab-merge" title="Insert Merge Fields">
       <span style="font-family: var(--font-family-mono); font-size: 16px; font-weight: bold;">{{}}</span>
     </button>

@@ -313,6 +313,12 @@ const mobileViewBtn = document.getElementById('mobile-view-btn');
 const closeDesignSidebar = document.getElementById('close-design-sidebar');
 const closeMergeSidebar = document.getElementById('close-sidebar');
 
+// Right Panel Elements
+const rightPanel = document.getElementById('right-panel');
+const rightPanelOverlay = document.getElementById('right-panel-overlay');
+const closeRightPanel = document.getElementById('close-right-panel');
+const floatingPanelBtn = document.getElementById('floating-panel-btn');
+
 // Design Settings Controls
 const fontSelect = document.getElementById('design-font-family') as HTMLSelectElement;
 
@@ -904,6 +910,34 @@ floatingMergeBtn?.addEventListener('click', () => {
   mergeFieldsSidebar?.classList.add('open');
   sidebarOverlay?.classList.add('visible');
   document.body.style.overflow = 'hidden';
+});
+
+// Right Panel: toggle, close, tab switching
+const openRightPanel = () => {
+  rightPanel?.classList.add('open');
+  rightPanelOverlay?.classList.add('visible');
+  if (window.innerWidth <= 1024) document.body.style.overflow = 'hidden';
+};
+const closeRightPanelFunc = () => {
+  rightPanel?.classList.remove('open');
+  rightPanelOverlay?.classList.remove('visible');
+  document.body.style.overflow = '';
+};
+
+floatingPanelBtn?.addEventListener('click', openRightPanel);
+closeRightPanel?.addEventListener('click', closeRightPanelFunc);
+rightPanelOverlay?.addEventListener('click', closeRightPanelFunc);
+
+// Tab switching inside right panel
+document.querySelectorAll('.right-panel-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const targetTab = tab.getAttribute('data-tab');
+    document.querySelectorAll('.right-panel-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.right-panel-tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    const targetContent = document.getElementById(`right-panel-${targetTab}`);
+    targetContent?.classList.add('active');
+  });
 });
 
 const getDefaultComponentData = (type: string): Record<string, string> => {
