@@ -1730,6 +1730,43 @@ textarea.form-control.compact {
   background: var(--background-secondary);
 }
 
+.footer-separator-preview,
+.footer-container-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--separator-secondary);
+  border-radius: var(--radius-md);
+  background: var(--background-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.footer-separator-preview:hover,
+.footer-container-preview:hover {
+  border-color: var(--system-blue);
+  box-shadow: 0 0 0 1px var(--system-blue);
+}
+
+.footer-separator-preview.field-active,
+.footer-container-preview.field-active {
+  border-color: var(--system-blue);
+  box-shadow: 0 0 0 1px var(--system-blue);
+  background: var(--fill-tertiary);
+}
+
+.footer-separator-sample {
+  letter-spacing: 1px;
+}
+
+.footer-separator-style-picker {
+  display: flex;
+  gap: 4px;
+}
+
 @media (max-width: 768px) {
   .img-fields-row,
   .offer-img-row,

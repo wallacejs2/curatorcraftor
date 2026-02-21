@@ -1107,9 +1107,14 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                     { text: 'Contact Us', url: '{{dealership.tracked_website_homepage_url}}' },
                 ]),
                 fontSize: '12',
+                fontWeight: 'normal',
+                fontStyle: 'normal',
+                textDecoration: 'none',
+                textAlign: 'center',
                 textColor: designSettings.globalLinkColor || '#007aff',
                 backgroundColor: 'transparent',
                 separatorColor: '#c7c7cc',
+                separatorStyle: 'dot',
                 paddingTop: '15',
                 paddingBottom: '15',
                 paddingLeftRight: '15',
@@ -1632,13 +1637,14 @@ const renderComponents = () => {
                 </div>
             `;
 
+            const separatorLabel = comp.data.separatorStyle === 'pipe' ? '|' : comp.data.separatorStyle === 'dash' ? '—' : '·';
             const linksHtml = footerLinks.map((link, i) => `
                 <div class="footer-link-item" data-link-index="${i}">
                     <div class="footer-link-fields">
                         <div class="component-row">
                             <div class="component-row-item">
                                 <label class="form-label">Text</label>
-                                <input type="text" class="form-control compact footer-link-field" data-link-index="${i}" data-link-field="text" value="${link.text || ''}" placeholder="Link text">
+                                <input type="text" class="form-control compact footer-link-field" data-link-index="${i}" data-link-field="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="footerLinks" data-field-label="Link Text" value="${link.text || ''}" placeholder="Link text">
                             </div>
                             <div class="component-row-item">
                                 <label class="form-label">URL</label>
@@ -1652,6 +1658,21 @@ const renderComponents = () => {
                 </div>
             `).join('');
 
+            const separatorPreview = comp.data.layout === 'inline' ? `
+                <div class="footer-separator-preview" data-stylable="true" data-component-id="${comp.id}" data-field-key="footerSeparator" data-field-label="Separator" tabindex="0">
+                    <span class="footer-separator-sample" style="color: ${comp.data.separatorColor || '#c7c7cc'}; font-size: ${comp.data.fontSize || 12}px;">
+                        Link ${separatorLabel} Link ${separatorLabel} Link
+                    </span>
+                </div>
+            ` : '';
+
+            const containerPreview = `
+                <div class="footer-container-preview" data-stylable="true" data-component-id="${comp.id}" data-field-key="footerContainer" data-field-label="Container" tabindex="0">
+                    <span class="material-symbols-rounded" style="font-size: 14px; color: var(--label-tertiary);">settings</span>
+                    <span style="font-size: 11px; color: var(--label-secondary);">Container &amp; Alignment</span>
+                </div>
+            `;
+
             componentFormHtml = `
                 ${layoutToggle}
                 <div class="footer-links-list">${linksHtml}</div>
@@ -1659,6 +1680,8 @@ const renderComponents = () => {
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     Add Footer Link
                 </button>
+                ${separatorPreview}
+                ${containerPreview}
             `;
         } else if (comp.type === 'divider') {
             componentFormHtml = `
@@ -2293,22 +2316,35 @@ function generateEmailHtml(): string {
         const linkColor = d.textColor || '#007aff';
         const separatorColor = d.separatorColor || '#c7c7cc';
         const fontSize = d.fontSize || '12';
+        const fontWeight = d.fontWeight || 'normal';
+        const fontStyleVal = d.fontStyle || 'normal';
+        const textDecor = d.textDecoration || 'none';
+        const textAlign = d.textAlign || 'center';
         const spacing = parseInt(d.linkSpacing || '12');
         const bgColor = d.backgroundColor || 'transparent';
         const isTransparentBg = bgColor === 'transparent';
+        const sepChar = d.separatorStyle === 'pipe' ? '|' : d.separatorStyle === 'dash' ? '&mdash;' : '&middot;';
 
-        const linkStyle = `color: ${linkColor}; text-decoration: none; font-size: ${fontSize}px; font-family: ${designSettings.fontFamily}; line-height: 1.4;`;
+        const linkStyle = [
+            `color: ${linkColor}`,
+            `text-decoration: ${textDecor}`,
+            `font-size: ${fontSize}px`,
+            `font-weight: ${fontWeight}`,
+            `font-style: ${fontStyleVal}`,
+            `font-family: ${designSettings.fontFamily}`,
+            `line-height: 1.4`,
+        ].join(';');
 
         if (isStacked) {
             const linksHtml = footerLinks.map((link, i) => {
-                let html = `<tr><td align="center" style="padding: ${i === 0 ? 0 : spacing}px 0 0 0;"><a href="${DOMPurify.sanitize(link.url || '#')}" target="_blank" style="${linkStyle}">${DOMPurify.sanitize(link.text || '')}</a></td></tr>`;
+                let html = `<tr><td align="${textAlign}" style="padding: ${i === 0 ? 0 : spacing}px 0 0 0;"><a href="${DOMPurify.sanitize(link.url || '#')}" target="_blank" style="${linkStyle}">${DOMPurify.sanitize(link.text || '')}</a></td></tr>`;
                 return html;
             }).join('');
 
             sectionsHtml += `
                 <tr>
-                    <td align="center" ${!isTransparentBg ? `bgcolor="${bgColor}"` : ''} style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
-                        <table border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
+                    <td align="${textAlign}" ${!isTransparentBg ? `bgcolor="${bgColor}"` : ''} style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
+                        <table border="0" cellspacing="0" cellpadding="0" style="margin: ${textAlign === 'center' ? '0 auto' : '0'};">
                             ${linksHtml}
                         </table>
                     </td>
@@ -2318,7 +2354,7 @@ function generateEmailHtml(): string {
             const linksHtml = footerLinks.map((link, i) => {
                 let html = '';
                 if (i > 0) {
-                    html += `<td style="padding: 0 ${spacing}px; color: ${separatorColor}; font-size: ${fontSize}px; line-height: 1;">·</td>`;
+                    html += `<td style="padding: 0 ${spacing}px; color: ${separatorColor}; font-size: ${fontSize}px; line-height: 1;">${sepChar}</td>`;
                 }
                 html += `<td><a href="${DOMPurify.sanitize(link.url || '#')}" target="_blank" style="${linkStyle}">${DOMPurify.sanitize(link.text || '')}</a></td>`;
                 return html;
@@ -2326,8 +2362,8 @@ function generateEmailHtml(): string {
 
             sectionsHtml += `
                 <tr>
-                    <td align="center" ${!isTransparentBg ? `bgcolor="${bgColor}"` : ''} style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
-                        <table border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
+                    <td align="${textAlign}" ${!isTransparentBg ? `bgcolor="${bgColor}"` : ''} style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
+                        <table border="0" cellspacing="0" cellpadding="0" style="margin: ${textAlign === 'center' ? '0 auto' : '0'};">
                             <tr>${linksHtml}</tr>
                         </table>
                     </td>
@@ -3316,15 +3352,30 @@ const getDefaultFieldStyles = (compType: string, fieldKey: string, subOfferIndex
                 paddingTop: '9', paddingBottom: '9', paddingLeftRight: '15',
                 widthType: 'auto'
             };
-        case 'footer':
+        case 'footer': {
+            if (fieldKey === 'footerLinks') {
+                return {
+                    fontSize: '12', fontWeight: 'normal', fontStyle: 'normal',
+                    textDecoration: 'none', textColor: designSettings.globalLinkColor || '#007aff',
+                };
+            }
+            if (fieldKey === 'footerSeparator') {
+                return { separatorColor: '#c7c7cc', separatorStyle: 'dot', linkSpacing: '12' };
+            }
+            if (fieldKey === 'footerContainer') {
+                return {
+                    textAlign: 'center', backgroundColor: 'transparent',
+                    paddingTop: '15', paddingBottom: '15', paddingLeftRight: '15',
+                };
+            }
             return {
-                fontSize: '12',
+                fontSize: '12', fontWeight: 'normal', fontStyle: 'normal',
+                textDecoration: 'none', textAlign: 'center',
                 textColor: designSettings.globalLinkColor || '#007aff',
-                backgroundColor: 'transparent',
-                separatorColor: '#c7c7cc',
-                paddingTop: '15', paddingBottom: '15', paddingLeftRight: '15',
-                linkSpacing: '12',
+                backgroundColor: 'transparent', separatorColor: '#c7c7cc', separatorStyle: 'dot',
+                paddingTop: '15', paddingBottom: '15', paddingLeftRight: '15', linkSpacing: '12',
             };
+        }
         case 'divider':
             return {
                 width: '100', thickness: '1', lineColor: '#CCCCCC',
@@ -3661,22 +3712,86 @@ const renderStylingPanel = () => {
             }, baseUpdateFn);
             break;
 
-        case 'footer':
-            renderStandardStylingPanel(comp.data, {
-                typography: { fontSize: 'fontSize' },
-                colors: [
-                    { key: 'textColor', label: 'Link Color' },
-                    { key: 'separatorColor', label: 'Separator Color' },
-                    { key: 'backgroundColor', label: 'Background' }
-                ],
-                padding: [
-                    { key: 'paddingTop', label: 'Padding T' },
-                    { key: 'paddingBottom', label: 'Padding B' },
-                    { key: 'paddingLeftRight', label: 'Padding L/R' },
-                    { key: 'linkSpacing', label: 'Link Spacing' }
-                ],
-            }, baseUpdateFn);
+        case 'footer': {
+            const footerFieldKey = activeField.fieldKey;
+            if (footerFieldKey === 'footerLinks') {
+                renderStandardStylingPanel(comp.data, {
+                    typography: { fontSize: 'fontSize', fontWeight: 'fontWeight', fontStyle: 'fontStyle' },
+                    colors: [
+                        { key: 'textColor', label: 'Link Color' },
+                    ],
+                    customHtml: () => {
+                        const currentDecor = comp.data.textDecoration || 'none';
+                        return `
+                            <div class="styling-section">
+                                <h4 class="styling-section-title">Text Decoration</h4>
+                                <div style="display: flex; gap: 4px;">
+                                    <button type="button" class="btn btn-secondary format-toggle style-control ${currentDecor === 'underline' ? 'active' : ''}" data-style-key="textDecoration" data-val-on="underline" data-val-off="none" style="font-size: 11px; width: 27px; height: 27px; padding: 0; border-radius: var(--radius-md); text-decoration: underline;">U</button>
+                                </div>
+                            </div>
+                        `;
+                    },
+                }, baseUpdateFn);
+            } else if (footerFieldKey === 'footerSeparator') {
+                renderStandardStylingPanel(comp.data, {
+                    colors: [
+                        { key: 'separatorColor', label: 'Separator Color' },
+                    ],
+                    customHtml: () => {
+                        const currentStyle = comp.data.separatorStyle || 'dot';
+                        return `
+                            <div class="styling-section">
+                                <h4 class="styling-section-title">Separator Style</h4>
+                                <div class="footer-separator-style-picker">
+                                    <button type="button" class="btn btn-secondary style-control format-toggle ${currentStyle === 'dot' ? 'active' : ''}" data-style-key="separatorStyle" data-val-on="dot" data-val-off="dot" style="font-size: 13px; min-width: 36px; height: 27px; padding: 0 6px; border-radius: var(--radius-md);">·</button>
+                                    <button type="button" class="btn btn-secondary style-control format-toggle ${currentStyle === 'pipe' ? 'active' : ''}" data-style-key="separatorStyle" data-val-on="pipe" data-val-off="pipe" style="font-size: 13px; min-width: 36px; height: 27px; padding: 0 6px; border-radius: var(--radius-md);">|</button>
+                                    <button type="button" class="btn btn-secondary style-control format-toggle ${currentStyle === 'dash' ? 'active' : ''}" data-style-key="separatorStyle" data-val-on="dash" data-val-off="dash" style="font-size: 13px; min-width: 36px; height: 27px; padding: 0 6px; border-radius: var(--radius-md);">—</button>
+                                </div>
+                            </div>
+                            <div class="styling-section">
+                                <h4 class="styling-section-title">Spacing</h4>
+                                <div class="grid grid-cols-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Link Spacing (px)</label>
+                                        <input type="number" class="form-control style-control" data-style-key="linkSpacing" value="${comp.data.linkSpacing || '12'}" min="0" max="60">
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    },
+                }, baseUpdateFn);
+            } else if (footerFieldKey === 'footerContainer') {
+                renderStandardStylingPanel(comp.data, {
+                    colors: [
+                        { key: 'backgroundColor', label: 'Background' },
+                    ],
+                    alignment: { textAlign: 'textAlign' },
+                    padding: [
+                        { key: 'paddingTop', label: 'Padding T' },
+                        { key: 'paddingBottom', label: 'Padding B' },
+                        { key: 'paddingLeftRight', label: 'Padding L/R' },
+                    ],
+                }, baseUpdateFn);
+            } else {
+                // Fallback: show all footer controls
+                renderStandardStylingPanel(comp.data, {
+                    typography: { fontSize: 'fontSize', fontWeight: 'fontWeight', fontStyle: 'fontStyle' },
+                    colors: [
+                        { key: 'textColor', label: 'Link Color' },
+                        { key: 'separatorColor', label: 'Separator Color' },
+                        { key: 'backgroundColor', label: 'Background' }
+                    ],
+                    alignment: { textAlign: 'textAlign' },
+                    padding: [
+                        { key: 'paddingTop', label: 'Padding T' },
+                        { key: 'paddingBottom', label: 'Padding B' },
+                        { key: 'paddingLeftRight', label: 'Padding L/R' },
+                        { key: 'linkSpacing', label: 'Link Spacing' }
+                    ],
+                }, baseUpdateFn);
+            }
             break;
+        }
 
         case 'sales_offer':
             {
