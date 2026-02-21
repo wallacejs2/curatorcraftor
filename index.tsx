@@ -940,6 +940,16 @@ document.querySelectorAll('.right-panel-tab').forEach(tab => {
   });
 });
 
+// Add Section picker inside right panel
+document.querySelectorAll('.panel-picker-option').forEach(opt => {
+  opt.addEventListener('click', () => {
+    const type = opt.getAttribute('data-type');
+    if (type) {
+      addNewComponent(type);
+    }
+  });
+});
+
 const getDefaultComponentData = (type: string): Record<string, string> => {
     switch (type) {
         case 'header':
