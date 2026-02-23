@@ -13,6 +13,7 @@ interface DesignSettings {
   globalLinkColor: string;
   globalFontSize: string;
   colorScheme?: string;
+  appearanceMode?: "auto" | "light" | "dark";
 }
 
 const COLOR_SCHEMES = [
@@ -272,7 +273,8 @@ let designSettings: DesignSettings = {
   globalBodyColor: '#1d1d1f',
   globalLinkColor: '#007aff',
   globalFontSize: '14',
-  colorScheme: 'classic'
+  colorScheme: 'classic',
+  appearanceMode: 'auto'
 };
 
 let activeComponents: EmailComponent[] = [];
@@ -322,6 +324,8 @@ const floatingPanelBtn = document.getElementById('floating-panel-btn');
 
 // Design Settings Controls
 const fontSelect = document.getElementById('design-font-family') as HTMLSelectElement;
+const appearanceModeSelect = document.getElementById('appearance-mode') as HTMLSelectElement | null;
+const recommendedTemplateBtn = document.getElementById('recommended-template-btn') as HTMLButtonElement | null;
 
 // Saved Template Elements
 const saveTemplateBtn = document.getElementById('save-template-btn') as HTMLButtonElement;
@@ -329,6 +333,17 @@ const savedTemplatesList = document.getElementById('saved-templates-list') as HT
 const componentLibraryList = document.getElementById('component-library-list') as HTMLElement;
 const libraryFilterBar = document.getElementById('library-filter-bar') as HTMLElement;
 let activeLibraryFilter = 'all';
+
+const applyAppearanceMode = () => {
+    const mode = designSettings.appearanceMode || 'auto';
+    if (mode === 'auto') {
+        document.documentElement.removeAttribute('data-theme');
+    } else {
+        document.documentElement.setAttribute('data-theme', mode);
+    }
+    if (appearanceModeSelect) appearanceModeSelect.value = mode;
+};
+
 
 const ALIGNMENT_ICONS = {
     left: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="17" y1="18" x2="3" y2="18"></line></svg>`,
@@ -522,6 +537,13 @@ fontSelect?.addEventListener('change', () => {
     saveDraft();
     saveToHistory();
     showToast('Font updated', 'success');
+});
+
+appearanceModeSelect?.addEventListener('change', () => {
+    designSettings.appearanceMode = appearanceModeSelect.value as 'auto' | 'light' | 'dark';
+    applyAppearanceMode();
+    saveDraft();
+    showToast(`Appearance: ${appearanceModeSelect.value}`, 'info');
 });
 
 // View Toggles
@@ -955,11 +977,19 @@ componentPickerOverlay?.addEventListener('click', (e) => {
 
 const pickerOptions = document.querySelectorAll('.picker-option');
 pickerOptions.forEach(opt => {
-  opt.addEventListener('click', () => {
+  const addComponentFromPicker = () => {
     const type = opt.getAttribute('data-type');
     if (type) {
       addNewComponent(type);
       closeComponentPickerFunc();
+    }
+  };
+
+  opt.addEventListener('click', addComponentFromPicker);
+  opt.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      addComponentFromPicker();
     }
   });
 });
@@ -1389,7 +1419,7 @@ function generateServiceOfferFormHtml(comp: EmailComponent, suffix: string): str
                     <label class="form-label">URL</label>
                     <div class="img-url-inner">
                         <input type="text" class="form-control compact" data-key="imageUrl${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferImage${suffix}" data-field-label="Image ${suffix || '1'}" value="${imgUrl}" placeholder="https://...">
-                        <button type="button" class="btn btn-secondary btn-sm upload-btn"><span class="material-symbols-rounded">upload</span></button>
+                        <button type="button" class="btn btn-secondary btn-sm upload-btn" aria-label="Upload image"><span class="material-symbols-rounded">upload</span></button>
                         <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="${suffix || '1'}">
                     </div>
                 </div>
@@ -1473,7 +1503,7 @@ function generateSubOffersHtml(comp: EmailComponent, suffix: string): string {
     `).join('');
 
     html += `
-        <button type="button" class="add-sub-offer-btn" data-offer-index="${suffix || '1'}">
+        <button type="button" class="add-sub-offer-btn" data-offer-index="${suffix || '1'}" aria-label="Add additional offer">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             Add Additional Offer
         </button>
@@ -1507,7 +1537,7 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
                         <label class="form-label">URL</label>
                         <div class="img-url-inner">
                             <input type="text" class="form-control compact" data-key="imageSrc${suffix}" value="${salesImgUrl}" placeholder="https://...">
-                            <button type="button" class="btn btn-secondary btn-sm upload-btn"><span class="material-symbols-rounded">upload</span></button>
+                            <button type="button" class="btn btn-secondary btn-sm upload-btn" aria-label="Upload image"><span class="material-symbols-rounded">upload</span></button>
                             <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="${suffix || '1'}">
                         </div>
                     </div>
@@ -1710,7 +1740,7 @@ const renderComponents = () => {
                         <label class="form-label">URL</label>
                         <div class="img-url-inner">
                             <input type="text" class="form-control compact" data-key="src" data-stylable="true" data-component-id="${comp.id}" data-field-key="image" data-field-label="Image Source" value="${comp.data.src || ''}" placeholder="https://example.com/image.jpg">
-                            <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
+                            <button type="button" class="btn btn-secondary btn-sm upload-btn" aria-label="Upload image">Upload</button>
                             <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp">
                         </div>
                     </div>
@@ -1773,7 +1803,7 @@ const renderComponents = () => {
                             </div>
                         </div>
                     </div>
-                    <button type="button" class="btn btn-ghost btn-sm remove-footer-link" data-link-index="${i}" data-tooltip="Remove" style="color: var(--destructive); flex-shrink: 0; padding: 2px;">
+                    <button type="button" class="btn btn-ghost btn-sm remove-footer-link" aria-label="Remove footer link" data-link-index="${i}" data-tooltip="Remove" style="color: var(--destructive); flex-shrink: 0; padding: 2px;">
                         <span class="material-symbols-rounded" style="font-size: 16px;">close</span>
                     </button>
                 </div>
@@ -1866,7 +1896,7 @@ const renderComponents = () => {
                               <label class="form-label">URL</label>
                               <div class="img-url-inner">
                                   <input type="text" class="form-control compact" data-key="imageSrc" value="${comp.data.imageSrc || ''}" placeholder="https://...">
-                                  <button type="button" class="btn btn-secondary btn-sm upload-btn"><span class="material-symbols-rounded">upload</span></button>
+                                  <button type="button" class="btn btn-secondary btn-sm upload-btn" aria-label="Upload image"><span class="material-symbols-rounded">upload</span></button>
                                   <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="1">
                               </div>
                           </div>
@@ -1966,7 +1996,7 @@ const renderComponents = () => {
                 </div>
                 <div class="flex items-center" style="gap: 3px;">
                     ${offerHeaderControls}
-                    <button type="button" class="btn btn-ghost btn-sm save-to-library-btn" data-tooltip="Save to Library">
+                    <button type="button" class="btn btn-ghost btn-sm save-to-library-btn" data-tooltip="Save to Library" aria-label="Save section to library">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
                     </button>
                     <button type="button" class="btn btn-ghost btn-sm reset-comp-btn" data-tooltip="Reset Styles">
@@ -1978,7 +2008,7 @@ const renderComponents = () => {
                     <button type="button" class="btn btn-ghost btn-sm duplicate-comp-btn" data-tooltip="Duplicate">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                     </button>
-                    <button type="button" class="btn btn-ghost btn-sm remove-comp-btn" data-tooltip="Delete">
+                    <button type="button" class="btn btn-ghost btn-sm remove-comp-btn" data-tooltip="Delete" aria-label="Delete section">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                     </button>
                 </div>
@@ -3007,6 +3037,7 @@ emailForm.addEventListener('submit', (e: Event) => {
 
     // Show skeleton loading in preview area
     outputPlaceholder.style.display = 'none';
+    outputContainer.classList.remove('is-hidden');
     outputContainer.style.display = 'grid';
     const previewContainer = outputContainer.querySelector('.preview-container') as HTMLElement;
     if (previewPane) previewPane.style.display = 'none';
@@ -3285,15 +3316,15 @@ const renderComponentLibrary = () => {
     }
 
     if (filtered.length === 0) {
-        componentLibraryList.innerHTML = `<p class="text-sm" style="color: var(--label-secondary); text-align: center;">No saved ${formatComponentTypeName(activeLibraryFilter)} components.</p>`;
+        componentLibraryList.innerHTML = `<p class="text-sm text-secondary text-center">No saved ${formatComponentTypeName(activeLibraryFilter)} components.</p>`;
         return;
     }
 
     componentLibraryList.innerHTML = filtered.map(item => `
         <div class="library-card">
             <div class="library-card-info">
-                <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
-                    <span class="material-symbols-rounded" style="font-size: 16px; color: var(--label-secondary);">${getComponentTypeIcon(item.type)}</span>
+                <div class="flex items-center gap-sm">
+                    <span class="material-symbols-rounded library-item-icon">${getComponentTypeIcon(item.type)}</span>
                     <h4 class="library-card-name">${item.name}</h4>
                 </div>
                 <div class="library-card-meta">
@@ -3303,7 +3334,7 @@ const renderComponentLibrary = () => {
             </div>
             <div class="library-card-actions">
                 <button class="btn btn-primary btn-sm add-from-library-btn" data-id="${item.id}">Add</button>
-                <button class="btn btn-ghost btn-sm del-library-btn" data-id="${item.id}" style="color: var(--destructive);">Delete</button>
+                <button class="btn btn-ghost btn-sm del-library-btn text-destructive" data-id="${item.id}" aria-label="Delete saved component ${item.name}">Delete</button>
             </div>
         </div>
     `).join('');
@@ -3437,6 +3468,7 @@ const loadDraft = () => {
                 designSettings = { ...designSettings, ...draft.designSettings };
                 activeComponents = draft.activeComponents;
                 if (fontSelect) fontSelect.value = designSettings.fontFamily;
+                applyAppearanceMode();
                 renderComponents();
             }
         }
@@ -4645,6 +4677,11 @@ function initGlobalTextStyles() {
 
 saveTemplateBtn?.addEventListener('click', saveTemplate);
 
+recommendedTemplateBtn?.addEventListener('click', () => {
+    loadStarterTemplate('single_offer');
+    showToast('Loaded recommended template.', 'info');
+});
+
 // Starter template click handlers
 document.querySelectorAll('[data-starter-template]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -4664,6 +4701,7 @@ document.querySelectorAll('[data-starter-component]').forEach(btn => {
 loadCollapsedStates();
 renderMergeFieldsSidebar();
 loadDraft();
+applyAppearanceMode();
 initGlobalTextStyles();
 renderComponents();
 renderSavedTemplates();
