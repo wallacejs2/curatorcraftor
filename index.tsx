@@ -1534,10 +1534,12 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
             <input type="text" class="form-control compact" data-key="vehicleText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="vehicle${suffix}" data-field-label="Vehicle Text" value="${d[`vehicleText${suffix}`] || ''}" placeholder="e.g. 2024 Honda Civic">
         </div>
         <div class="compact-separator">
-            <span>Identifiers</span>
-            <div class="toggle-switch compact">
-                <input type="checkbox" id="show-identifiers-${comp.id}-${suffix || '1'}" class="toggle-switch-checkbox" data-key="showIdentifiers${suffix}" ${isIdentifiersOn ? 'checked' : ''}>
-                <label for="show-identifiers-${comp.id}-${suffix || '1'}" class="toggle-switch-label"></label>
+            <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start;">
+                <span>Identifiers</span>
+                <div class="toggle-switch compact">
+                    <input type="checkbox" id="show-identifiers-${comp.id}-${suffix || '1'}" class="toggle-switch-checkbox" data-key="showIdentifiers${suffix}" ${isIdentifiersOn ? 'checked' : ''}>
+                    <label for="show-identifiers-${comp.id}-${suffix || '1'}" class="toggle-switch-label"></label>
+                </div>
             </div>
         </div>
         <div id="identifier-fields-${comp.id}-${suffix || '1'}" style="display: ${isIdentifiersOn ? 'block' : 'none'};">
@@ -3060,7 +3062,8 @@ emailForm.addEventListener('submit', (e: Event) => {
 copyBtn?.addEventListener('click', async () => {
   const codeBlock = document.getElementById('code-block') as HTMLElement;
   try {
-    await navigator.clipboard.writeText(codeBlock.textContent || '');
+    const html = (codeBlock.textContent || '').replace(/[ \t]*<title>Email<\/title>\n?/g, '');
+    await navigator.clipboard.writeText(html);
     showToast('Copied to clipboard', 'success');
   } catch (err) { console.error(err); }
 });
