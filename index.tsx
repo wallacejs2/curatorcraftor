@@ -1356,7 +1356,6 @@ function generateServiceOfferFormHtml(comp: EmailComponent, suffix: string): str
                         <input type="checkbox" id="show-image-${comp.id}-${suffix || '1'}" class="toggle-switch-checkbox" data-key="showImage${suffix}" ${isChecked ? 'checked' : ''}>
                         <label for="show-image-${comp.id}-${suffix || '1'}" class="toggle-switch-label"></label>
                     </div>
-                    <label for="show-image-${comp.id}-${suffix || '1'}" class="toggle-switch-text-label">Show</label>
                 </div>
             </div>
             <div id="service-image-fields-${comp.id}-${suffix || '1'}" class="offer-img-fields" style="display: ${displayStyle};">
@@ -1364,7 +1363,7 @@ function generateServiceOfferFormHtml(comp: EmailComponent, suffix: string): str
                     <label class="form-label">URL</label>
                     <div class="img-url-inner">
                         <input type="text" class="form-control compact" data-key="imageUrl${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferImage${suffix}" data-field-label="Image ${suffix || '1'}" value="${imgUrl}" placeholder="https://...">
-                        <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
+                        <button type="button" class="btn btn-secondary btn-sm upload-btn"><span class="material-symbols-rounded">upload</span></button>
                         <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="${suffix || '1'}">
                     </div>
                 </div>
@@ -1475,7 +1474,6 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
                             <input type="checkbox" id="image-enabled-${comp.id}-${suffix || '1'}" class="toggle-switch-checkbox" data-key="imageEnabled${suffix}" ${isChecked ? 'checked' : ''}>
                             <label for="image-enabled-${comp.id}-${suffix || '1'}" class="toggle-switch-label"></label>
                         </div>
-                        <label for="image-enabled-${comp.id}-${suffix || '1'}" class="toggle-switch-text-label">Show</label>
                     </div>
                 </div>
                 <div id="image-fields-container-${comp.id}-${suffix || '1'}" class="offer-img-fields" style="display: ${displayStyle};">
@@ -1483,7 +1481,7 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
                         <label class="form-label">URL</label>
                         <div class="img-url-inner">
                             <input type="text" class="form-control compact" data-key="imageSrc${suffix}" value="${salesImgUrl}" placeholder="https://...">
-                            <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
+                            <button type="button" class="btn btn-secondary btn-sm upload-btn"><span class="material-symbols-rounded">upload</span></button>
                             <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="${suffix || '1'}">
                         </div>
                     </div>
@@ -1825,7 +1823,6 @@ const renderComponents = () => {
                                   <input type="checkbox" id="image-enabled-${comp.id}" class="toggle-switch-checkbox" data-key="imageEnabled" ${comp.data.imageEnabled === 'true' ? 'checked' : ''}>
                                   <label for="image-enabled-${comp.id}" class="toggle-switch-label"></label>
                               </div>
-                              <label for="image-enabled-${comp.id}" class="toggle-switch-text-label">Show</label>
                           </div>
                       </div>
                       <div id="image-fields-container-${comp.id}-1" class="offer-img-fields" style="display: ${comp.data.imageEnabled === 'true' ? 'flex' : 'none'};">
@@ -1833,7 +1830,7 @@ const renderComponents = () => {
                               <label class="form-label">URL</label>
                               <div class="img-url-inner">
                                   <input type="text" class="form-control compact" data-key="imageSrc" value="${comp.data.imageSrc || ''}" placeholder="https://...">
-                                  <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
+                                  <button type="button" class="btn btn-secondary btn-sm upload-btn"><span class="material-symbols-rounded">upload</span></button>
                                   <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="1">
                               </div>
                           </div>
@@ -1990,10 +1987,11 @@ const renderComponents = () => {
                             showToast('File is too large. Max size is 5MB.', 'error');
                             return;
                         }
-                        
+
+                        const originalBtnContent = uploadBtn.innerHTML;
                         const reader = new FileReader();
                         reader.onloadstart = () => {
-                            uploadBtn.textContent = '...';
+                            uploadBtn.innerHTML = '...';
                             (uploadBtn as HTMLButtonElement).disabled = true;
                         };
                         reader.onload = (event) => {
@@ -2013,12 +2011,12 @@ const renderComponents = () => {
                                 (thumbPreview as HTMLElement).style.display = 'block';
                             }
                             showToast('Image uploaded.', 'success');
-                            uploadBtn.textContent = 'Upload';
+                            uploadBtn.innerHTML = originalBtnContent;
                             (uploadBtn as HTMLButtonElement).disabled = false;
                         };
                         reader.onerror = () => {
                             showToast('Error reading file.', 'error');
-                            uploadBtn.textContent = 'Upload';
+                            uploadBtn.innerHTML = originalBtnContent;
                             (uploadBtn as HTMLButtonElement).disabled = false;
                         };
                         reader.readAsDataURL(file);
