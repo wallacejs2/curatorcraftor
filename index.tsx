@@ -497,17 +497,24 @@ const triggerPreviewUpdate = () => {
     }, 300);
 };
 
-const saveDraft = () => {
+// Write state to localStorage without side-effects (used by debounced hot path)
+const persistDraft = () => {
     try {
-        localStorage.setItem(LS_DRAFT_KEY, JSON.stringify({
-            designSettings,
-            activeComponents
-        }));
-        triggerPreviewUpdate();
+        localStorage.setItem(LS_DRAFT_KEY, JSON.stringify({ designSettings, activeComponents }));
     } catch (e) {
         console.error("Failed to save draft", e);
     }
 };
+
+// Full draft save: persists + triggers preview (used by non-keystroke callers)
+const saveDraft = () => {
+    persistDraft();
+    triggerPreviewUpdate();
+};
+
+// Debounce timers for the updateComponentData hot path
+let draftPersistTimer: number;
+let historyDebounceTimer: number;
 
 // Design Customization Logic
 fontSelect?.addEventListener('change', () => {
@@ -751,43 +758,47 @@ const updateAutocompleteSelection = () => {
   }
 };
 
-// Autocomplete: detect '{{' trigger on input
+// Autocomplete: detect '{{' trigger on input (debounced to avoid running on every keystroke)
+let autocompleteInputTimer: number;
 document.addEventListener('input', (e) => {
   const target = e.target as HTMLElement;
   if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') return;
 
-  const input = target as HTMLInputElement | HTMLTextAreaElement;
-  const cursorPos = input.selectionStart;
-  if (cursorPos === null) return;
+  window.clearTimeout(autocompleteInputTimer);
+  autocompleteInputTimer = window.setTimeout(() => {
+    const input = target as HTMLInputElement | HTMLTextAreaElement;
+    const cursorPos = input.selectionStart;
+    if (cursorPos === null) return;
 
-  const text = input.value;
-  const textBeforeCursor = text.substring(0, cursorPos);
+    const text = input.value;
+    const textBeforeCursor = text.substring(0, cursorPos);
 
-  const lastTrigger = textBeforeCursor.lastIndexOf('{{');
+    const lastTrigger = textBeforeCursor.lastIndexOf('{{');
 
-  if (lastTrigger === -1) {
-    if (autocompleteVisible) hideAutocomplete();
-    return;
-  }
+    if (lastTrigger === -1) {
+      if (autocompleteVisible) hideAutocomplete();
+      return;
+    }
 
-  const textAfterTrigger = textBeforeCursor.substring(lastTrigger);
-  if (textAfterTrigger.includes('}}')) {
-    if (autocompleteVisible) hideAutocomplete();
-    return;
-  }
+    const textAfterTrigger = textBeforeCursor.substring(lastTrigger);
+    if (textAfterTrigger.includes('}}')) {
+      if (autocompleteVisible) hideAutocomplete();
+      return;
+    }
 
-  const query = textBeforeCursor.substring(lastTrigger + 2);
+    const query = textBeforeCursor.substring(lastTrigger + 2);
 
-  autocompleteTriggerStart = lastTrigger;
-  autocompleteFilteredItems = filterMergeFields(query);
-  autocompleteSelectedIndex = 0;
+    autocompleteTriggerStart = lastTrigger;
+    autocompleteFilteredItems = filterMergeFields(query);
+    autocompleteSelectedIndex = 0;
 
-  if (autocompleteFilteredItems.length > 0) {
-    renderAutocompleteDropdown(autocompleteFilteredItems, query);
-    showAutocomplete(input);
-  } else {
-    hideAutocomplete();
-  }
+    if (autocompleteFilteredItems.length > 0) {
+      renderAutocompleteDropdown(autocompleteFilteredItems, query);
+      showAutocomplete(input);
+    } else {
+      hideAutocomplete();
+    }
+  }, 50);
 });
 
 // Autocomplete: keyboard navigation (capture phase to intercept before global handler)
@@ -1309,8 +1320,14 @@ const updateComponentData = (id: string, key: string, value: string) => {
     const comp = activeComponents.find(c => c.id === id);
     if (comp) {
         comp.data[key] = value;
-        saveDraft();
-        saveToHistory();
+        // Trigger preview immediately (already 300 ms debounced internally)
+        triggerPreviewUpdate();
+        // Debounce localStorage write — avoid blocking the main thread on every keystroke
+        window.clearTimeout(draftPersistTimer);
+        draftPersistTimer = window.setTimeout(persistDraft, 300);
+        // Debounce history snapshot — JSON serialisation is expensive; no need per-keystroke
+        window.clearTimeout(historyDebounceTimer);
+        historyDebounceTimer = window.setTimeout(saveToHistory, 600);
     }
 };
 
@@ -2308,15 +2325,17 @@ const renderComponents = () => {
             removeComponent(comp.id)
         });
 
-        // Auto-resize textareas to fit content
-        item.querySelectorAll('textarea.form-control').forEach(ta => {
-            const el = ta as HTMLTextAreaElement;
-            el.style.height = 'auto';
-            el.style.height = el.scrollHeight + 'px';
-            el.addEventListener('input', () => {
+        // Auto-resize textareas — defer scrollHeight read to rAF to avoid layout thrashing
+        const resizeTextarea = (el: HTMLTextAreaElement) => {
+            requestAnimationFrame(() => {
                 el.style.height = 'auto';
                 el.style.height = el.scrollHeight + 'px';
             });
+        };
+        item.querySelectorAll('textarea.form-control').forEach(ta => {
+            const el = ta as HTMLTextAreaElement;
+            resizeTextarea(el);
+            el.addEventListener('input', () => resizeTextarea(el));
         });
 
         // Update image thumbnail on URL change
@@ -2333,15 +2352,19 @@ const renderComponents = () => {
             });
         });
 
-        // URL validation for link/src fields
+        // URL validation for link/src fields (debounced on input, immediate on init)
         item.querySelectorAll('input[data-key="src"], input[data-key="link"], input[data-key="imageLink"], input[data-key="imageLink2"], input[data-key="imageUrl"], input[data-key="imageUrl2"], input[data-key="imageSrc"], input[data-key="imageSrc2"], input[data-key="buttonLink"], input[data-key="buttonLink2"], input[data-key="btnLink"], input[data-key="btnLink2"]').forEach(input => {
-            const validate = () => {
+            const doValidate = () => {
                 const val = (input as HTMLInputElement).value.trim();
                 const isValid = !val || val.startsWith('http://') || val.startsWith('https://') || val.startsWith('data:') || val.startsWith('mailto:') || val.startsWith('tel:');
                 input.classList.toggle('url-invalid', !isValid);
             };
-            input.addEventListener('input', validate);
-            validate();
+            let validateTimer: number;
+            input.addEventListener('input', () => {
+                window.clearTimeout(validateTimer);
+                validateTimer = window.setTimeout(doValidate, 150);
+            });
+            doValidate(); // run immediately on init, no debounce needed
         });
 
         componentsContainer.appendChild(item);
@@ -4259,35 +4282,33 @@ const saveToHistory = () => {
         commandHistory = commandHistory.slice(0, commandHistoryIndex + 1);
     }
 
-    const currentState: CommandHistoryState = {
-        designSettings: JSON.parse(JSON.stringify(designSettings)),
-        activeComponents: JSON.parse(JSON.stringify(activeComponents)),
-        timestamp: Date.now()
-    };
-
+    // Compare before cloning — skip expensive structuredClone if state is unchanged
     if (commandHistory.length > 0) {
-        const lastState = commandHistory[commandHistory.length - 1];
-        if (JSON.stringify(lastState.activeComponents) === JSON.stringify(currentState.activeComponents) &&
-            JSON.stringify(lastState.designSettings) === JSON.stringify(currentState.designSettings)) {
+        const last = commandHistory[commandHistory.length - 1];
+        if (JSON.stringify(last.activeComponents) === JSON.stringify(activeComponents) &&
+            JSON.stringify(last.designSettings) === JSON.stringify(designSettings)) {
             return;
         }
     }
 
-    commandHistory.push(currentState);
-    
+    commandHistory.push({
+        designSettings: structuredClone(designSettings),
+        activeComponents: structuredClone(activeComponents),
+        timestamp: Date.now()
+    });
+
     if (commandHistory.length > MAX_HISTORY_SIZE) {
         commandHistory.shift();
     }
-    
+
     commandHistoryIndex = commandHistory.length - 1;
 };
 
 const executeUndo = () => {
     if (commandHistoryIndex > 0) {
         commandHistoryIndex--;
-        const stateToRestore = JSON.parse(JSON.stringify(commandHistory[commandHistoryIndex]));
-        activeComponents = stateToRestore.activeComponents;
-        designSettings = stateToRestore.designSettings;
+        activeComponents = structuredClone(commandHistory[commandHistoryIndex].activeComponents);
+        designSettings = structuredClone(commandHistory[commandHistoryIndex].designSettings);
         renderComponents();
         if (fontSelect) fontSelect.value = designSettings.fontFamily;
         saveDraft();
@@ -4300,9 +4321,8 @@ const executeUndo = () => {
 const executeRedo = () => {
     if (commandHistoryIndex < commandHistory.length - 1) {
         commandHistoryIndex++;
-        const stateToRestore = JSON.parse(JSON.stringify(commandHistory[commandHistoryIndex]));
-        activeComponents = stateToRestore.activeComponents;
-        designSettings = stateToRestore.designSettings;
+        activeComponents = structuredClone(commandHistory[commandHistoryIndex].activeComponents);
+        designSettings = structuredClone(commandHistory[commandHistoryIndex].designSettings);
         renderComponents();
         if (fontSelect) fontSelect.value = designSettings.fontFamily;
         saveDraft();
