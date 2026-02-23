@@ -551,11 +551,11 @@ document.addEventListener('focusin', (e) => {
       if (activeField?.element) {
           activeField.element.classList.remove('field-active');
       }
-      
+
       const fieldKey = target.dataset.fieldKey;
       const fieldLabel = target.dataset.fieldLabel;
       const subOfferIndex = target.dataset.subOfferIndex ? parseInt(target.dataset.subOfferIndex) : undefined;
-      
+
       if (componentId && fieldKey && fieldLabel) {
           activeField = {
               componentId,
@@ -567,6 +567,13 @@ document.addEventListener('focusin', (e) => {
           target.classList.add('field-active');
           renderStylingPanel();
       }
+  } else if (componentId && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT')) {
+      // Non-stylable field inside a component — clear panel so it doesn't show stale settings
+      if (activeField?.element) {
+          activeField.element.classList.remove('field-active');
+          activeField = null;
+      }
+      if (dynamicStylingContainer) dynamicStylingContainer.innerHTML = '';
   }
 
   if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
@@ -1509,34 +1516,30 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
             <label class="form-label">Vehicle</label>
             <input type="text" class="form-control compact" data-key="vehicleText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="vehicle${suffix}" data-field-label="Vehicle Text" value="${d[`vehicleText${suffix}`] || ''}" placeholder="e.g. 2024 Honda Civic">
         </div>
-        <div class="offer-img-row">
-            <div class="offer-img-toggle">
-                <label class="form-label">Identifiers</label>
-                <div class="toggle-switch-group">
-                    <div class="toggle-switch compact">
-                        <input type="checkbox" id="show-identifiers-${comp.id}-${suffix || '1'}" class="toggle-switch-checkbox" data-key="showIdentifiers${suffix}" ${isIdentifiersOn ? 'checked' : ''}>
-                        <label for="show-identifiers-${comp.id}-${suffix || '1'}" class="toggle-switch-label"></label>
-                    </div>
+        <div class="compact-separator">
+            <span>Identifiers</span>
+            <div class="toggle-switch compact">
+                <input type="checkbox" id="show-identifiers-${comp.id}-${suffix || '1'}" class="toggle-switch-checkbox" data-key="showIdentifiers${suffix}" ${isIdentifiersOn ? 'checked' : ''}>
+                <label for="show-identifiers-${comp.id}-${suffix || '1'}" class="toggle-switch-label"></label>
+            </div>
+        </div>
+        <div id="identifier-fields-${comp.id}-${suffix || '1'}" style="display: ${isIdentifiersOn ? 'block' : 'none'};">
+            <div class="component-row component-row--keep-inline" style="margin-bottom: var(--spacing-sm);">
+                <div class="component-row-item" style="flex: 0 0 90px;">
+                    <label class="form-label">Type</label>
+                    <select class="form-control compact" data-key="stockVinType${suffix}">
+                        <option value="stock" ${d[`stockVinType${suffix}`] === 'stock' ? 'selected' : ''}>Stock #</option>
+                        <option value="vin" ${d[`stockVinType${suffix}`] === 'vin' ? 'selected' : ''}>VIN</option>
+                    </select>
+                </div>
+                <div class="component-row-item">
+                    <label class="form-label">Value</label>
+                    <input type="text" class="form-control compact" data-key="stockVinValue${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="stockVin${suffix}" data-field-label="Stock/VIN" value="${d[`stockVinValue${suffix}`] || ''}" placeholder="e.g. A12345">
                 </div>
             </div>
-            <div id="identifier-fields-${comp.id}-${suffix || '1'}" style="display: ${isIdentifiersOn ? 'block' : 'none'}; margin-top: 6px;">
-                <div class="form-group-inline wrap">
-                    <div class="inline-input-group">
-                        <label>Type</label>
-                        <select class="form-control compact" data-key="stockVinType${suffix}">
-                            <option value="stock" ${d[`stockVinType${suffix}`] === 'stock' ? 'selected' : ''}>Stock #</option>
-                            <option value="vin" ${d[`stockVinType${suffix}`] === 'vin' ? 'selected' : ''}>VIN</option>
-                        </select>
-                    </div>
-                    <div class="inline-input-group">
-                        <label>Value</label>
-                        <input type="text" class="form-control compact" data-key="stockVinValue${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="stockVin${suffix}" data-field-label="Stock/VIN" value="${d[`stockVinValue${suffix}`] || ''}" placeholder="e.g. A12345">
-                    </div>
-                    <div class="inline-input-group">
-                        <label>Mileage</label>
-                        <input type="text" class="form-control compact" data-key="mileageValue${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="mileage${suffix}" data-field-label="Mileage" value="${d[`mileageValue${suffix}`] || ''}" placeholder="e.g. 25,000 mi">
-                    </div>
-                </div>
+            <div class="form-group">
+                <label class="form-label">Mileage</label>
+                <input type="text" class="form-control compact" data-key="mileageValue${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="mileage${suffix}" data-field-label="Mileage" value="${d[`mileageValue${suffix}`] || ''}" placeholder="e.g. 25,000 mi">
             </div>
         </div>
         <div class="compact-separator"><span>Offer</span></div>
