@@ -327,6 +327,8 @@ const fontSelect = document.getElementById('design-font-family') as HTMLSelectEl
 const saveTemplateBtn = document.getElementById('save-template-btn') as HTMLButtonElement;
 const savedTemplatesList = document.getElementById('saved-templates-list') as HTMLElement;
 const componentLibraryList = document.getElementById('component-library-list') as HTMLElement;
+const libraryFilterBar = document.getElementById('library-filter-bar') as HTMLElement;
+let activeLibraryFilter = 'all';
 
 const ALIGNMENT_ICONS = {
     left: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="17" y1="18" x2="3" y2="18"></line></svg>`,
@@ -495,17 +497,24 @@ const triggerPreviewUpdate = () => {
     }, 300);
 };
 
-const saveDraft = () => {
+// Write state to localStorage without side-effects (used by debounced hot path)
+const persistDraft = () => {
     try {
-        localStorage.setItem(LS_DRAFT_KEY, JSON.stringify({
-            designSettings,
-            activeComponents
-        }));
-        triggerPreviewUpdate();
+        localStorage.setItem(LS_DRAFT_KEY, JSON.stringify({ designSettings, activeComponents }));
     } catch (e) {
         console.error("Failed to save draft", e);
     }
 };
+
+// Full draft save: persists + triggers preview (used by non-keystroke callers)
+const saveDraft = () => {
+    persistDraft();
+    triggerPreviewUpdate();
+};
+
+// Debounce timers for the updateComponentData hot path
+let draftPersistTimer: number;
+let historyDebounceTimer: number;
 
 // Design Customization Logic
 fontSelect?.addEventListener('change', () => {
@@ -549,11 +558,11 @@ document.addEventListener('focusin', (e) => {
       if (activeField?.element) {
           activeField.element.classList.remove('field-active');
       }
-      
+
       const fieldKey = target.dataset.fieldKey;
       const fieldLabel = target.dataset.fieldLabel;
       const subOfferIndex = target.dataset.subOfferIndex ? parseInt(target.dataset.subOfferIndex) : undefined;
-      
+
       if (componentId && fieldKey && fieldLabel) {
           activeField = {
               componentId,
@@ -565,6 +574,13 @@ document.addEventListener('focusin', (e) => {
           target.classList.add('field-active');
           renderStylingPanel();
       }
+  } else if (componentId && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT')) {
+      // Non-stylable field inside a component — clear panel so it doesn't show stale settings
+      if (activeField?.element) {
+          activeField.element.classList.remove('field-active');
+          activeField = null;
+      }
+      if (dynamicStylingContainer) dynamicStylingContainer.innerHTML = '';
   }
 
   if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
@@ -742,43 +758,47 @@ const updateAutocompleteSelection = () => {
   }
 };
 
-// Autocomplete: detect '{{' trigger on input
+// Autocomplete: detect '{{' trigger on input (debounced to avoid running on every keystroke)
+let autocompleteInputTimer: number;
 document.addEventListener('input', (e) => {
   const target = e.target as HTMLElement;
   if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') return;
 
-  const input = target as HTMLInputElement | HTMLTextAreaElement;
-  const cursorPos = input.selectionStart;
-  if (cursorPos === null) return;
+  window.clearTimeout(autocompleteInputTimer);
+  autocompleteInputTimer = window.setTimeout(() => {
+    const input = target as HTMLInputElement | HTMLTextAreaElement;
+    const cursorPos = input.selectionStart;
+    if (cursorPos === null) return;
 
-  const text = input.value;
-  const textBeforeCursor = text.substring(0, cursorPos);
+    const text = input.value;
+    const textBeforeCursor = text.substring(0, cursorPos);
 
-  const lastTrigger = textBeforeCursor.lastIndexOf('{{');
+    const lastTrigger = textBeforeCursor.lastIndexOf('{{');
 
-  if (lastTrigger === -1) {
-    if (autocompleteVisible) hideAutocomplete();
-    return;
-  }
+    if (lastTrigger === -1) {
+      if (autocompleteVisible) hideAutocomplete();
+      return;
+    }
 
-  const textAfterTrigger = textBeforeCursor.substring(lastTrigger);
-  if (textAfterTrigger.includes('}}')) {
-    if (autocompleteVisible) hideAutocomplete();
-    return;
-  }
+    const textAfterTrigger = textBeforeCursor.substring(lastTrigger);
+    if (textAfterTrigger.includes('}}')) {
+      if (autocompleteVisible) hideAutocomplete();
+      return;
+    }
 
-  const query = textBeforeCursor.substring(lastTrigger + 2);
+    const query = textBeforeCursor.substring(lastTrigger + 2);
 
-  autocompleteTriggerStart = lastTrigger;
-  autocompleteFilteredItems = filterMergeFields(query);
-  autocompleteSelectedIndex = 0;
+    autocompleteTriggerStart = lastTrigger;
+    autocompleteFilteredItems = filterMergeFields(query);
+    autocompleteSelectedIndex = 0;
 
-  if (autocompleteFilteredItems.length > 0) {
-    renderAutocompleteDropdown(autocompleteFilteredItems, query);
-    showAutocomplete(input);
-  } else {
-    hideAutocomplete();
-  }
+    if (autocompleteFilteredItems.length > 0) {
+      renderAutocompleteDropdown(autocompleteFilteredItems, query);
+      showAutocomplete(input);
+    } else {
+      hideAutocomplete();
+    }
+  }, 50);
 });
 
 // Autocomplete: keyboard navigation (capture phase to intercept before global handler)
@@ -1123,13 +1143,13 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 mainOfferText: '$2,500 Trade-In Bonus',
                 detailsText: 'Upgrade your current ride today with our exclusive seasonal offer.',
                 stockVinType: 'stock', stockVinValue: '{{customer.last_transaction.vehicle.vin}}',
-                mileageValue: '{{customer.last_transaction.vehicle.mileage}}',
+                mileageValue: '{{customer.last_transaction.vehicle.mileage}}', showIdentifiers: 'true',
                 disclaimerText: '*Terms and conditions apply. Offer valid through end of month.',
                 additionalOffers: '[]', btnText: 'View Details', btnLink: '{{dealership.tracked_website_homepage_url}}',
                 imageEnabled2: 'true', imageSrc2: 'https://via.placeholder.com/600x300', imageAlt2: 'Used Sales Offer', imageLink2: '', imageWidth2: '100%',
                 vehicleText2: 'Pre-Owned Vehicle Special', mainOfferText2: 'Low APR Financing',
                 detailsText2: 'Get behind the wheel of a quality pre-owned vehicle with great financing options.',
-                stockVinType2: 'stock', stockVinValue2: '', mileageValue2: '',
+                stockVinType2: 'stock', stockVinValue2: '', mileageValue2: '', showIdentifiers2: 'true',
                 disclaimerText2: '*With approved credit. See dealer for details.',
                 additionalOffers2: '[]', btnText2: 'View Inventory', btnLink2: '{{dealership.tracked_website_specials_url}}',
                 vehicleFontSize: '18', vehicleFontWeight: 'normal', vehicleFontStyle: 'normal', vehicleColor: '#1d1d1f', vehicleBgColor: 'transparent', vehicleTextAlign: 'center', vehiclePaddingTop: '0', vehiclePaddingBottom: '6', vehiclePaddingLeftRight: '0',
@@ -1300,8 +1320,14 @@ const updateComponentData = (id: string, key: string, value: string) => {
     const comp = activeComponents.find(c => c.id === id);
     if (comp) {
         comp.data[key] = value;
-        saveDraft();
-        saveToHistory();
+        // Trigger preview immediately (already 300 ms debounced internally)
+        triggerPreviewUpdate();
+        // Debounce localStorage write — avoid blocking the main thread on every keystroke
+        window.clearTimeout(draftPersistTimer);
+        draftPersistTimer = window.setTimeout(persistDraft, 300);
+        // Debounce history snapshot — JSON serialisation is expensive; no need per-keystroke
+        window.clearTimeout(historyDebounceTimer);
+        historyDebounceTimer = window.setTimeout(saveToHistory, 600);
     }
 };
 
@@ -1356,7 +1382,6 @@ function generateServiceOfferFormHtml(comp: EmailComponent, suffix: string): str
                         <input type="checkbox" id="show-image-${comp.id}-${suffix || '1'}" class="toggle-switch-checkbox" data-key="showImage${suffix}" ${isChecked ? 'checked' : ''}>
                         <label for="show-image-${comp.id}-${suffix || '1'}" class="toggle-switch-label"></label>
                     </div>
-                    <label for="show-image-${comp.id}-${suffix || '1'}" class="toggle-switch-text-label">Show</label>
                 </div>
             </div>
             <div id="service-image-fields-${comp.id}-${suffix || '1'}" class="offer-img-fields" style="display: ${displayStyle};">
@@ -1364,7 +1389,7 @@ function generateServiceOfferFormHtml(comp: EmailComponent, suffix: string): str
                     <label class="form-label">URL</label>
                     <div class="img-url-inner">
                         <input type="text" class="form-control compact" data-key="imageUrl${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferImage${suffix}" data-field-label="Image ${suffix || '1'}" value="${imgUrl}" placeholder="https://...">
-                        <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
+                        <button type="button" class="btn btn-secondary btn-sm upload-btn"><span class="material-symbols-rounded">upload</span></button>
                         <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="${suffix || '1'}">
                     </div>
                 </div>
@@ -1475,7 +1500,6 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
                             <input type="checkbox" id="image-enabled-${comp.id}-${suffix || '1'}" class="toggle-switch-checkbox" data-key="imageEnabled${suffix}" ${isChecked ? 'checked' : ''}>
                             <label for="image-enabled-${comp.id}-${suffix || '1'}" class="toggle-switch-label"></label>
                         </div>
-                        <label for="image-enabled-${comp.id}-${suffix || '1'}" class="toggle-switch-text-label">Show</label>
                     </div>
                 </div>
                 <div id="image-fields-container-${comp.id}-${suffix || '1'}" class="offer-img-fields" style="display: ${displayStyle};">
@@ -1483,7 +1507,7 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
                         <label class="form-label">URL</label>
                         <div class="img-url-inner">
                             <input type="text" class="form-control compact" data-key="imageSrc${suffix}" value="${salesImgUrl}" placeholder="https://...">
-                            <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
+                            <button type="button" class="btn btn-secondary btn-sm upload-btn"><span class="material-symbols-rounded">upload</span></button>
                             <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="${suffix || '1'}">
                         </div>
                     </div>
@@ -1503,10 +1527,39 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
         `;
     }
 
+    const isIdentifiersOn = d[`showIdentifiers${suffix}`] !== 'false';
     html += `
         <div class="form-group">
             <label class="form-label">Vehicle</label>
             <input type="text" class="form-control compact" data-key="vehicleText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="vehicle${suffix}" data-field-label="Vehicle Text" value="${d[`vehicleText${suffix}`] || ''}" placeholder="e.g. 2024 Honda Civic">
+        </div>
+        <div class="compact-separator">
+            <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start;">
+                <span>Identifiers</span>
+                <div class="toggle-switch compact">
+                    <input type="checkbox" id="show-identifiers-${comp.id}-${suffix || '1'}" class="toggle-switch-checkbox" data-key="showIdentifiers${suffix}" ${isIdentifiersOn ? 'checked' : ''}>
+                    <label for="show-identifiers-${comp.id}-${suffix || '1'}" class="toggle-switch-label"></label>
+                </div>
+            </div>
+        </div>
+        <div id="identifier-fields-${comp.id}-${suffix || '1'}" style="display: ${isIdentifiersOn ? 'block' : 'none'};">
+            <div class="component-row component-row--keep-inline" style="margin-bottom: var(--spacing-sm);">
+                <div class="component-row-item" style="flex: 0 0 90px;">
+                    <label class="form-label">Type</label>
+                    <select class="form-control compact" data-key="stockVinType${suffix}">
+                        <option value="stock" ${d[`stockVinType${suffix}`] === 'stock' ? 'selected' : ''}>Stock #</option>
+                        <option value="vin" ${d[`stockVinType${suffix}`] === 'vin' ? 'selected' : ''}>VIN</option>
+                    </select>
+                </div>
+                <div class="component-row-item">
+                    <label class="form-label">Value</label>
+                    <input type="text" class="form-control compact" data-key="stockVinValue${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="stockVin${suffix}" data-field-label="Stock/VIN" value="${d[`stockVinValue${suffix}`] || ''}" placeholder="e.g. A12345">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Mileage</label>
+                <input type="text" class="form-control compact" data-key="mileageValue${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="mileage${suffix}" data-field-label="Mileage" value="${d[`mileageValue${suffix}`] || ''}" placeholder="e.g. 25,000 mi">
+            </div>
         </div>
         <div class="compact-separator"><span>Offer</span></div>
         <div class="form-group">
@@ -1516,25 +1569,6 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
         <div class="form-group">
             <label class="form-label">Details</label>
             <textarea class="form-control" data-key="detailsText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="details${suffix}" data-field-label="Details" placeholder="Offer details...">${d[`detailsText${suffix}`] || ''}</textarea>
-        </div>
-
-        <div class="compact-separator"><span>Identifiers</span></div>
-        <div class="form-group-inline wrap">
-             <div class="inline-input-group">
-                <label>Identifier</label>
-                <select class="form-control compact" data-key="stockVinType${suffix}">
-                    <option value="stock" ${d[`stockVinType${suffix}`] === 'stock' ? 'selected' : ''}>Stock #</option>
-                    <option value="vin" ${d[`stockVinType${suffix}`] === 'vin' ? 'selected' : ''}>VIN</option>
-                </select>
-            </div>
-            <div class="inline-input-group">
-                <label>Value</label>
-                <input type="text" class="form-control compact" data-key="stockVinValue${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="stockVin${suffix}" data-field-label="Stock/VIN" value="${d[`stockVinValue${suffix}`] || ''}" placeholder="e.g. A12345">
-            </div>
-            <div class="inline-input-group">
-                <label>Mileage</label>
-                <input type="text" class="form-control compact" data-key="mileageValue${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="mileage${suffix}" data-field-label="Mileage" value="${d[`mileageValue${suffix}`] || ''}" placeholder="e.g. 25,000 mi">
-            </div>
         </div>
 
         <div class="sub-offers-container" id="sub-offers-${comp.id}${suffix}">
@@ -1825,7 +1859,6 @@ const renderComponents = () => {
                                   <input type="checkbox" id="image-enabled-${comp.id}" class="toggle-switch-checkbox" data-key="imageEnabled" ${comp.data.imageEnabled === 'true' ? 'checked' : ''}>
                                   <label for="image-enabled-${comp.id}" class="toggle-switch-label"></label>
                               </div>
-                              <label for="image-enabled-${comp.id}" class="toggle-switch-text-label">Show</label>
                           </div>
                       </div>
                       <div id="image-fields-container-${comp.id}-1" class="offer-img-fields" style="display: ${comp.data.imageEnabled === 'true' ? 'flex' : 'none'};">
@@ -1833,7 +1866,7 @@ const renderComponents = () => {
                               <label class="form-label">URL</label>
                               <div class="img-url-inner">
                                   <input type="text" class="form-control compact" data-key="imageSrc" value="${comp.data.imageSrc || ''}" placeholder="https://...">
-                                  <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
+                                  <button type="button" class="btn btn-secondary btn-sm upload-btn"><span class="material-symbols-rounded">upload</span></button>
                                   <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="1">
                               </div>
                           </div>
@@ -1877,10 +1910,10 @@ const renderComponents = () => {
             const isSGrid = comp.data.layout === 'grid';
             offerHeaderControls = `
                 <div class="toggle-group header-toggle-group">
-                    <button type="button" class="toggle-btn layout-toggle ${isSLeft ? 'active' : ''}" data-key="layout" data-value="left" data-tooltip="Image Left"><span class="material-symbols-rounded">splitscreen_left</span></button>
-                    <button type="button" class="toggle-btn layout-toggle ${isSCenter ? 'active' : ''}" data-key="layout" data-value="center" data-tooltip="Center"><span class="material-symbols-rounded">splitscreen_top</span></button>
-                    <button type="button" class="toggle-btn layout-toggle ${isSRight ? 'active' : ''}" data-key="layout" data-value="right" data-tooltip="Image Right"><span class="material-symbols-rounded">splitscreen_right</span></button>
-                    <button type="button" class="toggle-btn layout-toggle ${isSGrid ? 'active' : ''}" data-key="layout" data-value="grid" data-tooltip="Grid"><span class="material-symbols-rounded">splitscreen_add</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSLeft ? 'active' : ''}" data-key="layout" data-value="left" data-tooltip="Image Left"><span class="material-symbols-rounded">split_scene_left</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSCenter ? 'active' : ''}" data-key="layout" data-value="center" data-tooltip="Center"><span class="material-symbols-rounded">split_scene_up</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSRight ? 'active' : ''}" data-key="layout" data-value="right" data-tooltip="Image Right"><span class="material-symbols-rounded">split_scene_right</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSGrid ? 'active' : ''}" data-key="layout" data-value="grid" data-tooltip="Grid"><span class="material-symbols-rounded">splitscreen_vertical_add</span></button>
                 </div>
                 <span class="header-toggle-divider"></span>
             `;
@@ -1891,10 +1924,10 @@ const renderComponents = () => {
             const isSvcGrid = comp.data.layout === 'grid';
             offerHeaderControls = `
                 <div class="toggle-group header-toggle-group">
-                    <button type="button" class="toggle-btn layout-toggle ${isSvcLeft ? 'active' : ''}" data-key="layout" data-value="left" data-tooltip="Image Left"><span class="material-symbols-rounded">splitscreen_left</span></button>
-                    <button type="button" class="toggle-btn layout-toggle ${isSvcCenter ? 'active' : ''}" data-key="layout" data-value="center" data-tooltip="Center"><span class="material-symbols-rounded">splitscreen_top</span></button>
-                    <button type="button" class="toggle-btn layout-toggle ${isSvcRight ? 'active' : ''}" data-key="layout" data-value="right" data-tooltip="Image Right"><span class="material-symbols-rounded">splitscreen_right</span></button>
-                    <button type="button" class="toggle-btn layout-toggle ${isSvcGrid ? 'active' : ''}" data-key="layout" data-value="grid" data-tooltip="Grid"><span class="material-symbols-rounded">splitscreen_add</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSvcLeft ? 'active' : ''}" data-key="layout" data-value="left" data-tooltip="Image Left"><span class="material-symbols-rounded">split_scene_left</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSvcCenter ? 'active' : ''}" data-key="layout" data-value="center" data-tooltip="Center"><span class="material-symbols-rounded">split_scene_up</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSvcRight ? 'active' : ''}" data-key="layout" data-value="right" data-tooltip="Image Right"><span class="material-symbols-rounded">split_scene_right</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSvcGrid ? 'active' : ''}" data-key="layout" data-value="grid" data-tooltip="Grid"><span class="material-symbols-rounded">splitscreen_vertical_add</span></button>
                 </div>
                 <span class="header-toggle-divider"></span>
             `;
@@ -1908,7 +1941,7 @@ const renderComponents = () => {
                 </div>
                 <span class="header-toggle-divider"></span>
                 <div class="toggle-group header-toggle-group">
-                    <button type="button" class="toggle-btn border-toggle ${comp.data.showBorder !== 'false' ? 'active' : ''}" data-key="showBorder" data-value="${comp.data.showBorder !== 'false' ? 'false' : 'true'}" data-tooltip="Card Border"><span class="material-symbols-rounded">border_all</span></button>
+                    <button type="button" class="toggle-btn border-toggle ${comp.data.showBorder !== 'false' ? 'active' : ''}" data-key="showBorder" data-value="${comp.data.showBorder !== 'false' ? 'false' : 'true'}" data-tooltip="Card Border"><span class="material-symbols-rounded">crop_square</span></button>
                 </div>
                 <span class="header-toggle-divider"></span>
             `;
@@ -1990,10 +2023,11 @@ const renderComponents = () => {
                             showToast('File is too large. Max size is 5MB.', 'error');
                             return;
                         }
-                        
+
+                        const originalBtnContent = uploadBtn.innerHTML;
                         const reader = new FileReader();
                         reader.onloadstart = () => {
-                            uploadBtn.textContent = '...';
+                            uploadBtn.innerHTML = '...';
                             (uploadBtn as HTMLButtonElement).disabled = true;
                         };
                         reader.onload = (event) => {
@@ -2013,12 +2047,12 @@ const renderComponents = () => {
                                 (thumbPreview as HTMLElement).style.display = 'block';
                             }
                             showToast('Image uploaded.', 'success');
-                            uploadBtn.textContent = 'Upload';
+                            uploadBtn.innerHTML = originalBtnContent;
                             (uploadBtn as HTMLButtonElement).disabled = false;
                         };
                         reader.onerror = () => {
                             showToast('Error reading file.', 'error');
-                            uploadBtn.textContent = 'Upload';
+                            uploadBtn.innerHTML = originalBtnContent;
                             (uploadBtn as HTMLButtonElement).disabled = false;
                         };
                         reader.readAsDataURL(file);
@@ -2145,7 +2179,14 @@ const renderComponents = () => {
                         }
 
                         if ((comp.type === 'sales_offer' || comp.type === 'service_offer') && key === 'showBorder') {
-                            renderComponents();
+                            // Flip button state in-place — no full re-render needed
+                            const btn = target as HTMLButtonElement;
+                            const isNowActive = value !== 'false';
+                            btn.classList.toggle('active', isNowActive);
+                            btn.dataset.value = isNowActive ? 'false' : 'true';
+                            // Update preview immediately without debounce
+                            window.clearTimeout(previewTimer);
+                            if (previewPane) previewPane.srcdoc = generateEmailHtml();
                         }
 
                         if (comp.type === 'sales_offer' && key === 'layout' && value !== 'grid') {
@@ -2235,6 +2276,14 @@ const renderComponents = () => {
                                 fieldsContainer.style.display = (target as HTMLInputElement).checked ? 'flex' : 'none';
                             }
                         }
+
+                        if (key.startsWith('showIdentifiers')) {
+                            const offerSuffix = key.endsWith('2') ? '2' : '';
+                            const container = item.querySelector(`#identifier-fields-${comp.id}-${offerSuffix || '1'}`) as HTMLElement;
+                            if (container) {
+                                container.style.display = (target as HTMLInputElement).checked ? 'block' : 'none';
+                            }
+                        }
                     }
                 });
             }
@@ -2278,15 +2327,17 @@ const renderComponents = () => {
             removeComponent(comp.id)
         });
 
-        // Auto-resize textareas to fit content
-        item.querySelectorAll('textarea.form-control').forEach(ta => {
-            const el = ta as HTMLTextAreaElement;
-            el.style.height = 'auto';
-            el.style.height = el.scrollHeight + 'px';
-            el.addEventListener('input', () => {
+        // Auto-resize textareas — defer scrollHeight read to rAF to avoid layout thrashing
+        const resizeTextarea = (el: HTMLTextAreaElement) => {
+            requestAnimationFrame(() => {
                 el.style.height = 'auto';
                 el.style.height = el.scrollHeight + 'px';
             });
+        };
+        item.querySelectorAll('textarea.form-control').forEach(ta => {
+            const el = ta as HTMLTextAreaElement;
+            resizeTextarea(el);
+            el.addEventListener('input', () => resizeTextarea(el));
         });
 
         // Update image thumbnail on URL change
@@ -2303,15 +2354,19 @@ const renderComponents = () => {
             });
         });
 
-        // URL validation for link/src fields
+        // URL validation for link/src fields (debounced on input, immediate on init)
         item.querySelectorAll('input[data-key="src"], input[data-key="link"], input[data-key="imageLink"], input[data-key="imageLink2"], input[data-key="imageUrl"], input[data-key="imageUrl2"], input[data-key="imageSrc"], input[data-key="imageSrc2"], input[data-key="buttonLink"], input[data-key="buttonLink2"], input[data-key="btnLink"], input[data-key="btnLink2"]').forEach(input => {
-            const validate = () => {
+            const doValidate = () => {
                 const val = (input as HTMLInputElement).value.trim();
                 const isValid = !val || val.startsWith('http://') || val.startsWith('https://') || val.startsWith('data:') || val.startsWith('mailto:') || val.startsWith('tel:');
                 input.classList.toggle('url-invalid', !isValid);
             };
-            input.addEventListener('input', validate);
-            validate();
+            let validateTimer: number;
+            input.addEventListener('input', () => {
+                window.clearTimeout(validateTimer);
+                validateTimer = window.setTimeout(doValidate, 150);
+            });
+            doValidate(); // run immediately on init, no debounce needed
         });
 
         componentsContainer.appendChild(item);
@@ -2775,11 +2830,12 @@ function generateEmailHtml(): string {
                 </table>
             `;
         } else { // Handle single column layouts
+            const salesSingleBorder = d.showBorder !== 'false' ? 'border: 1px solid #e2e8f0; ' : '';
             const imageEnabled = d.imageEnabled === 'true';
             if (!imageEnabled) {
-                offerContentHtml = `<table width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td align="center">${renderSalesOfferContent(d, '')}</td></tr></table>`;
+                offerContentHtml = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="${salesSingleBorder}border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;">${renderSalesOfferContent(d, '')}</td></tr></table>`;
             } else if (layout === 'center') {
-                offerContentHtml = `<table width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td align="center">${renderSalesOfferContent(d, '')}</td></tr></table>`;
+                offerContentHtml = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="${salesSingleBorder}border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;">${renderSalesOfferContent(d, '')}</td></tr></table>`;
             } else {
                 const isRightLayout = layout === 'right';
                 const imgColWidth = 180;
@@ -2787,7 +2843,7 @@ function generateEmailHtml(): string {
                 const imageTd = `<td width="${imgColWidth}" class="mobile-stack mobile-padding-bottom" valign="top" style="width: ${imgColWidth}px; vertical-align: top;">${renderSalesOfferContent(d, '', imgColWidth, 'imageOnly')}</td>`;
                 const contentTdLeft = `<td class="mobile-stack" valign="top" style="vertical-align: top; padding-left: ${gutter}px;">${renderSalesOfferContent(d, '', undefined, 'contentOnly')}</td>`;
                 const contentTdRight = `<td class="mobile-stack" valign="top" style="vertical-align: top; padding-right: ${gutter}px;">${renderSalesOfferContent(d, '', undefined, 'contentOnly')}</td>`;
-                offerContentHtml = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr>${isRightLayout ? contentTdRight + imageTd : imageTd + contentTdLeft}</tr></table>`;
+                offerContentHtml = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="${salesSingleBorder}border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr>${isRightLayout ? contentTdRight + imageTd : imageTd + contentTdLeft}</tr></table></td></tr></table>`;
             }
         }
 
@@ -3006,7 +3062,8 @@ emailForm.addEventListener('submit', (e: Event) => {
 copyBtn?.addEventListener('click', async () => {
   const codeBlock = document.getElementById('code-block') as HTMLElement;
   try {
-    await navigator.clipboard.writeText(codeBlock.textContent || '');
+    const html = (codeBlock.textContent || '').replace(/[ \t]*<title>Email<\/title>\n?/g, '');
+    await navigator.clipboard.writeText(html);
     showToast('Copied to clipboard', 'success');
   } catch (err) { console.error(err); }
 });
@@ -3194,12 +3251,45 @@ const renderComponentLibrary = () => {
     const library = getSavedLibraryComponents();
     if (!componentLibraryList) return;
 
+    // Reset filter if its type no longer exists in library
+    if (activeLibraryFilter !== 'all' && !library.some(item => item.type === activeLibraryFilter)) {
+        activeLibraryFilter = 'all';
+    }
+
+    // Build filter bar
+    if (libraryFilterBar) {
+        if (library.length === 0) {
+            libraryFilterBar.innerHTML = '';
+        } else {
+            const types = Array.from(new Set(library.map(item => item.type)));
+            libraryFilterBar.innerHTML = `
+                <div class="library-filter-bar">
+                    <button class="library-filter-chip ${activeLibraryFilter === 'all' ? 'active' : ''}" data-filter="all">All</button>
+                    ${types.map(t => `<button class="library-filter-chip ${activeLibraryFilter === t ? 'active' : ''}" data-filter="${t}"><span class="material-symbols-rounded">${getComponentTypeIcon(t)}</span>${formatComponentTypeName(t)}</button>`).join('')}
+                </div>
+            `;
+            libraryFilterBar.querySelectorAll('.library-filter-chip').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    activeLibraryFilter = chip.getAttribute('data-filter') || 'all';
+                    renderComponentLibrary();
+                });
+            });
+        }
+    }
+
+    const filtered = activeLibraryFilter === 'all' ? library : library.filter(item => item.type === activeLibraryFilter);
+
     if (library.length === 0) {
         componentLibraryList.innerHTML = `<p class="text-sm" style="color: var(--label-secondary); text-align: center;">No saved components. Use the <span class="material-symbols-rounded" style="font-size: 14px; vertical-align: middle;">bookmark</span> icon on any section to add it to your library.</p>`;
         return;
     }
 
-    componentLibraryList.innerHTML = library.map(item => `
+    if (filtered.length === 0) {
+        componentLibraryList.innerHTML = `<p class="text-sm" style="color: var(--label-secondary); text-align: center;">No saved ${formatComponentTypeName(activeLibraryFilter)} components.</p>`;
+        return;
+    }
+
+    componentLibraryList.innerHTML = filtered.map(item => `
         <div class="library-card">
             <div class="library-card-info">
                 <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
@@ -4195,35 +4285,33 @@ const saveToHistory = () => {
         commandHistory = commandHistory.slice(0, commandHistoryIndex + 1);
     }
 
-    const currentState: CommandHistoryState = {
-        designSettings: JSON.parse(JSON.stringify(designSettings)),
-        activeComponents: JSON.parse(JSON.stringify(activeComponents)),
-        timestamp: Date.now()
-    };
-
+    // Compare before cloning — skip expensive structuredClone if state is unchanged
     if (commandHistory.length > 0) {
-        const lastState = commandHistory[commandHistory.length - 1];
-        if (JSON.stringify(lastState.activeComponents) === JSON.stringify(currentState.activeComponents) &&
-            JSON.stringify(lastState.designSettings) === JSON.stringify(currentState.designSettings)) {
+        const last = commandHistory[commandHistory.length - 1];
+        if (JSON.stringify(last.activeComponents) === JSON.stringify(activeComponents) &&
+            JSON.stringify(last.designSettings) === JSON.stringify(designSettings)) {
             return;
         }
     }
 
-    commandHistory.push(currentState);
-    
+    commandHistory.push({
+        designSettings: structuredClone(designSettings),
+        activeComponents: structuredClone(activeComponents),
+        timestamp: Date.now()
+    });
+
     if (commandHistory.length > MAX_HISTORY_SIZE) {
         commandHistory.shift();
     }
-    
+
     commandHistoryIndex = commandHistory.length - 1;
 };
 
 const executeUndo = () => {
     if (commandHistoryIndex > 0) {
         commandHistoryIndex--;
-        const stateToRestore = JSON.parse(JSON.stringify(commandHistory[commandHistoryIndex]));
-        activeComponents = stateToRestore.activeComponents;
-        designSettings = stateToRestore.designSettings;
+        activeComponents = structuredClone(commandHistory[commandHistoryIndex].activeComponents);
+        designSettings = structuredClone(commandHistory[commandHistoryIndex].designSettings);
         renderComponents();
         if (fontSelect) fontSelect.value = designSettings.fontFamily;
         saveDraft();
@@ -4236,9 +4324,8 @@ const executeUndo = () => {
 const executeRedo = () => {
     if (commandHistoryIndex < commandHistory.length - 1) {
         commandHistoryIndex++;
-        const stateToRestore = JSON.parse(JSON.stringify(commandHistory[commandHistoryIndex]));
-        activeComponents = stateToRestore.activeComponents;
-        designSettings = stateToRestore.designSettings;
+        activeComponents = structuredClone(commandHistory[commandHistoryIndex].activeComponents);
+        designSettings = structuredClone(commandHistory[commandHistoryIndex].designSettings);
         renderComponents();
         if (fontSelect) fontSelect.value = designSettings.fontFamily;
         saveDraft();

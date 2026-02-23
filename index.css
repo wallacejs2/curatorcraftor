@@ -2036,6 +2036,47 @@ textarea.form-control.compact {
   line-height: 1.4;
 }
 
+/* Library Filter Bar */
+.library-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: var(--spacing-md);
+}
+
+.library-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--separator-secondary);
+  background: var(--background-secondary);
+  color: var(--label-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.library-filter-chip .material-symbols-rounded {
+  font-size: 13px;
+}
+
+.library-filter-chip:hover {
+  background: var(--fill-tertiary);
+  color: var(--label-primary);
+  border-color: var(--separator-primary);
+}
+
+.library-filter-chip.active {
+  background: var(--system-blue);
+  color: #ffffff;
+  border-color: var(--system-blue);
+}
+
 /* Starter Templates & Components Grid */
 .starter-section {
   margin-bottom: var(--spacing-lg);
