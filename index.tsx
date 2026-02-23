@@ -2614,7 +2614,10 @@ function generateEmailHtml(): string {
                 const sanitizedDisclaimer = DOMPurify.sanitize(data[`disclaimer${suffix}`]).replace(/\n/g, '<br>');
                 contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${data[`disclaimerAlignment${suffix}`] || 'center'}" style="padding: ${data[`disclaimerPaddingTop${suffix}`] || 8}px ${data[`disclaimerPaddingLeftRight${suffix}`] || '0'}px ${data[`disclaimerPaddingBottom${suffix}`] || 8}px ${data[`disclaimerPaddingLeftRight${suffix}`] || '0'}px; font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${data[`disclaimerFontSize${suffix}`]}px; font-weight: ${data[`disclaimerFontWeight${suffix}`] || 'normal'}; font-style: ${data[`disclaimerFontStyle${suffix}`] || 'normal'}; color: ${data[`disclaimerTextColor${suffix}`]}; line-height: 1.4;">${sanitizedDisclaimer}</td></tr></table>`;
             }
-            return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;">${contentBlocks}</td></tr></table>`;
+            if (renderMode === 'full') {
+                return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;">${contentBlocks}</td></tr></table>`;
+            }
+            return contentBlocks;
         };
 
         const containerPadding = `padding: ${d.containerPaddingTop}px ${d.containerPaddingRight}px ${d.containerPaddingBottom}px ${d.containerPaddingLeft}px;`;
@@ -2647,7 +2650,7 @@ function generateEmailHtml(): string {
                 const imageTd = `<td width="${imgColWidth}" class="mobile-stack mobile-padding-bottom" valign="top" style="width: ${imgColWidth}px; vertical-align: top;">${generateOfferContent(d, '', imgColWidth, 'imageOnly')}</td>`;
                 const contentTdLeft = `<td class="mobile-stack" valign="top" style="vertical-align: top; padding-left: ${gutter}px;">${generateOfferContent(d, '', undefined, 'contentOnly')}</td>`;
                 const contentTdRight = `<td class="mobile-stack" valign="top" style="vertical-align: top; padding-right: ${gutter}px;">${generateOfferContent(d, '', undefined, 'contentOnly')}</td>`;
-                serviceOfferContentHtml = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr>${isRightLayout ? contentTdRight + imageTd : imageTd + contentTdLeft}</tr></table>`;
+                serviceOfferContentHtml = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr>${isRightLayout ? contentTdRight + imageTd : imageTd + contentTdLeft}</tr></table></td></tr></table>`;
             }
         } else {
             serviceOfferContentHtml = generateOfferContent(d, '');
