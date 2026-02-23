@@ -1342,7 +1342,10 @@ textarea.form-control.compact {
 
 .offer-column-2 { display: none; }
 .offer-columns-container[data-layout="grid"] .offer-column-2 { display: block; }
-.offer-columns-container[data-layout="single"] .offer-column {
+.offer-columns-container[data-layout="single"] .offer-column,
+.offer-columns-container[data-layout="center"] .offer-column,
+.offer-columns-container[data-layout="left"] .offer-column,
+.offer-columns-container[data-layout="right"] .offer-column {
   border: none;
   padding: 0;
   background-color: transparent;

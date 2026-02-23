@@ -1088,7 +1088,7 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
             };
         case 'service_offer':
             return {
-                layout: 'single',
+                layout: 'center',
                 showImage: 'false', imageUrl: '', imageAlt: '', imageLink: '',
                 serviceTitle: 'Oil Change Special', couponCode: 'OILCHANGE50',
                 serviceDetails: 'Get $50 off your next oil change service. Includes up to 5 quarts of synthetic blend oil and filter replacement.',
@@ -1787,9 +1787,9 @@ const renderComponents = () => {
         } else if (comp.type === 'service_offer') {
             const isGrid = comp.data.layout === 'grid';
             componentFormHtml = `
-                <div class="offer-columns-container" data-layout="${comp.data.layout || 'single'}">
+                <div class="offer-columns-container" data-layout="${comp.data.layout || 'center'}">
                     <div class="offer-column">
-                         <h4 class="offer-column-title">Offer 1</h4>
+                        ${isGrid ? '<h4 class="offer-column-title">Offer 1</h4>' : ''}
                         ${generateServiceOfferFormHtml(comp, '')}
                     </div>
                     <div class="offer-column offer-column-2">
@@ -1883,11 +1883,16 @@ const renderComponents = () => {
                 <span class="header-toggle-divider"></span>
             `;
         } else if (comp.type === 'service_offer') {
+            const isSvcLeft = comp.data.layout === 'left';
+            const isSvcCenter = comp.data.layout === 'center' || !comp.data.layout || comp.data.layout === 'single';
+            const isSvcRight = comp.data.layout === 'right';
             const isSvcGrid = comp.data.layout === 'grid';
             offerHeaderControls = `
                 <div class="toggle-group header-toggle-group">
-                    <button type="button" class="toggle-btn layout-toggle ${!isSvcGrid ? 'active' : ''}" data-key="layout" data-value="single" data-tooltip="Single Column">1</button>
-                    <button type="button" class="toggle-btn layout-toggle ${isSvcGrid ? 'active' : ''}" data-key="layout" data-value="grid" data-tooltip="Two Columns">2×2</button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSvcLeft ? 'active' : ''}" data-key="layout" data-value="left" data-tooltip="Image Left"><span class="material-symbols-rounded">splitscreen_left</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSvcCenter ? 'active' : ''}" data-key="layout" data-value="center" data-tooltip="Center"><span class="material-symbols-rounded">splitscreen_top</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSvcRight ? 'active' : ''}" data-key="layout" data-value="right" data-tooltip="Image Right"><span class="material-symbols-rounded">splitscreen_right</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSvcGrid ? 'active' : ''}" data-key="layout" data-value="grid" data-tooltip="Grid"><span class="material-symbols-rounded">splitscreen_add</span></button>
                 </div>
                 <span class="header-toggle-divider"></span>
             `;
@@ -2156,6 +2161,15 @@ const renderComponents = () => {
                             } catch (error) {
                                 console.error("Failed to update sub-offer alignments:", error);
                             }
+                            renderStylingPanel();
+                        }
+
+                        if (comp.type === 'service_offer' && key === 'layout' && value !== 'grid') {
+                            const newAlignment = value === 'single' ? 'center' : value;
+                            ['titleAlignment', 'couponAlignment', 'detailsAlignment',
+                             'disclaimerAlignment', 'buttonAlignment'].forEach(field => {
+                                updateComponentData(comp.id, `${field}`, newAlignment);
+                            });
                             renderStylingPanel();
                         }
 
@@ -2537,17 +2551,18 @@ function generateEmailHtml(): string {
             </tr>
         `;
     } else if (comp.type === 'service_offer') {
-        const generateOfferContent = (data: Record<string, string>, suffix = '') => {
+        const generateOfferContent = (data: Record<string, string>, suffix = '', imageMaxWidth?: number, renderMode: 'full' | 'imageOnly' | 'contentOnly' = 'full') => {
             let contentBlocks = '';
             // Image
-            if (data[`showImage${suffix}`] === 'true' && data[`imageUrl${suffix}`]) {
-                const imgStyles = `display: block; width: ${data[`imageWidth${suffix}`] || '100'}%; max-width: 100%; height: auto; border: 0; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;`;
+            if (renderMode !== 'contentOnly' && data[`showImage${suffix}`] === 'true' && data[`imageUrl${suffix}`]) {
+                const imgStyles = `display: block; width: ${imageMaxWidth ? '100%' : `${data[`imageWidth${suffix}`] || '100'}%`}; max-width: ${imageMaxWidth ? `${imageMaxWidth}px` : '100%'}; height: auto; border: 0; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;`;
                 let imgTag = `<img src="${DOMPurify.sanitize(data[`imageUrl${suffix}`])}" alt="${DOMPurify.sanitize(data[`imageAlt${suffix}`] || '')}" style="${imgStyles}" />`;
                 if (data[`imageLink${suffix}`]) {
                     imgTag = `<a href="${DOMPurify.sanitize(data[`imageLink${suffix}`])}" target="_blank" style="text-decoration: none;">${imgTag}</a>`;
                 }
                 contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${data[`imageAlignment${suffix}`] || 'center'}" style="padding: ${data[`imagePaddingTop${suffix}`] || 10}px 0 ${data[`imagePaddingBottom${suffix}`] || 10}px 0;">${imgTag}</td></tr></table>`;
             }
+            if (renderMode === 'imageOnly') return contentBlocks;
             // Title
             if (data[`serviceTitle${suffix}`]) {
                 contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${data[`titleAlignment${suffix}`] || 'center'}" style="padding: ${data[`titlePaddingTop${suffix}`] || 10}px ${data[`titlePaddingLeftRight${suffix}`] || '0'}px ${data[`titlePaddingBottom${suffix}`] || 10}px ${data[`titlePaddingLeftRight${suffix}`] || '0'}px; font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${data[`titleFontSize${suffix}`]}px; font-weight: ${data[`titleFontWeight${suffix}`]}; font-style: ${data[`titleFontStyle${suffix}`] || 'normal'}; color: ${data[`titleTextColor${suffix}`]}; line-height: 1.2;">${DOMPurify.sanitize(data[`serviceTitle${suffix}`])}</td></tr></table>`;
@@ -2599,40 +2614,55 @@ function generateEmailHtml(): string {
                 const sanitizedDisclaimer = DOMPurify.sanitize(data[`disclaimer${suffix}`]).replace(/\n/g, '<br>');
                 contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${data[`disclaimerAlignment${suffix}`] || 'center'}" style="padding: ${data[`disclaimerPaddingTop${suffix}`] || 8}px ${data[`disclaimerPaddingLeftRight${suffix}`] || '0'}px ${data[`disclaimerPaddingBottom${suffix}`] || 8}px ${data[`disclaimerPaddingLeftRight${suffix}`] || '0'}px; font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${data[`disclaimerFontSize${suffix}`]}px; font-weight: ${data[`disclaimerFontWeight${suffix}`] || 'normal'}; font-style: ${data[`disclaimerFontStyle${suffix}`] || 'normal'}; color: ${data[`disclaimerTextColor${suffix}`]}; line-height: 1.4;">${sanitizedDisclaimer}</td></tr></table>`;
             }
-            return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;">${contentBlocks}</td></tr></table>`;
+            if (renderMode === 'full') {
+                return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;">${contentBlocks}</td></tr></table>`;
+            }
+            return contentBlocks;
         };
 
         const containerPadding = `padding: ${d.containerPaddingTop}px ${d.containerPaddingRight}px ${d.containerPaddingBottom}px ${d.containerPaddingLeft}px;`;
-        
-        if (d.layout === 'grid') {
+        const serviceLayout = d.layout === 'single' ? 'center' : (d.layout || 'center');
+        let serviceOfferContentHtml = '';
+
+        if (serviceLayout === 'grid') {
             const offer1Html = generateOfferContent(d, '');
             const offer2Html = generateOfferContent(d, '2');
-            sectionsHtml += `
-                <tr>
-                    <td align="center" style="${containerPadding}">
-                        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
-                            <tr>
-                                <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-right: 8px; vertical-align: top;">
-                                    ${offer1Html}
-                                </td>
-                                <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-left: 8px; vertical-align: top;">
-                                    ${offer2Html}
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
+            serviceOfferContentHtml = `
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                    <tr>
+                        <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-right: 8px; vertical-align: top;">
+                            ${offer1Html}
+                        </td>
+                        <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-left: 8px; vertical-align: top;">
+                            ${offer2Html}
+                        </td>
+                    </tr>
+                </table>
             `;
+        } else if (serviceLayout === 'left' || serviceLayout === 'right') {
+            const imageEnabled = d.showImage === 'true' && d.imageUrl;
+            if (!imageEnabled) {
+                serviceOfferContentHtml = generateOfferContent(d, '');
+            } else {
+                const isRightLayout = serviceLayout === 'right';
+                const imgColWidth = 180;
+                const gutter = 15;
+                const imageTd = `<td width="${imgColWidth}" class="mobile-stack mobile-padding-bottom" valign="top" style="width: ${imgColWidth}px; vertical-align: top;">${generateOfferContent(d, '', imgColWidth, 'imageOnly')}</td>`;
+                const contentTdLeft = `<td class="mobile-stack" valign="top" style="vertical-align: top; padding-left: ${gutter}px;">${generateOfferContent(d, '', undefined, 'contentOnly')}</td>`;
+                const contentTdRight = `<td class="mobile-stack" valign="top" style="vertical-align: top; padding-right: ${gutter}px;">${generateOfferContent(d, '', undefined, 'contentOnly')}</td>`;
+                serviceOfferContentHtml = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr>${isRightLayout ? contentTdRight + imageTd : imageTd + contentTdLeft}</tr></table></td></tr></table>`;
+            }
         } else {
-            const offerHtml = generateOfferContent(d, '');
-            sectionsHtml += `
-                <tr>
-                    <td align="center" style="${containerPadding}">
-                        ${offerHtml}
-                    </td>
-                </tr>
-            `;
+            serviceOfferContentHtml = generateOfferContent(d, '');
         }
+
+        sectionsHtml += `
+            <tr>
+                <td align="center" style="${containerPadding}">
+                    ${serviceOfferContentHtml}
+                </td>
+            </tr>
+        `;
     } else if (comp.type === 'sales_offer') {
         const renderSalesOfferContent = (data: Record<string, string>, suffix: string, imageMaxWidth?: number, renderMode: 'full' | 'imageOnly' | 'contentOnly' = 'full') => {
             const rawAddOffers = JSON.parse(data[`additionalOffers${suffix}`] || '[]');
