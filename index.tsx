@@ -991,10 +991,10 @@ document.querySelectorAll('.right-panel-tab').forEach(tab => {
   });
 });
 
-// Add Component buttons in design sidebar
-document.querySelectorAll('.sidebar-component-option').forEach(opt => {
-  opt.addEventListener('click', () => {
-    const type = opt.getAttribute('data-type');
+// Quick-add component buttons in card header
+document.querySelectorAll('.quickadd-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const type = btn.getAttribute('data-type');
     if (type) {
       addNewComponent(type);
     }
@@ -1344,6 +1344,7 @@ function generateServiceOfferFormHtml(comp: EmailComponent, suffix: string): str
     const isChecked = d[`showImage${suffix}`] === 'true';
     const displayStyle = isChecked ? 'flex' : 'none';
 
+    const imgUrl = d[`imageUrl${suffix}`] || '';
     return `
         <div class="offer-img-row">
             <div class="offer-img-toggle">
@@ -1360,7 +1361,7 @@ function generateServiceOfferFormHtml(comp: EmailComponent, suffix: string): str
                 <div class="img-field-group">
                     <label class="form-label">URL</label>
                     <div class="img-url-inner">
-                        <input type="text" class="form-control compact" data-key="imageUrl${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferImage${suffix}" data-field-label="Image ${suffix || '1'}" value="${d[`imageUrl${suffix}`] || ''}" placeholder="https://...">
+                        <input type="text" class="form-control compact" data-key="imageUrl${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferImage${suffix}" data-field-label="Image ${suffix || '1'}" value="${imgUrl}" placeholder="https://...">
                         <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
                         <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="${suffix || '1'}">
                     </div>
@@ -1375,23 +1376,29 @@ function generateServiceOfferFormHtml(comp: EmailComponent, suffix: string): str
                 </div>
             </div>
         </div>
+        <div class="img-thumbnail-preview" style="display: ${imgUrl ? 'block' : 'none'}">
+            <img src="${imgUrl}" alt="" />
+        </div>
+        <div class="compact-separator"><span>Content</span></div>
         <div class="form-group">
             <label class="form-label">Title</label>
-            <input type="text" class="form-control" data-key="serviceTitle${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferTitle${suffix}" data-field-label="Service Title ${suffix || '1'}" value="${d[`serviceTitle${suffix}`] || ''}">
+            <input type="text" class="form-control compact" data-key="serviceTitle${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferTitle${suffix}" data-field-label="Service Title ${suffix || '1'}" value="${d[`serviceTitle${suffix}`] || ''}" placeholder="e.g. Oil Change Special">
         </div>
         <div class="form-group">
             <label class="form-label">Coupon Code</label>
-            <input type="text" class="form-control" data-key="couponCode${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferCoupon${suffix}" data-field-label="Coupon Code ${suffix || '1'}" value="${d[`couponCode${suffix}`] || ''}">
+            <input type="text" class="form-control compact" data-key="couponCode${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferCoupon${suffix}" data-field-label="Coupon Code ${suffix || '1'}" value="${d[`couponCode${suffix}`] || ''}" placeholder="e.g. SAVE20">
         </div>
+        <div class="compact-separator"><span>Details</span></div>
         <div class="form-group">
             <label class="form-label">Details</label>
-            <textarea class="form-control" data-key="serviceDetails${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferDetails${suffix}" data-field-label="Service Details ${suffix || '1'}">${d[`serviceDetails${suffix}`] || ''}</textarea>
+            <textarea class="form-control" data-key="serviceDetails${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferDetails${suffix}" data-field-label="Service Details ${suffix || '1'}" placeholder="Describe the service offer...">${d[`serviceDetails${suffix}`] || ''}</textarea>
         </div>
         <div class="form-group">
             <label class="form-label">Disclaimer</label>
-            <textarea class="form-control" data-key="disclaimer${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferDisclaimer${suffix}" data-field-label="Disclaimer ${suffix || '1'}">${d[`disclaimer${suffix}`] || ''}</textarea>
+            <textarea class="form-control" data-key="disclaimer${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferDisclaimer${suffix}" data-field-label="Disclaimer ${suffix || '1'}" placeholder="Terms and conditions...">${d[`disclaimer${suffix}`] || ''}</textarea>
         </div>
-        <div class="component-row">
+        <div class="compact-separator"><span>Action</span></div>
+        <div class="component-row component-row--keep-inline">
             <div class="component-row-item">
                 <label class="form-label">Btn Text</label>
                 <input type="text" class="form-control compact" data-key="buttonText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferButton${suffix}" data-field-label="Button ${suffix || '1'} Text" value="${d[`buttonText${suffix}`] || ''}" placeholder="e.g. Schedule Now">
@@ -1456,6 +1463,7 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
     if (suffix === '2' || isGrid) {
         const isChecked = d[`imageEnabled${suffix}`] === 'true';
         const displayStyle = isChecked ? 'flex' : 'none';
+        const salesImgUrl = d[`imageSrc${suffix}`] || '';
         html += `
             <div class="offer-img-row">
                 <div class="offer-img-toggle">
@@ -1472,7 +1480,7 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
                     <div class="img-field-group">
                         <label class="form-label">URL</label>
                         <div class="img-url-inner">
-                            <input type="text" class="form-control compact" data-key="imageSrc${suffix}" value="${d[`imageSrc${suffix}`] || ''}" placeholder="https://...">
+                            <input type="text" class="form-control compact" data-key="imageSrc${suffix}" value="${salesImgUrl}" placeholder="https://...">
                             <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
                             <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="${suffix || '1'}">
                         </div>
@@ -1487,23 +1495,28 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
                     </div>
                 </div>
             </div>
+            <div class="img-thumbnail-preview" style="display: ${salesImgUrl ? 'block' : 'none'}">
+                <img src="${salesImgUrl}" alt="" />
+            </div>
         `;
     }
-    
+
     html += `
         <div class="form-group">
             <label class="form-label">Vehicle</label>
-            <input type="text" class="form-control" data-key="vehicleText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="vehicle${suffix}" data-field-label="Vehicle Text" value="${d[`vehicleText${suffix}`] || ''}">
+            <input type="text" class="form-control compact" data-key="vehicleText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="vehicle${suffix}" data-field-label="Vehicle Text" value="${d[`vehicleText${suffix}`] || ''}" placeholder="e.g. 2024 Honda Civic">
         </div>
+        <div class="compact-separator"><span>Offer</span></div>
         <div class="form-group">
             <label class="form-label">Main Offer</label>
-            <input type="text" class="form-control" data-key="mainOfferText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="mainOffer${suffix}" data-field-label="Main Offer" value="${d[`mainOfferText${suffix}`] || ''}">
+            <input type="text" class="form-control compact" data-key="mainOfferText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="mainOffer${suffix}" data-field-label="Main Offer" value="${d[`mainOfferText${suffix}`] || ''}" placeholder="e.g. $5,000 Off MSRP">
         </div>
         <div class="form-group">
             <label class="form-label">Details</label>
-            <textarea class="form-control" data-key="detailsText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="details${suffix}" data-field-label="Details">${d[`detailsText${suffix}`] || ''}</textarea>
+            <textarea class="form-control" data-key="detailsText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="details${suffix}" data-field-label="Details" placeholder="Offer details...">${d[`detailsText${suffix}`] || ''}</textarea>
         </div>
 
+        <div class="compact-separator"><span>Identifiers</span></div>
         <div class="form-group-inline wrap">
              <div class="inline-input-group">
                 <label>Identifier</label>
@@ -1514,23 +1527,25 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
             </div>
             <div class="inline-input-group">
                 <label>Value</label>
-                <input type="text" class="form-control compact" data-key="stockVinValue${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="stockVin${suffix}" data-field-label="Stock/VIN" value="${d[`stockVinValue${suffix}`] || ''}">
+                <input type="text" class="form-control compact" data-key="stockVinValue${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="stockVin${suffix}" data-field-label="Stock/VIN" value="${d[`stockVinValue${suffix}`] || ''}" placeholder="e.g. A12345">
             </div>
             <div class="inline-input-group">
                 <label>Mileage</label>
-                <input type="text" class="form-control compact" data-key="mileageValue${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="mileage${suffix}" data-field-label="Mileage" value="${d[`mileageValue${suffix}`] || ''}">
+                <input type="text" class="form-control compact" data-key="mileageValue${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="mileage${suffix}" data-field-label="Mileage" value="${d[`mileageValue${suffix}`] || ''}" placeholder="e.g. 25,000 mi">
             </div>
         </div>
 
         <div class="sub-offers-container" id="sub-offers-${comp.id}${suffix}">
             ${generateSubOffersHtml(comp, suffix)}
         </div>
-        
+
+        <div class="compact-separator"><span>Details</span></div>
         <div class="form-group">
             <label class="form-label">Disclaimer</label>
-            <textarea class="form-control" data-key="disclaimerText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="disclaimer${suffix}" data-field-label="Disclaimer">${d[`disclaimerText${suffix}`] || ''}</textarea>
+            <textarea class="form-control" data-key="disclaimerText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="disclaimer${suffix}" data-field-label="Disclaimer" placeholder="Terms and conditions...">${d[`disclaimerText${suffix}`] || ''}</textarea>
         </div>
-        <div class="component-row">
+        <div class="compact-separator"><span>Action</span></div>
+        <div class="component-row component-row--keep-inline">
             <div class="component-row-item">
                 <label class="form-label">Btn Text</label>
                 <input type="text" class="form-control compact" data-key="btnText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="salesOfferButton${suffix}" data-field-label="Button Text" value="${d[`btnText${suffix}`] || ''}" placeholder="e.g. View Offer">
@@ -1635,21 +1650,21 @@ const renderComponents = () => {
             componentFormHtml = `
                 <div class="form-group">
                     <label class="form-label">Header Content</label>
-                    <textarea class="form-control" data-key="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="header" data-field-label="Header Content">${comp.data.text || ''}</textarea>
+                    <textarea class="form-control" data-key="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="header" data-field-label="Header Content" placeholder="Enter your header text...">${comp.data.text || ''}</textarea>
                 </div>
             `;
         } else if (comp.type === 'text_block') {
             componentFormHtml = `
                 <div class="form-group">
                     <label class="form-label">Text Content</label>
-                    <textarea class="form-control" data-key="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="textBlock" data-field-label="Text Block Content">${comp.data.text || ''}</textarea>
+                    <textarea class="form-control" data-key="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="textBlock" data-field-label="Text Block Content" placeholder="Enter your text content...">${comp.data.text || ''}</textarea>
                 </div>
             `;
         } else if (comp.type === 'disclaimers') {
             componentFormHtml = `
                 <div class="form-group">
                     <label class="form-label">Disclaimer Text</label>
-                    <textarea class="form-control" data-key="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="disclaimers" data-field-label="Disclaimer Text">${comp.data.text || ''}</textarea>
+                    <textarea class="form-control" data-key="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="disclaimers" data-field-label="Disclaimer Text" placeholder="Enter disclaimer text...">${comp.data.text || ''}</textarea>
                 </div>
             `;
         } else if (comp.type === 'image') {
@@ -1672,10 +1687,13 @@ const renderComponents = () => {
                         <input type="text" class="form-control compact" data-key="link" data-stylable="true" data-component-id="${comp.id}" data-field-key="image" data-field-label="Image Link" value="${comp.data.link || ''}" placeholder="https://example.com">
                     </div>
                 </div>
+                <div class="img-thumbnail-preview" style="display: ${comp.data.src && comp.data.src !== 'https://via.placeholder.com/600x300' ? 'block' : 'none'}">
+                    <img src="${comp.data.src || ''}" alt="" />
+                </div>
             `;
         } else if (comp.type === 'button') {
             componentFormHtml = `
-                <div class="component-row">
+                <div class="component-row component-row--keep-inline">
                     <div class="component-row-item">
                         <label class="form-label">Btn Text</label>
                         <input type="text" class="form-control compact" data-key="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="button" data-field-label="Button Text" value="${comp.data.text || ''}" placeholder="e.g. Shop Now">
@@ -1710,13 +1728,11 @@ const renderComponents = () => {
             const linksHtml = footerLinks.map((link, i) => `
                 <div class="footer-link-item" data-link-index="${i}">
                     <div class="footer-link-fields">
-                        <div class="component-row">
+                        <div class="component-row component-row--keep-inline">
                             <div class="component-row-item">
-                                <label class="form-label">Text</label>
                                 <input type="text" class="form-control compact footer-link-field" data-link-index="${i}" data-link-field="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="footerLinks" data-field-label="Link Text" value="${link.text || ''}" placeholder="Link text">
                             </div>
                             <div class="component-row-item">
-                                <label class="form-label">URL</label>
                                 <input type="text" class="form-control compact footer-link-field" data-link-index="${i}" data-link-field="url" value="${link.url || ''}" placeholder="https://...">
                             </div>
                         </div>
@@ -1828,6 +1844,9 @@ const renderComponents = () => {
                               <input type="text" class="form-control compact" data-key="imageLink" value="${comp.data.imageLink || ''}" placeholder="https://...">
                           </div>
                       </div>
+                  </div>
+                  <div class="img-thumbnail-preview" style="display: ${comp.data.imageSrc ? 'block' : 'none'}">
+                      <img src="${comp.data.imageSrc || ''}" alt="" />
                   </div>
                 </div>
                 ` : ''}
@@ -1974,6 +1993,14 @@ const renderComponents = () => {
                             
                             updateComponentData(comp.id, keyToUpdate, result);
                             (item.querySelector(`input[data-key="${keyToUpdate}"]`) as HTMLInputElement).value = result;
+                            // Update image thumbnail preview
+                            const thumbContainer = uploadBtn.closest('.img-fields-row, .offer-img-row, .single-offer-settings');
+                            const thumbPreview = thumbContainer?.querySelector('.img-thumbnail-preview') || thumbContainer?.parentElement?.querySelector('.img-thumbnail-preview');
+                            if (thumbPreview) {
+                                const thumbImg = thumbPreview.querySelector('img') as HTMLImageElement;
+                                if (thumbImg) thumbImg.src = result;
+                                (thumbPreview as HTMLElement).style.display = 'block';
+                            }
                             showToast('Image uploaded.', 'success');
                             uploadBtn.textContent = 'Upload';
                             (uploadBtn as HTMLButtonElement).disabled = false;
@@ -2226,6 +2253,43 @@ const renderComponents = () => {
             e.stopPropagation();
             removeComponent(comp.id)
         });
+
+        // Auto-resize textareas to fit content
+        item.querySelectorAll('textarea.form-control').forEach(ta => {
+            const el = ta as HTMLTextAreaElement;
+            el.style.height = 'auto';
+            el.style.height = el.scrollHeight + 'px';
+            el.addEventListener('input', () => {
+                el.style.height = 'auto';
+                el.style.height = el.scrollHeight + 'px';
+            });
+        });
+
+        // Update image thumbnail on URL change
+        item.querySelectorAll('input[data-key="src"], input[data-key="imageSrc"], input[data-key="imageSrc2"], input[data-key="imageUrl"], input[data-key="imageUrl2"]').forEach(input => {
+            input.addEventListener('input', (e) => {
+                const val = (e.target as HTMLInputElement).value;
+                const container = (e.target as HTMLElement).closest('.img-fields-row, .offer-img-fields, .img-field-group')?.closest('.img-fields-row, .offer-img-row, .single-offer-settings');
+                const preview = container?.querySelector('.img-thumbnail-preview') || container?.parentElement?.querySelector('.img-thumbnail-preview');
+                if (preview) {
+                    const img = preview.querySelector('img') as HTMLImageElement;
+                    if (img) img.src = val;
+                    (preview as HTMLElement).style.display = val ? 'block' : 'none';
+                }
+            });
+        });
+
+        // URL validation for link/src fields
+        item.querySelectorAll('input[data-key="src"], input[data-key="link"], input[data-key="imageLink"], input[data-key="imageLink2"], input[data-key="imageUrl"], input[data-key="imageUrl2"], input[data-key="imageSrc"], input[data-key="imageSrc2"], input[data-key="buttonLink"], input[data-key="buttonLink2"], input[data-key="btnLink"], input[data-key="btnLink2"]').forEach(input => {
+            const validate = () => {
+                const val = (input as HTMLInputElement).value.trim();
+                const isValid = !val || val.startsWith('http://') || val.startsWith('https://') || val.startsWith('data:') || val.startsWith('mailto:') || val.startsWith('tel:');
+                input.classList.toggle('url-invalid', !isValid);
+            };
+            input.addEventListener('input', validate);
+            validate();
+        });
+
         componentsContainer.appendChild(item);
     });
 
