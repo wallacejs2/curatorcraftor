@@ -1125,13 +1125,13 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 mainOfferText: '$2,500 Trade-In Bonus',
                 detailsText: 'Upgrade your current ride today with our exclusive seasonal offer.',
                 stockVinType: 'stock', stockVinValue: '{{customer.last_transaction.vehicle.vin}}',
-                mileageValue: '{{customer.last_transaction.vehicle.mileage}}',
+                mileageValue: '{{customer.last_transaction.vehicle.mileage}}', showIdentifiers: 'true',
                 disclaimerText: '*Terms and conditions apply. Offer valid through end of month.',
                 additionalOffers: '[]', btnText: 'View Details', btnLink: '{{dealership.tracked_website_homepage_url}}',
                 imageEnabled2: 'true', imageSrc2: 'https://via.placeholder.com/600x300', imageAlt2: 'Used Sales Offer', imageLink2: '', imageWidth2: '100%',
                 vehicleText2: 'Pre-Owned Vehicle Special', mainOfferText2: 'Low APR Financing',
                 detailsText2: 'Get behind the wheel of a quality pre-owned vehicle with great financing options.',
-                stockVinType2: 'stock', stockVinValue2: '', mileageValue2: '',
+                stockVinType2: 'stock', stockVinValue2: '', mileageValue2: '', showIdentifiers2: 'true',
                 disclaimerText2: '*With approved credit. See dealer for details.',
                 additionalOffers2: '[]', btnText2: 'View Inventory', btnLink2: '{{dealership.tracked_website_specials_url}}',
                 vehicleFontSize: '18', vehicleFontWeight: 'normal', vehicleFontStyle: 'normal', vehicleColor: '#1d1d1f', vehicleBgColor: 'transparent', vehicleTextAlign: 'center', vehiclePaddingTop: '0', vehiclePaddingBottom: '6', vehiclePaddingLeftRight: '0',
@@ -1503,10 +1503,41 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
         `;
     }
 
+    const isIdentifiersOn = d[`showIdentifiers${suffix}`] !== 'false';
     html += `
         <div class="form-group">
             <label class="form-label">Vehicle</label>
             <input type="text" class="form-control compact" data-key="vehicleText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="vehicle${suffix}" data-field-label="Vehicle Text" value="${d[`vehicleText${suffix}`] || ''}" placeholder="e.g. 2024 Honda Civic">
+        </div>
+        <div class="offer-img-row">
+            <div class="offer-img-toggle">
+                <label class="form-label">Identifiers</label>
+                <div class="toggle-switch-group">
+                    <div class="toggle-switch compact">
+                        <input type="checkbox" id="show-identifiers-${comp.id}-${suffix || '1'}" class="toggle-switch-checkbox" data-key="showIdentifiers${suffix}" ${isIdentifiersOn ? 'checked' : ''}>
+                        <label for="show-identifiers-${comp.id}-${suffix || '1'}" class="toggle-switch-label"></label>
+                    </div>
+                </div>
+            </div>
+            <div id="identifier-fields-${comp.id}-${suffix || '1'}" style="display: ${isIdentifiersOn ? 'block' : 'none'}; margin-top: 6px;">
+                <div class="form-group-inline wrap">
+                    <div class="inline-input-group">
+                        <label>Type</label>
+                        <select class="form-control compact" data-key="stockVinType${suffix}">
+                            <option value="stock" ${d[`stockVinType${suffix}`] === 'stock' ? 'selected' : ''}>Stock #</option>
+                            <option value="vin" ${d[`stockVinType${suffix}`] === 'vin' ? 'selected' : ''}>VIN</option>
+                        </select>
+                    </div>
+                    <div class="inline-input-group">
+                        <label>Value</label>
+                        <input type="text" class="form-control compact" data-key="stockVinValue${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="stockVin${suffix}" data-field-label="Stock/VIN" value="${d[`stockVinValue${suffix}`] || ''}" placeholder="e.g. A12345">
+                    </div>
+                    <div class="inline-input-group">
+                        <label>Mileage</label>
+                        <input type="text" class="form-control compact" data-key="mileageValue${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="mileage${suffix}" data-field-label="Mileage" value="${d[`mileageValue${suffix}`] || ''}" placeholder="e.g. 25,000 mi">
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="compact-separator"><span>Offer</span></div>
         <div class="form-group">
@@ -1516,25 +1547,6 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
         <div class="form-group">
             <label class="form-label">Details</label>
             <textarea class="form-control" data-key="detailsText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="details${suffix}" data-field-label="Details" placeholder="Offer details...">${d[`detailsText${suffix}`] || ''}</textarea>
-        </div>
-
-        <div class="compact-separator"><span>Identifiers</span></div>
-        <div class="form-group-inline wrap">
-             <div class="inline-input-group">
-                <label>Identifier</label>
-                <select class="form-control compact" data-key="stockVinType${suffix}">
-                    <option value="stock" ${d[`stockVinType${suffix}`] === 'stock' ? 'selected' : ''}>Stock #</option>
-                    <option value="vin" ${d[`stockVinType${suffix}`] === 'vin' ? 'selected' : ''}>VIN</option>
-                </select>
-            </div>
-            <div class="inline-input-group">
-                <label>Value</label>
-                <input type="text" class="form-control compact" data-key="stockVinValue${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="stockVin${suffix}" data-field-label="Stock/VIN" value="${d[`stockVinValue${suffix}`] || ''}" placeholder="e.g. A12345">
-            </div>
-            <div class="inline-input-group">
-                <label>Mileage</label>
-                <input type="text" class="form-control compact" data-key="mileageValue${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="mileage${suffix}" data-field-label="Mileage" value="${d[`mileageValue${suffix}`] || ''}" placeholder="e.g. 25,000 mi">
-            </div>
         </div>
 
         <div class="sub-offers-container" id="sub-offers-${comp.id}${suffix}">
@@ -2145,7 +2157,14 @@ const renderComponents = () => {
                         }
 
                         if ((comp.type === 'sales_offer' || comp.type === 'service_offer') && key === 'showBorder') {
-                            renderComponents();
+                            // Flip button state in-place — no full re-render needed
+                            const btn = target as HTMLButtonElement;
+                            const isNowActive = value !== 'false';
+                            btn.classList.toggle('active', isNowActive);
+                            btn.dataset.value = isNowActive ? 'false' : 'true';
+                            // Update preview immediately without debounce
+                            window.clearTimeout(previewTimer);
+                            if (previewPane) previewPane.srcdoc = generateEmailHtml();
                         }
 
                         if (comp.type === 'sales_offer' && key === 'layout' && value !== 'grid') {
@@ -2233,6 +2252,14 @@ const renderComponents = () => {
                             const fieldsContainer = item.querySelector(containerId) as HTMLElement;
                             if (fieldsContainer) {
                                 fieldsContainer.style.display = (target as HTMLInputElement).checked ? 'flex' : 'none';
+                            }
+                        }
+
+                        if (key.startsWith('showIdentifiers')) {
+                            const offerSuffix = key.endsWith('2') ? '2' : '';
+                            const container = item.querySelector(`#identifier-fields-${comp.id}-${offerSuffix || '1'}`) as HTMLElement;
+                            if (container) {
+                                container.style.display = (target as HTMLInputElement).checked ? 'block' : 'none';
                             }
                         }
                     }
