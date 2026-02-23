@@ -327,6 +327,8 @@ const fontSelect = document.getElementById('design-font-family') as HTMLSelectEl
 const saveTemplateBtn = document.getElementById('save-template-btn') as HTMLButtonElement;
 const savedTemplatesList = document.getElementById('saved-templates-list') as HTMLElement;
 const componentLibraryList = document.getElementById('component-library-list') as HTMLElement;
+const libraryFilterBar = document.getElementById('library-filter-bar') as HTMLElement;
+let activeLibraryFilter = 'all';
 
 const ALIGNMENT_ICONS = {
     left: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="17" y1="18" x2="3" y2="18"></line></svg>`,
@@ -1874,10 +1876,10 @@ const renderComponents = () => {
             const isSGrid = comp.data.layout === 'grid';
             offerHeaderControls = `
                 <div class="toggle-group header-toggle-group">
-                    <button type="button" class="toggle-btn layout-toggle ${isSLeft ? 'active' : ''}" data-key="layout" data-value="left" data-tooltip="Image Left"><span class="material-symbols-rounded">splitscreen_left</span></button>
-                    <button type="button" class="toggle-btn layout-toggle ${isSCenter ? 'active' : ''}" data-key="layout" data-value="center" data-tooltip="Center"><span class="material-symbols-rounded">splitscreen_top</span></button>
-                    <button type="button" class="toggle-btn layout-toggle ${isSRight ? 'active' : ''}" data-key="layout" data-value="right" data-tooltip="Image Right"><span class="material-symbols-rounded">splitscreen_right</span></button>
-                    <button type="button" class="toggle-btn layout-toggle ${isSGrid ? 'active' : ''}" data-key="layout" data-value="grid" data-tooltip="Grid"><span class="material-symbols-rounded">splitscreen_add</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSLeft ? 'active' : ''}" data-key="layout" data-value="left" data-tooltip="Image Left"><span class="material-symbols-rounded">split_scene_left</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSCenter ? 'active' : ''}" data-key="layout" data-value="center" data-tooltip="Center"><span class="material-symbols-rounded">split_scene_up</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSRight ? 'active' : ''}" data-key="layout" data-value="right" data-tooltip="Image Right"><span class="material-symbols-rounded">split_scene_right</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSGrid ? 'active' : ''}" data-key="layout" data-value="grid" data-tooltip="Grid"><span class="material-symbols-rounded">splitscreen_vertical_add</span></button>
                 </div>
                 <span class="header-toggle-divider"></span>
             `;
@@ -1888,10 +1890,10 @@ const renderComponents = () => {
             const isSvcGrid = comp.data.layout === 'grid';
             offerHeaderControls = `
                 <div class="toggle-group header-toggle-group">
-                    <button type="button" class="toggle-btn layout-toggle ${isSvcLeft ? 'active' : ''}" data-key="layout" data-value="left" data-tooltip="Image Left"><span class="material-symbols-rounded">splitscreen_left</span></button>
-                    <button type="button" class="toggle-btn layout-toggle ${isSvcCenter ? 'active' : ''}" data-key="layout" data-value="center" data-tooltip="Center"><span class="material-symbols-rounded">splitscreen_top</span></button>
-                    <button type="button" class="toggle-btn layout-toggle ${isSvcRight ? 'active' : ''}" data-key="layout" data-value="right" data-tooltip="Image Right"><span class="material-symbols-rounded">splitscreen_right</span></button>
-                    <button type="button" class="toggle-btn layout-toggle ${isSvcGrid ? 'active' : ''}" data-key="layout" data-value="grid" data-tooltip="Grid"><span class="material-symbols-rounded">splitscreen_add</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSvcLeft ? 'active' : ''}" data-key="layout" data-value="left" data-tooltip="Image Left"><span class="material-symbols-rounded">split_scene_left</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSvcCenter ? 'active' : ''}" data-key="layout" data-value="center" data-tooltip="Center"><span class="material-symbols-rounded">split_scene_up</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSvcRight ? 'active' : ''}" data-key="layout" data-value="right" data-tooltip="Image Right"><span class="material-symbols-rounded">split_scene_right</span></button>
+                    <button type="button" class="toggle-btn layout-toggle ${isSvcGrid ? 'active' : ''}" data-key="layout" data-value="grid" data-tooltip="Grid"><span class="material-symbols-rounded">splitscreen_vertical_add</span></button>
                 </div>
                 <span class="header-toggle-divider"></span>
             `;
@@ -1905,7 +1907,7 @@ const renderComponents = () => {
                 </div>
                 <span class="header-toggle-divider"></span>
                 <div class="toggle-group header-toggle-group">
-                    <button type="button" class="toggle-btn border-toggle ${comp.data.showBorder !== 'false' ? 'active' : ''}" data-key="showBorder" data-value="${comp.data.showBorder !== 'false' ? 'false' : 'true'}" data-tooltip="Card Border"><span class="material-symbols-rounded">border_all</span></button>
+                    <button type="button" class="toggle-btn border-toggle ${comp.data.showBorder !== 'false' ? 'active' : ''}" data-key="showBorder" data-value="${comp.data.showBorder !== 'false' ? 'false' : 'true'}" data-tooltip="Card Border"><span class="material-symbols-rounded">crop_square</span></button>
                 </div>
                 <span class="header-toggle-divider"></span>
             `;
@@ -3193,12 +3195,45 @@ const renderComponentLibrary = () => {
     const library = getSavedLibraryComponents();
     if (!componentLibraryList) return;
 
+    // Reset filter if its type no longer exists in library
+    if (activeLibraryFilter !== 'all' && !library.some(item => item.type === activeLibraryFilter)) {
+        activeLibraryFilter = 'all';
+    }
+
+    // Build filter bar
+    if (libraryFilterBar) {
+        if (library.length === 0) {
+            libraryFilterBar.innerHTML = '';
+        } else {
+            const types = Array.from(new Set(library.map(item => item.type)));
+            libraryFilterBar.innerHTML = `
+                <div class="library-filter-bar">
+                    <button class="library-filter-chip ${activeLibraryFilter === 'all' ? 'active' : ''}" data-filter="all">All</button>
+                    ${types.map(t => `<button class="library-filter-chip ${activeLibraryFilter === t ? 'active' : ''}" data-filter="${t}"><span class="material-symbols-rounded">${getComponentTypeIcon(t)}</span>${formatComponentTypeName(t)}</button>`).join('')}
+                </div>
+            `;
+            libraryFilterBar.querySelectorAll('.library-filter-chip').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    activeLibraryFilter = chip.getAttribute('data-filter') || 'all';
+                    renderComponentLibrary();
+                });
+            });
+        }
+    }
+
+    const filtered = activeLibraryFilter === 'all' ? library : library.filter(item => item.type === activeLibraryFilter);
+
     if (library.length === 0) {
         componentLibraryList.innerHTML = `<p class="text-sm" style="color: var(--label-secondary); text-align: center;">No saved components. Use the <span class="material-symbols-rounded" style="font-size: 14px; vertical-align: middle;">bookmark</span> icon on any section to add it to your library.</p>`;
         return;
     }
 
-    componentLibraryList.innerHTML = library.map(item => `
+    if (filtered.length === 0) {
+        componentLibraryList.innerHTML = `<p class="text-sm" style="color: var(--label-secondary); text-align: center;">No saved ${formatComponentTypeName(activeLibraryFilter)} components.</p>`;
+        return;
+    }
+
+    componentLibraryList.innerHTML = filtered.map(item => `
         <div class="library-card">
             <div class="library-card-info">
                 <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
