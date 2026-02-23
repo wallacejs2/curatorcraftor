@@ -98,11 +98,12 @@
 </script>
 </head>
   <body>
+    <div class="app-shell">
     <!-- Design Customization Sidebar (Left) -->
     <aside id="design-sidebar" class="design-sidebar">
       <div class="sidebar-header">
         <h3 class="text-xl">Design Customization</h3>
-        <button type="button" id="close-design-sidebar" class="btn btn-secondary btn-sm" style="width: 24px; height: 24px; padding: 0; border-radius: 50%;">&times;</button>
+        <button type="button" id="close-design-sidebar" class="btn btn-secondary btn-sm icon-close-btn" aria-label="Close design sidebar">&times;</button>
       </div>
       <div class="sidebar-content">
         <!-- Font Selection -->
@@ -129,8 +130,23 @@
           </div>
         </div>
 
+
+        <div class="design-option-group">
+          <h4>Appearance</h4>
+          <select id="appearance-mode" name="appearance-mode" class="form-control">
+            <option value="auto">Auto (System)</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+
         <!-- Dynamic Field Styling Container -->
-        <div id="dynamic-styling-container"></div>
+        <details class="sidebar-details-group" id="field-styling-details">
+          <summary>Field Styling</summary>
+          <div class="sidebar-details-group-content">
+            <div id="dynamic-styling-container"></div>
+          </div>
+        </details>
 
       </div>
     </aside>
@@ -170,34 +186,34 @@
               <div class="card-header-quickadd">
                 <span class="quickadd-label">Add</span>
                 <div class="quickadd-icons">
-                  <button type="button" class="quickadd-btn" data-type="header" data-tooltip="Header">
+                  <button type="button" class="quickadd-btn" data-type="header" data-tooltip="Header" aria-label="Add Header section">
                     <span class="material-symbols-rounded">format_h1</span>
                   </button>
-                  <button type="button" class="quickadd-btn" data-type="text_block" data-tooltip="Text Block">
+                  <button type="button" class="quickadd-btn" data-type="text_block" data-tooltip="Text Block" aria-label="Add Text Block section">
                     <span class="material-symbols-rounded">format_align_justify</span>
                   </button>
-                  <button type="button" class="quickadd-btn" data-type="image" data-tooltip="Image">
+                  <button type="button" class="quickadd-btn" data-type="image" data-tooltip="Image" aria-label="Add Image section">
                     <span class="material-symbols-rounded">image</span>
                   </button>
-                  <button type="button" class="quickadd-btn" data-type="button" data-tooltip="Button">
+                  <button type="button" class="quickadd-btn" data-type="button" data-tooltip="Button" aria-label="Add Button section">
                     <span class="material-symbols-rounded">radio_button_checked</span>
                   </button>
-                  <button type="button" class="quickadd-btn" data-type="footer" data-tooltip="Footer">
+                  <button type="button" class="quickadd-btn" data-type="footer" data-tooltip="Footer" aria-label="Add Footer section">
                     <span class="material-symbols-rounded">link</span>
                   </button>
-                  <button type="button" class="quickadd-btn" data-type="divider" data-tooltip="Divider">
+                  <button type="button" class="quickadd-btn" data-type="divider" data-tooltip="Divider" aria-label="Add Divider section">
                     <span class="material-symbols-rounded">horizontal_rule</span>
                   </button>
-                  <button type="button" class="quickadd-btn" data-type="spacer" data-tooltip="Spacer">
+                  <button type="button" class="quickadd-btn" data-type="spacer" data-tooltip="Spacer" aria-label="Add Spacer section">
                     <span class="material-symbols-rounded">expand_all</span>
                   </button>
-                  <button type="button" class="quickadd-btn" data-type="disclaimers" data-tooltip="Disclaimers">
+                  <button type="button" class="quickadd-btn" data-type="disclaimers" data-tooltip="Disclaimers" aria-label="Add Disclaimers section">
                     <span class="material-symbols-rounded">contract</span>
                   </button>
-                  <button type="button" class="quickadd-btn" data-type="service_offer" data-tooltip="Service Offer">
+                  <button type="button" class="quickadd-btn" data-type="service_offer" data-tooltip="Service Offer" aria-label="Add Service Offer section">
                     <span class="material-symbols-rounded">handyman</span>
                   </button>
-                  <button type="button" class="quickadd-btn" data-type="sales_offer" data-tooltip="Sales Offer">
+                  <button type="button" class="quickadd-btn" data-type="sales_offer" data-tooltip="Sales Offer" aria-label="Add Sales Offer section">
                     <span class="material-symbols-rounded">sell</span>
                   </button>
                 </div>
@@ -205,6 +221,16 @@
             </div>
             <div class="card-body">
               <form id="email-form">
+
+                <div class="quick-start-banner">
+                  <div>
+                    <p class="quick-start-title">New here?</p>
+                    <p class="quick-start-subtitle">Start with a recommended template, then tailor details.</p>
+                  </div>
+                  <button type="button" id="recommended-template-btn" class="btn btn-secondary btn-sm">Use Recommended</button>
+                </div>
+                <p class="helper-text">Tip: Add sections with quick-add icons, then tune styles in the left panel.</p>
+
                 <div id="form-components-container" class="components-container">
                   <!-- Dynamic form components will be injected here -->
                 </div>
@@ -217,7 +243,7 @@
                   Add Section
                 </button>
 
-                <button type="submit" id="generate-btn" class="btn btn-primary w-full" style="margin-top: var(--spacing-2xl);">
+                <button type="submit" id="generate-btn" class="btn btn-primary w-full mt-2xl">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="checkmark hidden"><path d="M20 6 9 17l-5-5"></path></svg>
                   <span class="btn-text">Generate Template</span>
                   <div class="spinner hidden"></div>
@@ -226,11 +252,11 @@
             </div>
           </section>
 
-          <section class="grid grid-cols-1" id="output-container" style="display: none;">
+          <section class="grid grid-cols-1 is-hidden" id="output-container">
             <div class="card">
               <div class="card-header">
                 <h3 class="text-xl">Preview</h3>
-                <div class="flex gap-2" style="align-items: center;">
+                <div class="flex gap-2 items-center">
                   <div class="toggle-group">
                     <button id="desktop-view-btn" class="toggle-btn active" data-view="desktop">Desktop</button>
                     <button id="mobile-view-btn" class="toggle-btn" data-view="mobile">Mobile</button>
@@ -243,35 +269,35 @@
                 <iframe id="preview-pane" title="Email Preview" class="preview-frame desktop" sandbox="allow-same-origin"></iframe>
               </div>
             </div>
-            <div style="display:none;"><pre><code id="code-block"></code></pre></div>
+            <div class="is-hidden"><pre><code id="code-block"></code></pre></div>
           </section>
 
           <section class="card" id="output-placeholder">
-            <div class="card-body" style="text-align: center; padding: var(--spacing-3xl);">
-              <p class="text-lg" style="color: var(--label-secondary);">Your generated email will appear here.</p>
+            <div class="card-body output-placeholder-body">
+              <p class="text-lg text-secondary">Your generated email will appear here.</p>
             </div>
           </section>
 
-          <footer style="text-align: center; margin-top: var(--spacing-3xl); color: var(--label-secondary);">
+          <footer class="app-footer">
             <p class="text-sm">Created by Jayden Wallace © 2025</p>
           </footer>
         </main>
       </div>
     </div>
-    
+
     <!-- Right Side Panel: Templates & Component Library -->
     <aside id="right-panel" class="right-panel">
       <div class="right-panel-header">
         <div class="right-panel-tabs">
           <button type="button" class="right-panel-tab active" data-tab="templates">Templates</button>
-          <button type="button" class="right-panel-tab" data-tab="library"><span class="material-symbols-rounded" style="font-size: 16px; vertical-align: middle; margin-right: 2px;">bookmark</span> Library</button>
+          <button type="button" class="right-panel-tab" data-tab="library"><span class="material-symbols-rounded inline-icon-sm">bookmark</span> Library</button>
         </div>
-        <button type="button" id="close-right-panel" class="btn btn-secondary btn-sm" style="width: 24px; height: 24px; padding: 0; border-radius: 50%;">&times;</button>
+        <button type="button" id="close-right-panel" class="btn btn-secondary btn-sm icon-close-btn" aria-label="Close templates and library panel">&times;</button>
       </div>
       <div class="right-panel-content">
         <!-- Templates Tab -->
         <div id="right-panel-templates" class="right-panel-tab-content active">
-          <div style="padding: 0 0 var(--spacing-md) 0;">
+          <div class="mb-md">
             <button type="button" id="save-template-btn" class="btn btn-primary w-full btn-sm">
               Save Current Template
             </button>
@@ -300,7 +326,7 @@
           </div>
           <!-- Saved Templates -->
           <div id="saved-templates-list">
-            <p class="text-sm" style="color: var(--label-secondary); text-align: center;">No saved templates found.</p>
+            <p class="text-sm text-secondary text-center">No saved templates found.</p>
           </div>
         </div>
         <!-- Component Library Tab -->
@@ -330,7 +356,7 @@
           <!-- Saved Components -->
           <div id="library-filter-bar"></div>
           <div id="component-library-list">
-            <p class="text-sm" style="color: var(--label-secondary); text-align: center;">No saved components. Use the <span class="material-symbols-rounded" style="font-size: 14px; vertical-align: middle;">bookmark</span> icon on any section to add it to your library.</p>
+            <p class="text-sm text-secondary text-center">No saved components. Use the <span class="material-symbols-rounded inline-icon-xs">bookmark</span> icon on any section to add it to your library.</p>
           </div>
         </div>
       </div>
@@ -342,7 +368,7 @@
     <div id="merge-fields-sidebar" class="merge-fields-sidebar">
       <div class="sidebar-header">
         <h3 class="text-xl">Insert Merge Field</h3>
-        <button type="button" id="close-sidebar" class="btn btn-secondary btn-sm" style="width: 24px; height: 24px; padding: 0; border-radius: 50%;">&times;</button>
+        <button type="button" id="close-sidebar" class="btn btn-secondary btn-sm icon-close-btn" aria-label="Close merge fields panel">&times;</button>
       </div>
       <div class="sidebar-content">
         <!-- Content generated by JS -->
@@ -355,47 +381,47 @@
       <div class="quick-picker-modal">
         <div class="quick-picker-header">
           <h3 class="text-xl">Select a Component</h3>
-          <button type="button" id="close-component-picker" class="btn btn-secondary btn-sm" style="width: 24px; height: 24px; padding: 0; border-radius: 50%;">&times;</button>
+          <button type="button" id="close-component-picker" class="btn btn-secondary btn-sm icon-close-btn" aria-label="Close component picker">&times;</button>
         </div>
         <div class="quick-picker-content">
            <div class="picker-grid">
-             <div class="picker-option" data-type="header">
+             <div class="picker-option" data-type="header" role="button" tabindex="0" aria-label="Add header component">
                <span class="material-symbols-rounded picker-icon">format_h1</span>
                <span>Header</span>
              </div>
-             <div class="picker-option" data-type="text_block">
+             <div class="picker-option" data-type="text_block" role="button" tabindex="0" aria-label="Add text block component">
                <span class="material-symbols-rounded picker-icon">format_align_justify</span>
                <span>Text Block</span>
              </div>
-             <div class="picker-option" data-type="image">
+             <div class="picker-option" data-type="image" role="button" tabindex="0" aria-label="Add image component">
                <span class="material-symbols-rounded picker-icon">image</span>
                <span>Image</span>
              </div>
-             <div class="picker-option" data-type="button">
+             <div class="picker-option" data-type="button" role="button" tabindex="0" aria-label="Add button component">
                <span class="material-symbols-rounded picker-icon">radio_button_checked</span>
                <span>Button</span>
              </div>
-             <div class="picker-option" data-type="footer">
+             <div class="picker-option" data-type="footer" role="button" tabindex="0" aria-label="Add footer component">
                <span class="material-symbols-rounded picker-icon">link</span>
                <span>Footer</span>
              </div>
-             <div class="picker-option" data-type="divider">
+             <div class="picker-option" data-type="divider" role="button" tabindex="0" aria-label="Add divider component">
                <span class="material-symbols-rounded picker-icon">horizontal_rule</span>
                <span>Divider</span>
              </div>
-             <div class="picker-option" data-type="spacer">
+             <div class="picker-option" data-type="spacer" role="button" tabindex="0" aria-label="Add spacer component">
                <span class="material-symbols-rounded picker-icon">expand_all</span>
                <span>Spacer</span>
              </div>
-             <div class="picker-option" data-type="disclaimers">
+             <div class="picker-option" data-type="disclaimers" role="button" tabindex="0" aria-label="Add disclaimers component">
                <span class="material-symbols-rounded picker-icon">contract</span>
                <span>Disclaimers</span>
              </div>
-             <div class="picker-option" data-type="service_offer">
+             <div class="picker-option" data-type="service_offer" role="button" tabindex="0" aria-label="Add service offer component">
                <span class="material-symbols-rounded picker-icon">handyman</span>
                <span>Service Offer</span>
              </div>
-             <div class="picker-option" data-type="sales_offer">
+             <div class="picker-option" data-type="sales_offer" role="button" tabindex="0" aria-label="Add sales offer component">
                <span class="material-symbols-rounded picker-icon">sell</span>
                <span>Sales Offer</span>
              </div>
@@ -409,7 +435,7 @@
       <div class="shortcuts-modal">
         <div class="shortcuts-header">
           <h3 class="text-xl">Keyboard Shortcuts</h3>
-          <button type="button" id="close-shortcuts-modal" class="btn btn-secondary btn-sm" style="width: 24px; height: 24px; padding: 0; border-radius: 50%;">&times;</button>
+          <button type="button" id="close-shortcuts-modal" class="btn btn-secondary btn-sm icon-close-btn" aria-label="Close shortcuts modal">&times;</button>
         </div>
         <div id="shortcuts-list" class="shortcuts-content">
           <!-- Content generated by JS -->
@@ -419,14 +445,15 @@
 
 
     <!-- Floating Action Buttons -->
-    <button type="button" id="floating-panel-btn" class="fab fab-panel" data-tooltip="Templates & Library">
-      <span class="material-symbols-rounded" style="font-size: 22px;">bookmark</span>
+    <button type="button" id="floating-panel-btn" class="fab fab-panel" data-tooltip="Templates & Library" aria-label="Open templates and library">
+      <span class="material-symbols-rounded fab-icon">bookmark</span>
     </button>
-    <button type="button" id="floating-merge-btn" class="fab fab-merge" data-tooltip="Insert Merge Fields">
-      <span style="font-family: var(--font-family-mono); font-size: 16px; font-weight: bold;">{{}}</span>
+    <button type="button" id="floating-merge-btn" class="fab fab-merge" data-tooltip="Insert Merge Fields" aria-label="Open merge fields">
+      <span class="fab-merge-text">{{}}</span>
     </button>
-    
+
     <div id="autocomplete-dropdown"></div>
+    </div>
 
     <script type="module" src="./index.tsx"></script>
   </body>
