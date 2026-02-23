@@ -1112,7 +1112,8 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 detailsFontSize2: '12', detailsFontWeight2: 'normal', detailsFontStyle2: 'normal', detailsTextColor2: '#333333', detailsBgColor2: 'transparent', detailsAlignment2: 'center', detailsLineHeight2: '1.5', detailsPaddingTop2: '9', detailsPaddingBottom2: '9', detailsPaddingLeftRight2: '0',
                 disclaimerFontSize2: '9', disclaimerFontWeight2: 'normal', disclaimerFontStyle2: 'normal', disclaimerTextColor2: '#666666', disclaimerBgColor2: 'transparent', disclaimerAlignment2: 'center', disclaimerPaddingTop2: '6', disclaimerPaddingBottom2: '6', disclaimerPaddingLeftRight2: '0',
                 buttonFontSize2: '12', buttonAlignment2: 'center', buttonBgColor2: '#0066FF', buttonTextColor2: '#FFFFFF', buttonPaddingTop2: '9', buttonPaddingBottom2: '9', buttonPaddingLeftRight2: '15', buttonWidth2: 'auto',
-                textLayout: 'center'
+                textLayout: 'center',
+                showBorder: 'true'
             };
         case 'sales_offer':
             return {
@@ -1146,7 +1147,8 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 disclaimerFontSize2: '9', disclaimerFontWeight2: 'normal', disclaimerFontStyle2: 'normal', disclaimerColor2: '#86868b', disclaimerBgColor2: 'transparent', disclaimerTextAlign2: 'center', disclaimerPaddingTop2: '12', disclaimerPaddingBottom2: '0', disclaimerPaddingLeftRight2: '0',
                 btnFontSize2: '12', btnPaddingTop2: '9', btnPaddingBottom2: '9', btnPaddingLeftRight2: '15', btnColor2: '#007aff', btnTextColor2: '#ffffff', btnAlign2: 'center', btnWidthType2: 'full',
                 paddingTop: '15', paddingBottom: '15', paddingLeftRight: '15', backgroundColor: '#ffffff',
-                textLayout: 'center'
+                textLayout: 'center',
+                showBorder: 'true'
             };
         case 'footer':
             return {
@@ -1905,6 +1907,10 @@ const renderComponents = () => {
                     <button type="button" class="toggle-btn text-layout-toggle ${currentTextLayout === 'right' ? 'active' : ''}" data-key="textLayout" data-value="right" data-tooltip="Align Right"><span class="material-symbols-rounded">format_align_right</span></button>
                 </div>
                 <span class="header-toggle-divider"></span>
+                <div class="toggle-group header-toggle-group">
+                    <button type="button" class="toggle-btn border-toggle ${comp.data.showBorder !== 'false' ? 'active' : ''}" data-key="showBorder" data-value="${comp.data.showBorder !== 'false' ? 'false' : 'true'}" data-tooltip="Card Border"><span class="material-symbols-rounded">border_all</span></button>
+                </div>
+                <span class="header-toggle-divider"></span>
             `;
         }
 
@@ -2117,7 +2123,7 @@ const renderComponents = () => {
             });
         }
 
-        item.querySelectorAll('input, textarea, select, button.layout-toggle, button.text-layout-toggle').forEach(input => {
+        item.querySelectorAll('input, textarea, select, button.layout-toggle, button.text-layout-toggle, button.border-toggle').forEach(input => {
             if (!input.classList.contains('sub-offer-field') && !input.classList.contains('footer-link-field')) {
                 const eventType = (input.tagName === 'BUTTON' || (input as HTMLInputElement).type === 'checkbox') ? 'click' : 'input';
                 input.addEventListener(eventType, (e) => {
@@ -2137,7 +2143,11 @@ const renderComponents = () => {
                         if ((comp.type === 'sales_offer' || comp.type === 'service_offer') && key === 'layout') {
                             renderComponents();
                         }
-                        
+
+                        if ((comp.type === 'sales_offer' || comp.type === 'service_offer') && key === 'showBorder') {
+                            renderComponents();
+                        }
+
                         if (comp.type === 'sales_offer' && key === 'layout' && value !== 'grid') {
                             const newAlignment = value;
                             
@@ -2615,7 +2625,8 @@ function generateEmailHtml(): string {
                 contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${data[`disclaimerAlignment${suffix}`] || 'center'}" style="padding: ${data[`disclaimerPaddingTop${suffix}`] || 8}px ${data[`disclaimerPaddingLeftRight${suffix}`] || '0'}px ${data[`disclaimerPaddingBottom${suffix}`] || 8}px ${data[`disclaimerPaddingLeftRight${suffix}`] || '0'}px; font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${data[`disclaimerFontSize${suffix}`]}px; font-weight: ${data[`disclaimerFontWeight${suffix}`] || 'normal'}; font-style: ${data[`disclaimerFontStyle${suffix}`] || 'normal'}; color: ${data[`disclaimerTextColor${suffix}`]}; line-height: 1.4;">${sanitizedDisclaimer}</td></tr></table>`;
             }
             if (renderMode === 'full') {
-                return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;">${contentBlocks}</td></tr></table>`;
+                const svcCardBorder = data.showBorder !== 'false' ? 'border: 1px solid #e2e8f0; ' : '';
+                return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="${svcCardBorder}border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;">${contentBlocks}</td></tr></table>`;
             }
             return contentBlocks;
         };
@@ -2650,7 +2661,8 @@ function generateEmailHtml(): string {
                 const imageTd = `<td width="${imgColWidth}" class="mobile-stack mobile-padding-bottom" valign="top" style="width: ${imgColWidth}px; vertical-align: top;">${generateOfferContent(d, '', imgColWidth, 'imageOnly')}</td>`;
                 const contentTdLeft = `<td class="mobile-stack" valign="top" style="vertical-align: top; padding-left: ${gutter}px;">${generateOfferContent(d, '', undefined, 'contentOnly')}</td>`;
                 const contentTdRight = `<td class="mobile-stack" valign="top" style="vertical-align: top; padding-right: ${gutter}px;">${generateOfferContent(d, '', undefined, 'contentOnly')}</td>`;
-                serviceOfferContentHtml = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr>${isRightLayout ? contentTdRight + imageTd : imageTd + contentTdLeft}</tr></table></td></tr></table>`;
+                const svcLRBorder = d.showBorder !== 'false' ? 'border: 1px solid #e2e8f0; ' : '';
+                serviceOfferContentHtml = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="${svcLRBorder}border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr>${isRightLayout ? contentTdRight + imageTd : imageTd + contentTdLeft}</tr></table></td></tr></table>`;
             }
         } else {
             serviceOfferContentHtml = generateOfferContent(d, '');
@@ -2743,17 +2755,18 @@ function generateEmailHtml(): string {
         if (layout === 'grid') {
             const offer1Content = renderSalesOfferContent(d, '', 250);
             const offer2Content = renderSalesOfferContent(d, '2', 250);
+            const salesGridBorder = d.showBorder !== 'false' ? 'border: 1px solid #e2e8f0; ' : '';
             offerContentHtml = `
                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                     <tbody>
                         <tr>
                             <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-right: 8px; vertical-align: top;">
-                                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px;"><tr><td style="padding: 15px;">
+                                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; ${salesGridBorder}border-radius: 8px;"><tr><td style="padding: 15px;">
                                     ${offer1Content}
                                 </td></tr></table>
                             </td>
                             <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-left: 8px; vertical-align: top;">
-                                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px;"><tr><td style="padding: 15px;">
+                                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; ${salesGridBorder}border-radius: 8px;"><tr><td style="padding: 15px;">
                                     ${offer2Content}
                                 </td></tr></table>
                             </td>
