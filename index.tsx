@@ -2775,11 +2775,12 @@ function generateEmailHtml(): string {
                 </table>
             `;
         } else { // Handle single column layouts
+            const salesSingleBorder = d.showBorder !== 'false' ? 'border: 1px solid #e2e8f0; ' : '';
             const imageEnabled = d.imageEnabled === 'true';
             if (!imageEnabled) {
-                offerContentHtml = `<table width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td align="center">${renderSalesOfferContent(d, '')}</td></tr></table>`;
+                offerContentHtml = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="${salesSingleBorder}border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;">${renderSalesOfferContent(d, '')}</td></tr></table>`;
             } else if (layout === 'center') {
-                offerContentHtml = `<table width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td align="center">${renderSalesOfferContent(d, '')}</td></tr></table>`;
+                offerContentHtml = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="${salesSingleBorder}border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;">${renderSalesOfferContent(d, '')}</td></tr></table>`;
             } else {
                 const isRightLayout = layout === 'right';
                 const imgColWidth = 180;
@@ -2787,7 +2788,7 @@ function generateEmailHtml(): string {
                 const imageTd = `<td width="${imgColWidth}" class="mobile-stack mobile-padding-bottom" valign="top" style="width: ${imgColWidth}px; vertical-align: top;">${renderSalesOfferContent(d, '', imgColWidth, 'imageOnly')}</td>`;
                 const contentTdLeft = `<td class="mobile-stack" valign="top" style="vertical-align: top; padding-left: ${gutter}px;">${renderSalesOfferContent(d, '', undefined, 'contentOnly')}</td>`;
                 const contentTdRight = `<td class="mobile-stack" valign="top" style="vertical-align: top; padding-right: ${gutter}px;">${renderSalesOfferContent(d, '', undefined, 'contentOnly')}</td>`;
-                offerContentHtml = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr>${isRightLayout ? contentTdRight + imageTd : imageTd + contentTdLeft}</tr></table>`;
+                offerContentHtml = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="${salesSingleBorder}border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr>${isRightLayout ? contentTdRight + imageTd : imageTd + contentTdLeft}</tr></table></td></tr></table>`;
             }
         }
 
