@@ -115,11 +115,11 @@ const CONTENT_KEYS: Record<string, string[]> = {
         'imageSrc', 'imageLink', 'imageWidth',
         'vehicleText', 'mainOfferText', 'detailsText',
         'vinValue', 'stockValue', 'mileageValue',
-        'additionalOffers', 'btnText', 'btnLink',
+        'disclaimerText', 'additionalOffers', 'btnText', 'btnLink',
         'imageSrc2', 'imageLink2', 'imageWidth2',
         'vehicleText2', 'mainOfferText2', 'detailsText2',
         'vinValue2', 'stockValue2', 'mileageValue2',
-        'additionalOffers2', 'btnText2', 'btnLink2',
+        'disclaimerText2', 'additionalOffers2', 'btnText2', 'btnLink2',
     ],
     footer: ['links'],
 };
@@ -1144,23 +1144,27 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 detailsText: 'Upgrade your current ride today with our exclusive seasonal offer.',
                 vinValue: '{{customer.last_transaction.vehicle.vin}}', stockValue: '',
                 mileageValue: '{{customer.last_transaction.vehicle.mileage}}',
+                disclaimerText: '*Terms and conditions apply. Offer valid through end of month.',
                 additionalOffers: '[]', btnText: 'View Details', btnLink: '{{dealership.tracked_website_homepage_url}}',
                 imageSrc2: 'https://via.placeholder.com/600x300', imageLink2: '', imageWidth2: '100%',
                 vehicleText2: 'Pre-Owned Vehicle Special', mainOfferText2: 'Low APR Financing',
                 detailsText2: 'Get behind the wheel of a quality pre-owned vehicle with great financing options.',
                 vinValue2: '', stockValue2: '', mileageValue2: '',
+                disclaimerText2: '*With approved credit. See dealer for details.',
                 additionalOffers2: '[]', btnText2: 'View Inventory', btnLink2: '{{dealership.tracked_website_specials_url}}',
                 vehicleFontSize: '18', vehicleFontWeight: 'normal', vehicleFontStyle: 'normal', vehicleColor: '#1d1d1f', vehicleBgColor: 'transparent', vehicleTextAlign: 'center', vehiclePaddingTop: '0', vehiclePaddingBottom: '6', vehiclePaddingLeftRight: '0',
                 mainOfferFontSize: '21', mainOfferFontWeight: 'normal', mainOfferFontStyle: 'normal', mainOfferColor: '#007aff', mainOfferBgColor: 'transparent', mainOfferTextAlign: 'center', mainOfferPaddingTop: '0', mainOfferPaddingBottom: '6', mainOfferPaddingLeftRight: '0',
                 detailsFontSize: '12', detailsFontWeight: 'normal', detailsFontStyle: 'normal', detailsColor: '#6e6e73', detailsBgColor: 'transparent', detailsTextAlign: 'center', detailsPaddingTop: '0', detailsPaddingBottom: '9', detailsPaddingLeftRight: '0',
                 stockVinFontSize: '12', stockVinFontWeight: 'normal', stockVinFontStyle: 'normal', stockVinColor: '#86868b', stockVinBgColor: 'transparent', stockVinTextAlign: 'center', stockVinPaddingTop: '8', stockVinPaddingBottom: '0', stockVinPaddingLeftRight: '0',
                 mileageFontSize: '12', mileageFontWeight: 'normal', mileageFontStyle: 'normal', mileageColor: '#86868b', mileageBgColor: 'transparent', mileageTextAlign: 'center', mileagePaddingTop: '3', mileagePaddingBottom: '0', mileagePaddingLeftRight: '0',
+                disclaimerFontSize: '9', disclaimerFontWeight: 'normal', disclaimerFontStyle: 'normal', disclaimerColor: '#86868b', disclaimerBgColor: 'transparent', disclaimerTextAlign: 'center', disclaimerPaddingTop: '12', disclaimerPaddingBottom: '0', disclaimerPaddingLeftRight: '0',
                 btnFontSize: '12', btnPaddingTop: '9', btnPaddingBottom: '9', btnPaddingLeftRight: '15', btnColor: '#007aff', btnTextColor: '#ffffff', btnAlign: 'center', btnWidthType: 'full',
                 vehicleFontSize2: '18', vehicleFontWeight2: 'normal', vehicleFontStyle2: 'normal', vehicleColor2: '#1d1d1f', vehicleBgColor2: 'transparent', vehicleTextAlign2: 'center', vehiclePaddingTop2: '0', vehiclePaddingBottom2: '6', vehiclePaddingLeftRight2: '0',
                 mainOfferFontSize2: '21', mainOfferFontWeight2: 'normal', mainOfferFontStyle2: 'normal', mainOfferColor2: '#007aff', mainOfferBgColor2: 'transparent', mainOfferTextAlign2: 'center', mainOfferPaddingTop2: '0', mainOfferPaddingBottom2: '6', mainOfferPaddingLeftRight2: '0',
                 detailsFontSize2: '12', detailsFontWeight2: 'normal', detailsFontStyle2: 'normal', detailsColor2: '#6e6e73', detailsBgColor2: 'transparent', detailsTextAlign2: 'center', detailsPaddingTop2: '0', detailsPaddingBottom2: '9', detailsPaddingLeftRight2: '0',
                 stockVinFontSize2: '12', stockVinFontWeight2: 'normal', stockVinFontStyle2: 'normal', stockVinColor2: '#86868b', stockVinBgColor2: 'transparent', stockVinTextAlign2: 'center', stockVinPaddingTop2: '8', stockVinPaddingBottom2: '0', stockVinPaddingLeftRight2: '0',
                 mileageFontSize2: '12', mileageFontWeight2: 'normal', mileageFontStyle2: 'normal', mileageColor2: '#86868b', mileageBgColor2: 'transparent', mileageTextAlign2: 'center', mileagePaddingTop2: '3', mileagePaddingBottom2: '0', mileagePaddingLeftRight2: '0',
+                disclaimerFontSize2: '9', disclaimerFontWeight2: 'normal', disclaimerFontStyle2: 'normal', disclaimerColor2: '#86868b', disclaimerBgColor2: 'transparent', disclaimerTextAlign2: 'center', disclaimerPaddingTop2: '12', disclaimerPaddingBottom2: '0', disclaimerPaddingLeftRight2: '0',
                 btnFontSize2: '12', btnPaddingTop2: '9', btnPaddingBottom2: '9', btnPaddingLeftRight2: '15', btnColor2: '#007aff', btnTextColor2: '#ffffff', btnAlign2: 'center', btnWidthType2: 'full',
                 paddingTop: '15', paddingBottom: '15', paddingLeftRight: '15', backgroundColor: '#ffffff',
                 textLayout: 'center',
@@ -1437,9 +1441,6 @@ function generateSubOffersHtml(comp: EmailComponent, suffix: string): string {
                 <div class="form-group">
                     <textarea class="form-control compact sub-offer-field" data-index="${index}" data-offer-index="${suffix || '1'}" data-field="details" data-stylable="true" data-component-id="${comp.id}" data-field-key="details${suffix}" data-sub-offer-index="${index}" data-field-label="Offer Details" placeholder="Details">${offer.details || ''}</textarea>
                 </div>
-                <div class="form-group">
-                    <textarea class="form-control compact sub-offer-field" data-index="${index}" data-offer-index="${suffix || '1'}" data-field="disclaimer" data-stylable="true" data-component-id="${comp.id}" data-field-key="disclaimer${suffix}" data-sub-offer-index="${index}" data-field-label="Offer Disclaimer" placeholder="Disclaimer">${offer.disclaimer || ''}</textarea>
-                </div>
             </div>
         </div>
     `).join('');
@@ -1508,6 +1509,9 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
             ${generateSubOffersHtml(comp, suffix)}
         </div>
 
+        <div class="form-group">
+            <textarea class="form-control" data-key="disclaimerText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="disclaimer${suffix}" data-field-label="Disclaimer" placeholder="Disclaimer">${d[`disclaimerText${suffix}`] || ''}</textarea>
+        </div>
         <div class="compact-separator"><span>CTA</span></div>
         <div class="component-row component-row--keep-inline">
             <div class="component-row-item">
@@ -2104,7 +2108,7 @@ const renderComponents = () => {
                         if (comp.type === 'sales_offer' && key === 'layout' && value !== 'grid') {
                             const newAlignment = value;
                             
-                            const prefixes = ['vehicle', 'mainOffer', 'details', 'stockVin', 'mileage'];
+                            const prefixes = ['vehicle', 'mainOffer', 'details', 'stockVin', 'mileage', 'disclaimer'];
                             prefixes.forEach(prefix => {
                                 updateComponentData(comp.id, `${prefix}TextAlign`, newAlignment);
                             });
@@ -2146,7 +2150,7 @@ const renderComponents = () => {
                         if (comp.type === 'sales_offer' && key === 'textLayout') {
                             ['', '2'].forEach(sfx => {
                                 ['vehicleTextAlign', 'mainOfferTextAlign', 'detailsTextAlign',
-                                 'stockVinTextAlign', 'mileageTextAlign'].forEach(field => {
+                                 'stockVinTextAlign', 'mileageTextAlign', 'disclaimerTextAlign'].forEach(field => {
                                     updateComponentData(comp.id, `${field}${sfx}`, value);
                                 });
                                 updateComponentData(comp.id, `btnAlign${sfx}`, value);
@@ -2691,6 +2695,7 @@ function generateEmailHtml(): string {
             if (btnAlign === 'center') btnMargin = '12px auto 0';
             else if (btnAlign === 'right') btnMargin = '12px 0 0 auto';
             const btnStyles = [`background-color: ${isOutlined ? 'transparent' : btnBgColor}`,`color: ${isOutlined ? btnBgColor : btnTextColor}`,`padding: ${data[`btnPaddingTop${suffix}`] || '12'}px ${data[`btnPaddingLeftRight${suffix}`] || '20'}px ${data[`btnPaddingBottom${suffix}`] || '12'}px`,`text-decoration: none`,`display: block`,`font-weight: bold`,`border-radius: ${radius}`,`font-size: ${data[`btnFontSize${suffix}`] || 16}px`,`font-family: ${designSettings.fontFamily}`,`text-align: center`,isOutlined ? `border: 2px solid ${btnBgColor}` : 'border: 0'].join('; ');
+            contentHtml += renderField({ text: DOMPurify.sanitize(data[`disclaimerText${suffix}`]), fontSize: data[`disclaimerFontSize${suffix}`], color: data[`disclaimerColor${suffix}`], bgColor: data[`disclaimerBgColor${suffix}`], fontWeight: data[`disclaimerFontWeight${suffix}`], fontStyle: data[`disclaimerFontStyle${suffix}`], textAlign: data[`disclaimerTextAlign${suffix}`], paddingTop: data[`disclaimerPaddingTop${suffix}`], paddingBottom: data[`disclaimerPaddingBottom${suffix}`], paddingLeftRight: data[`disclaimerPaddingLeftRight${suffix}`] });
             contentHtml += `<table border="0" cellspacing="0" cellpadding="0" ${btnTableWidthAttr ? `width="${btnTableWidthAttr}"` : ""} style="margin: ${btnMargin}; width: ${btnWidthType === 'full' ? '100%' : (btnTableWidthAttr ? btnTableWidthAttr+'px' : 'auto')}; max-width: 100%;"><tr><td align="center" bgcolor="${isOutlined ? 'transparent' : btnBgColor}" style="border-radius: ${radius};"><a href="${DOMPurify.sanitize(data[`btnLink${suffix}`] || '#')}" target="_blank" style="${btnStyles}">${DOMPurify.sanitize(data[`btnText${suffix}`] || 'View')}</a></td></tr></table>`;
             } // end renderMode !== 'imageOnly'
 
@@ -3285,7 +3290,7 @@ const STARTER_COMPONENTS: Record<string, { name: string; type: string; data: Rec
     vehicle_offer: {
         name: 'Vehicle Offer',
         type: 'sales_offer',
-        data: { ...getDefaultComponentData('sales_offer'), layout: 'center', vehicleText: 'New {{customer.last_transaction.vehicle.year}} {{customer.last_transaction.vehicle.make}} {{customer.last_transaction.vehicle.model}}', mainOfferText: '$2,500 Trade-In Bonus', detailsText: 'Upgrade your vehicle today with our exclusive offer.', btnText: 'View Details', btnLink: '{{dealership.tracked_website_homepage_url}}' },
+        data: { ...getDefaultComponentData('sales_offer'), layout: 'center', vehicleText: 'New {{customer.last_transaction.vehicle.year}} {{customer.last_transaction.vehicle.make}} {{customer.last_transaction.vehicle.model}}', mainOfferText: '$2,500 Trade-In Bonus', detailsText: 'Upgrade your vehicle today with our exclusive offer.', disclaimerText: '*Terms and conditions apply.', btnText: 'View Details', btnLink: '{{dealership.tracked_website_homepage_url}}' },
     },
     cta_button: {
         name: 'CTA Button',
@@ -4398,6 +4403,7 @@ const propagateBodyColor = (color: string) => {
                 comp.data[`detailsColor${sfx}`]    = secondary;
                 comp.data[`stockVinColor${sfx}`]   = tertiary;
                 comp.data[`mileageColor${sfx}`]    = tertiary;
+                comp.data[`disclaimerColor${sfx}`] = tertiary;
                 const key = `additionalOffers${sfx}`;
                 try {
                     const offers = JSON.parse(comp.data[key] || '[]');
