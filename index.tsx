@@ -1725,9 +1725,6 @@ const renderComponents = () => {
                         </div>
                     </div>
                     <div class="img-field-group">
-                        <input type="text" class="form-control compact" data-key="alt" data-stylable="true" data-component-id="${comp.id}" data-field-key="image" data-field-label="Image Alt Text" value="${comp.data.alt || ''}" placeholder="Alt Text">
-                    </div>
-                    <div class="img-field-group">
                         <input type="text" class="form-control compact" data-key="link" data-stylable="true" data-component-id="${comp.id}" data-field-key="image" data-field-label="Image Link" value="${comp.data.link || ''}" placeholder="Image Link">
                     </div>
                 </div>
@@ -5385,6 +5382,7 @@ function initGlobalTextStyles() {
 
 
 saveTemplateBtn?.addEventListener('click', saveTemplate);
+document.getElementById('save-quick-btn')?.addEventListener('click', saveTemplate);
 
 // Dealership modal close handlers
 document.getElementById('close-dealership-modal')?.addEventListener('click', closeDealershipManager);
