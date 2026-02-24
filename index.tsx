@@ -112,14 +112,14 @@ const CONTENT_KEYS: Record<string, string[]> = {
         'buttonText2', 'buttonLink2',
     ],
     sales_offer: [
-        'imageSrc', 'imageAlt', 'imageLink', 'imageWidth',
+        'imageSrc', 'imageLink', 'imageWidth',
         'vehicleText', 'mainOfferText', 'detailsText',
-        'stockVinType', 'stockVinValue', 'mileageValue',
-        'disclaimerText', 'additionalOffers', 'btnText', 'btnLink',
-        'imageSrc2', 'imageAlt2', 'imageLink2', 'imageWidth2',
+        'vinValue', 'stockValue', 'mileageValue',
+        'additionalOffers', 'btnText', 'btnLink',
+        'imageSrc2', 'imageLink2', 'imageWidth2',
         'vehicleText2', 'mainOfferText2', 'detailsText2',
-        'stockVinType2', 'stockVinValue2', 'mileageValue2',
-        'disclaimerText2', 'additionalOffers2', 'btnText2', 'btnLink2',
+        'vinValue2', 'stockValue2', 'mileageValue2',
+        'additionalOffers2', 'btnText2', 'btnLink2',
     ],
     footer: ['links'],
 };
@@ -1138,33 +1138,29 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
         case 'sales_offer':
             return {
                 layout: 'center',
-                imageSrc: 'https://via.placeholder.com/600x300', imageAlt: 'New Sales Offer', imageLink: '', imageWidth: '100%',
+                imageSrc: 'https://via.placeholder.com/600x300', imageLink: '', imageWidth: '100%',
                 vehicleText: 'New {{customer.last_transaction.vehicle.year}} {{customer.last_transaction.vehicle.make}} {{customer.last_transaction.vehicle.model}}',
                 mainOfferText: '$2,500 Trade-In Bonus',
                 detailsText: 'Upgrade your current ride today with our exclusive seasonal offer.',
-                stockVinType: 'stock', stockVinValue: '{{customer.last_transaction.vehicle.vin}}',
+                vinValue: '{{customer.last_transaction.vehicle.vin}}', stockValue: '',
                 mileageValue: '{{customer.last_transaction.vehicle.mileage}}',
-                disclaimerText: '*Terms and conditions apply. Offer valid through end of month.',
                 additionalOffers: '[]', btnText: 'View Details', btnLink: '{{dealership.tracked_website_homepage_url}}',
-                imageSrc2: 'https://via.placeholder.com/600x300', imageAlt2: 'Used Sales Offer', imageLink2: '', imageWidth2: '100%',
+                imageSrc2: 'https://via.placeholder.com/600x300', imageLink2: '', imageWidth2: '100%',
                 vehicleText2: 'Pre-Owned Vehicle Special', mainOfferText2: 'Low APR Financing',
                 detailsText2: 'Get behind the wheel of a quality pre-owned vehicle with great financing options.',
-                stockVinType2: 'stock', stockVinValue2: '', mileageValue2: '',
-                disclaimerText2: '*With approved credit. See dealer for details.',
+                vinValue2: '', stockValue2: '', mileageValue2: '',
                 additionalOffers2: '[]', btnText2: 'View Inventory', btnLink2: '{{dealership.tracked_website_specials_url}}',
                 vehicleFontSize: '18', vehicleFontWeight: 'normal', vehicleFontStyle: 'normal', vehicleColor: '#1d1d1f', vehicleBgColor: 'transparent', vehicleTextAlign: 'center', vehiclePaddingTop: '0', vehiclePaddingBottom: '6', vehiclePaddingLeftRight: '0',
                 mainOfferFontSize: '21', mainOfferFontWeight: 'normal', mainOfferFontStyle: 'normal', mainOfferColor: '#007aff', mainOfferBgColor: 'transparent', mainOfferTextAlign: 'center', mainOfferPaddingTop: '0', mainOfferPaddingBottom: '6', mainOfferPaddingLeftRight: '0',
                 detailsFontSize: '12', detailsFontWeight: 'normal', detailsFontStyle: 'normal', detailsColor: '#6e6e73', detailsBgColor: 'transparent', detailsTextAlign: 'center', detailsPaddingTop: '0', detailsPaddingBottom: '9', detailsPaddingLeftRight: '0',
                 stockVinFontSize: '12', stockVinFontWeight: 'normal', stockVinFontStyle: 'normal', stockVinColor: '#86868b', stockVinBgColor: 'transparent', stockVinTextAlign: 'center', stockVinPaddingTop: '8', stockVinPaddingBottom: '0', stockVinPaddingLeftRight: '0',
                 mileageFontSize: '12', mileageFontWeight: 'normal', mileageFontStyle: 'normal', mileageColor: '#86868b', mileageBgColor: 'transparent', mileageTextAlign: 'center', mileagePaddingTop: '3', mileagePaddingBottom: '0', mileagePaddingLeftRight: '0',
-                disclaimerFontSize: '9', disclaimerFontWeight: 'normal', disclaimerFontStyle: 'normal', disclaimerColor: '#86868b', disclaimerBgColor: 'transparent', disclaimerTextAlign: 'center', disclaimerPaddingTop: '12', disclaimerPaddingBottom: '0', disclaimerPaddingLeftRight: '0',
                 btnFontSize: '12', btnPaddingTop: '9', btnPaddingBottom: '9', btnPaddingLeftRight: '15', btnColor: '#007aff', btnTextColor: '#ffffff', btnAlign: 'center', btnWidthType: 'full',
                 vehicleFontSize2: '18', vehicleFontWeight2: 'normal', vehicleFontStyle2: 'normal', vehicleColor2: '#1d1d1f', vehicleBgColor2: 'transparent', vehicleTextAlign2: 'center', vehiclePaddingTop2: '0', vehiclePaddingBottom2: '6', vehiclePaddingLeftRight2: '0',
                 mainOfferFontSize2: '21', mainOfferFontWeight2: 'normal', mainOfferFontStyle2: 'normal', mainOfferColor2: '#007aff', mainOfferBgColor2: 'transparent', mainOfferTextAlign2: 'center', mainOfferPaddingTop2: '0', mainOfferPaddingBottom2: '6', mainOfferPaddingLeftRight2: '0',
                 detailsFontSize2: '12', detailsFontWeight2: 'normal', detailsFontStyle2: 'normal', detailsColor2: '#6e6e73', detailsBgColor2: 'transparent', detailsTextAlign2: 'center', detailsPaddingTop2: '0', detailsPaddingBottom2: '9', detailsPaddingLeftRight2: '0',
                 stockVinFontSize2: '12', stockVinFontWeight2: 'normal', stockVinFontStyle2: 'normal', stockVinColor2: '#86868b', stockVinBgColor2: 'transparent', stockVinTextAlign2: 'center', stockVinPaddingTop2: '8', stockVinPaddingBottom2: '0', stockVinPaddingLeftRight2: '0',
                 mileageFontSize2: '12', mileageFontWeight2: 'normal', mileageFontStyle2: 'normal', mileageColor2: '#86868b', mileageBgColor2: 'transparent', mileageTextAlign2: 'center', mileagePaddingTop2: '3', mileagePaddingBottom2: '0', mileagePaddingLeftRight2: '0',
-                disclaimerFontSize2: '9', disclaimerFontWeight2: 'normal', disclaimerFontStyle2: 'normal', disclaimerColor2: '#86868b', disclaimerBgColor2: 'transparent', disclaimerTextAlign2: 'center', disclaimerPaddingTop2: '12', disclaimerPaddingBottom2: '0', disclaimerPaddingLeftRight2: '0',
                 btnFontSize2: '12', btnPaddingTop2: '9', btnPaddingBottom2: '9', btnPaddingLeftRight2: '15', btnColor2: '#007aff', btnTextColor2: '#ffffff', btnAlign2: 'center', btnWidthType2: 'full',
                 paddingTop: '15', paddingBottom: '15', paddingLeftRight: '15', backgroundColor: '#ffffff',
                 textLayout: 'center',
@@ -1230,8 +1226,6 @@ const clearComponentContent = (id: string) => {
 
         if (key === 'additionalOffers' || key === 'additionalOffers2' || key === 'links') {
             comp.data[key] = '[]';
-        } else if (key === 'stockVinType' || key === 'stockVinType2') {
-            comp.data[key] = 'stock';
         } else {
             comp.data[key] = '';
         }
@@ -1443,6 +1437,9 @@ function generateSubOffersHtml(comp: EmailComponent, suffix: string): string {
                 <div class="form-group">
                     <textarea class="form-control compact sub-offer-field" data-index="${index}" data-offer-index="${suffix || '1'}" data-field="details" data-stylable="true" data-component-id="${comp.id}" data-field-key="details${suffix}" data-sub-offer-index="${index}" data-field-label="Offer Details" placeholder="Details">${offer.details || ''}</textarea>
                 </div>
+                <div class="form-group">
+                    <textarea class="form-control compact sub-offer-field" data-index="${index}" data-offer-index="${suffix || '1'}" data-field="disclaimer" data-stylable="true" data-component-id="${comp.id}" data-field-key="disclaimer${suffix}" data-sub-offer-index="${index}" data-field-label="Offer Disclaimer" placeholder="Disclaimer">${offer.disclaimer || ''}</textarea>
+                </div>
             </div>
         </div>
     `).join('');
@@ -1475,9 +1472,6 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
                         </div>
                     </div>
                     <div class="img-field-group">
-                        <input type="text" class="form-control compact" data-key="imageAlt${suffix}" value="${d[`imageAlt${suffix}`] || ''}" placeholder="Image Alt Text">
-                    </div>
-                    <div class="img-field-group">
                         <input type="text" class="form-control compact" data-key="imageLink${suffix}" value="${d[`imageLink${suffix}`] || ''}" placeholder="Image Link">
                     </div>
                 </div>
@@ -1489,20 +1483,15 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
     }
 
     html += `
+        <div class="compact-separator"><span>Vehicle</span></div>
         <div class="form-group">
             <input type="text" class="form-control compact" data-key="vehicleText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="vehicle${suffix}" data-field-label="Vehicle Text" value="${d[`vehicleText${suffix}`] || ''}" placeholder="Vehicle">
         </div>
-        <div class="compact-separator"><span>Identifiers</span></div>
-        <div class="component-row component-row--keep-inline" style="margin-bottom: var(--spacing-sm);">
-            <div class="component-row-item" style="flex: 0 0 90px;">
-                <select class="form-control compact" data-key="stockVinType${suffix}">
-                    <option value="stock" ${d[`stockVinType${suffix}`] === 'stock' ? 'selected' : ''}>Stock #</option>
-                    <option value="vin" ${d[`stockVinType${suffix}`] === 'vin' ? 'selected' : ''}>VIN</option>
-                </select>
-            </div>
-            <div class="component-row-item">
-                <input type="text" class="form-control compact" data-key="stockVinValue${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="stockVin${suffix}" data-field-label="Stock/VIN" value="${d[`stockVinValue${suffix}`] || ''}" placeholder="Stock/VIN Value">
-            </div>
+        <div class="form-group">
+            <input type="text" class="form-control compact" data-key="vinValue${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="stockVin${suffix}" data-field-label="VIN" value="${d[`vinValue${suffix}`] || ''}" placeholder="VIN">
+        </div>
+        <div class="form-group">
+            <input type="text" class="form-control compact" data-key="stockValue${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="stockVin${suffix}" data-field-label="Stock #" value="${d[`stockValue${suffix}`] || ''}" placeholder="Stock #">
         </div>
         <div class="form-group">
             <input type="text" class="form-control compact" data-key="mileageValue${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="mileage${suffix}" data-field-label="Mileage" value="${d[`mileageValue${suffix}`] || ''}" placeholder="Mileage">
@@ -1519,11 +1508,7 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
             ${generateSubOffersHtml(comp, suffix)}
         </div>
 
-        <div class="compact-separator"><span>Details</span></div>
-        <div class="form-group">
-            <textarea class="form-control" data-key="disclaimerText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="disclaimer${suffix}" data-field-label="Disclaimer" placeholder="Disclaimer">${d[`disclaimerText${suffix}`] || ''}</textarea>
-        </div>
-        <div class="compact-separator"><span>Action</span></div>
+        <div class="compact-separator"><span>CTA</span></div>
         <div class="component-row component-row--keep-inline">
             <div class="component-row-item">
                 <input type="text" class="form-control compact" data-key="btnText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="salesOfferButton${suffix}" data-field-label="Button Text" value="${d[`btnText${suffix}`] || ''}" placeholder="Button Text">
@@ -1777,9 +1762,18 @@ const renderComponents = () => {
                 comp.data.mileageValue = comp.data.mileageText;
                 delete comp.data.mileageText;
             }
-            if (!comp.data.stockVinType) {
-                comp.data.stockVinType = 'stock';
-            }
+            // Migrate old stockVinType/stockVinValue to separate vinValue/stockValue
+            ['', '2'].forEach(sfx => {
+                if (comp.data[`stockVinValue${sfx}`] && !comp.data[`vinValue${sfx}`] && !comp.data[`stockValue${sfx}`]) {
+                    if (comp.data[`stockVinType${sfx}`] === 'vin') {
+                        comp.data[`vinValue${sfx}`] = comp.data[`stockVinValue${sfx}`];
+                        comp.data[`stockValue${sfx}`] = '';
+                    } else {
+                        comp.data[`stockValue${sfx}`] = comp.data[`stockVinValue${sfx}`];
+                        comp.data[`vinValue${sfx}`] = '';
+                    }
+                }
+            });
             const isGrid = comp.data.layout === 'grid';
             componentFormHtml = `
                 ${!isGrid ? `
@@ -1792,9 +1786,6 @@ const renderComponents = () => {
                                   <button type="button" class="btn btn-secondary btn-sm upload-btn"><span class="material-symbols-rounded">upload</span></button>
                                   <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="1">
                               </div>
-                          </div>
-                          <div class="img-field-group">
-                              <input type="text" class="form-control compact" data-key="imageAlt" value="${comp.data.imageAlt || ''}" placeholder="Image Alt Text">
                           </div>
                           <div class="img-field-group">
                               <input type="text" class="form-control compact" data-key="imageLink" value="${comp.data.imageLink || ''}" placeholder="Image Link">
@@ -2113,7 +2104,7 @@ const renderComponents = () => {
                         if (comp.type === 'sales_offer' && key === 'layout' && value !== 'grid') {
                             const newAlignment = value;
                             
-                            const prefixes = ['vehicle', 'mainOffer', 'details', 'stockVin', 'mileage', 'disclaimer'];
+                            const prefixes = ['vehicle', 'mainOffer', 'details', 'stockVin', 'mileage'];
                             prefixes.forEach(prefix => {
                                 updateComponentData(comp.id, `${prefix}TextAlign`, newAlignment);
                             });
@@ -2155,7 +2146,7 @@ const renderComponents = () => {
                         if (comp.type === 'sales_offer' && key === 'textLayout') {
                             ['', '2'].forEach(sfx => {
                                 ['vehicleTextAlign', 'mainOfferTextAlign', 'detailsTextAlign',
-                                 'stockVinTextAlign', 'mileageTextAlign', 'disclaimerTextAlign'].forEach(field => {
+                                 'stockVinTextAlign', 'mileageTextAlign'].forEach(field => {
                                     updateComponentData(comp.id, `${field}${sfx}`, value);
                                 });
                                 updateComponentData(comp.id, `btnAlign${sfx}`, value);
@@ -2672,13 +2663,13 @@ function generateEmailHtml(): string {
                 contentHtml += renderField({ text: o.disclaimer, fontSize: o.disclaimerFontSize, color: o.disclaimerColor, bgColor: o.disclaimerBgColor, fontWeight: o.disclaimerFontWeight, fontStyle: o.disclaimerFontStyle, textAlign: o.disclaimerTextAlign, paddingTop: o.disclaimerPaddingTop, paddingBottom: o.disclaimerPaddingBottom, paddingLeftRight: o.disclaimerPaddingLeftRight });
             });
 
-            let finalStockVinText = '';
-            const sanitizedStockVin = DOMPurify.sanitize(data[`stockVinValue${suffix}`] || '');
-            if (sanitizedStockVin.trim() !== '') {
-                const label = data[`stockVinType${suffix}`] === 'stock' ? 'Stock #:' : 'VIN:';
-                finalStockVinText = `${label} ${sanitizedStockVin.trim()}`;
-            }
-            contentHtml += renderField({ text: finalStockVinText, fontSize: data[`stockVinFontSize${suffix}`], color: data[`stockVinColor${suffix}`], bgColor: data[`stockVinBgColor${suffix}`], fontWeight: data[`stockVinFontWeight${suffix}`], fontStyle: data[`stockVinFontStyle${suffix}`], textAlign: data[`stockVinTextAlign${suffix}`], paddingTop: data[`stockVinPaddingTop${suffix}`], paddingBottom: data[`stockVinPaddingBottom${suffix}`], paddingLeftRight: data[`stockVinPaddingLeftRight${suffix}`] });
+            const sanitizedVin = DOMPurify.sanitize(data[`vinValue${suffix}`] || '');
+            const finalVinText = sanitizedVin.trim() ? `VIN: ${sanitizedVin.trim()}` : '';
+            contentHtml += renderField({ text: finalVinText, fontSize: data[`stockVinFontSize${suffix}`], color: data[`stockVinColor${suffix}`], bgColor: data[`stockVinBgColor${suffix}`], fontWeight: data[`stockVinFontWeight${suffix}`], fontStyle: data[`stockVinFontStyle${suffix}`], textAlign: data[`stockVinTextAlign${suffix}`], paddingTop: data[`stockVinPaddingTop${suffix}`], paddingBottom: data[`stockVinPaddingBottom${suffix}`], paddingLeftRight: data[`stockVinPaddingLeftRight${suffix}`] });
+
+            const sanitizedStock = DOMPurify.sanitize(data[`stockValue${suffix}`] || '');
+            const finalStockText = sanitizedStock.trim() ? `Stock #: ${sanitizedStock.trim()}` : '';
+            contentHtml += renderField({ text: finalStockText, fontSize: data[`stockVinFontSize${suffix}`], color: data[`stockVinColor${suffix}`], bgColor: data[`stockVinBgColor${suffix}`], fontWeight: data[`stockVinFontWeight${suffix}`], fontStyle: data[`stockVinFontStyle${suffix}`], textAlign: data[`stockVinTextAlign${suffix}`], paddingTop: data[`stockVinPaddingTop${suffix}`], paddingBottom: data[`stockVinPaddingBottom${suffix}`], paddingLeftRight: data[`stockVinPaddingLeftRight${suffix}`] });
 
             let finalMileageText = '';
             const sanitizedMileage = DOMPurify.sanitize(data[`mileageValue${suffix}`] || '');
@@ -2701,7 +2692,6 @@ function generateEmailHtml(): string {
             else if (btnAlign === 'right') btnMargin = '12px 0 0 auto';
             const btnStyles = [`background-color: ${isOutlined ? 'transparent' : btnBgColor}`,`color: ${isOutlined ? btnBgColor : btnTextColor}`,`padding: ${data[`btnPaddingTop${suffix}`] || '12'}px ${data[`btnPaddingLeftRight${suffix}`] || '20'}px ${data[`btnPaddingBottom${suffix}`] || '12'}px`,`text-decoration: none`,`display: block`,`font-weight: bold`,`border-radius: ${radius}`,`font-size: ${data[`btnFontSize${suffix}`] || 16}px`,`font-family: ${designSettings.fontFamily}`,`text-align: center`,isOutlined ? `border: 2px solid ${btnBgColor}` : 'border: 0'].join('; ');
             contentHtml += `<table border="0" cellspacing="0" cellpadding="0" ${btnTableWidthAttr ? `width="${btnTableWidthAttr}"` : ""} style="margin: ${btnMargin}; width: ${btnWidthType === 'full' ? '100%' : (btnTableWidthAttr ? btnTableWidthAttr+'px' : 'auto')}; max-width: 100%;"><tr><td align="center" bgcolor="${isOutlined ? 'transparent' : btnBgColor}" style="border-radius: ${radius};"><a href="${DOMPurify.sanitize(data[`btnLink${suffix}`] || '#')}" target="_blank" style="${btnStyles}">${DOMPurify.sanitize(data[`btnText${suffix}`] || 'View')}</a></td></tr></table>`;
-            contentHtml += renderField({ text: DOMPurify.sanitize(data[`disclaimerText${suffix}`]), fontSize: data[`disclaimerFontSize${suffix}`], color: data[`disclaimerColor${suffix}`], bgColor: data[`disclaimerBgColor${suffix}`], fontWeight: data[`disclaimerFontWeight${suffix}`], fontStyle: data[`disclaimerFontStyle${suffix}`], textAlign: data[`disclaimerTextAlign${suffix}`], paddingTop: data[`disclaimerPaddingTop${suffix}`], paddingBottom: data[`disclaimerPaddingBottom${suffix}`], paddingLeftRight: data[`disclaimerPaddingLeftRight${suffix}`] });
             } // end renderMode !== 'imageOnly'
 
             return contentHtml;
@@ -3295,7 +3285,7 @@ const STARTER_COMPONENTS: Record<string, { name: string; type: string; data: Rec
     vehicle_offer: {
         name: 'Vehicle Offer',
         type: 'sales_offer',
-        data: { ...getDefaultComponentData('sales_offer'), layout: 'center', vehicleText: 'New {{customer.last_transaction.vehicle.year}} {{customer.last_transaction.vehicle.make}} {{customer.last_transaction.vehicle.model}}', mainOfferText: '$2,500 Trade-In Bonus', detailsText: 'Upgrade your vehicle today with our exclusive offer.', disclaimerText: '*Terms and conditions apply.', btnText: 'View Details', btnLink: '{{dealership.tracked_website_homepage_url}}' },
+        data: { ...getDefaultComponentData('sales_offer'), layout: 'center', vehicleText: 'New {{customer.last_transaction.vehicle.year}} {{customer.last_transaction.vehicle.make}} {{customer.last_transaction.vehicle.model}}', mainOfferText: '$2,500 Trade-In Bonus', detailsText: 'Upgrade your vehicle today with our exclusive offer.', btnText: 'View Details', btnLink: '{{dealership.tracked_website_homepage_url}}' },
     },
     cta_button: {
         name: 'CTA Button',
@@ -4408,7 +4398,6 @@ const propagateBodyColor = (color: string) => {
                 comp.data[`detailsColor${sfx}`]    = secondary;
                 comp.data[`stockVinColor${sfx}`]   = tertiary;
                 comp.data[`mileageColor${sfx}`]    = tertiary;
-                comp.data[`disclaimerColor${sfx}`] = tertiary;
                 const key = `additionalOffers${sfx}`;
                 try {
                     const offers = JSON.parse(comp.data[key] || '[]');
