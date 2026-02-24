@@ -91,8 +91,6 @@ const MAX_HISTORY_SIZE = 50;
 
 let selectedComponentId: string | null = null;
 let shortcuts: KeyboardShortcut[] = [];
-let shortcutsModal: HTMLElement | null = null;
-let shortcutsModalOverlay: HTMLElement | null = null;
 // --- END: Keyboard Shortcut System Interfaces & State ---
 
 const CONTENT_KEYS: Record<string, string[]> = {
@@ -288,6 +286,7 @@ const outputPlaceholder = document.getElementById('output-placeholder') as HTMLE
 const previewPane = document.getElementById('preview-pane') as HTMLIFrameElement;
 const copyBtn = document.getElementById('copy-btn') as HTMLButtonElement;
 const downloadBtn = document.getElementById('download-btn') as HTMLButtonElement;
+const downloadPdfBtn = document.getElementById('download-pdf-btn') as HTMLButtonElement;
 const componentsContainer = document.getElementById('form-components-container') as HTMLElement;
 const addComponentBtn = document.getElementById('add-component-btn') as HTMLButtonElement;
 
@@ -987,7 +986,7 @@ floatingMergeBtn?.addEventListener('click', () => {
 const openRightPanel = () => {
   rightPanel?.classList.add('open');
   rightPanelOverlay?.classList.add('visible');
-  if (window.innerWidth <= 1024) document.body.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden';
 };
 const closeRightPanelFunc = () => {
   rightPanel?.classList.remove('open');
@@ -1025,7 +1024,7 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
     switch (type) {
         case 'header':
             return {
-                text: 'Your Header Title',
+                text: '',
                 fontSize: designSettings.globalFontSize || '18',
                 textColor: designSettings.globalBodyColor || '#1d1d1f',
                 backgroundColor: 'transparent',
@@ -1039,7 +1038,7 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
             };
         case 'text_block':
             return {
-                text: 'This is a sample text block. You can use merge fields here.',
+                text: '',
                 fontSize: designSettings.globalFontSize || '12',
                 textColor: designSettings.globalBodyColor || '#3c3c43',
                 backgroundColor: 'transparent',
@@ -1053,8 +1052,8 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
             };
         case 'image':
             return {
-                src: 'https://via.placeholder.com/600x300',
-                alt: 'Image description',
+                src: '',
+                alt: '',
                 link: '',
                 width: '100%',
                 align: 'center',
@@ -1065,8 +1064,8 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
             };
         case 'button':
             return {
-                text: 'Click Here',
-                link: 'https://example.com',
+                text: '',
+                link: '',
                 fontSize: '12',
                 textColor: '#ffffff',
                 backgroundColor: designSettings.globalLinkColor || '#007aff',
@@ -1094,7 +1093,7 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
             };
         case 'disclaimers':
             return {
-                text: '*Terms and conditions apply. See dealer for details.',
+                text: '',
                 fontSize: '9',
                 textColor: '#86868b',
                 backgroundColor: 'transparent',
@@ -1110,15 +1109,15 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
             return {
                 layout: 'center',
                 imageUrl: '', imageAlt: '', imageLink: '',
-                serviceTitle: 'Oil Change Special', couponCode: 'OILCHANGE50',
-                serviceDetails: 'Get $50 off your next oil change service. Includes up to 5 quarts of synthetic blend oil and filter replacement.',
-                disclaimer: '*Valid at participating dealers only. Cannot be combined with other offers.',
-                buttonText: 'Schedule Now', buttonLink: '',
+                serviceTitle: '', couponCode: '',
+                serviceDetails: '',
+                disclaimer: '',
+                buttonText: '', buttonLink: '',
                 imageUrl2: '', imageAlt2: '', imageLink2: '',
-                serviceTitle2: 'Tire Rotation Deal', couponCode2: 'TIRES25',
-                serviceDetails2: 'Get $25 off your next tire rotation. Keep your tires wearing evenly and extend their life.',
-                disclaimer2: '*Valid at participating dealers only. Cannot be combined with other offers.',
-                buttonText2: 'Book Service', buttonLink2: '',
+                serviceTitle2: '', couponCode2: '',
+                serviceDetails2: '',
+                disclaimer2: '',
+                buttonText2: '', buttonLink2: '',
                 containerPaddingTop: '15', containerPaddingBottom: '15', containerPaddingLeft: '15', containerPaddingRight: '15',
                 imageWidth: '100', imageAlignment: 'center', imagePaddingTop: '8', imagePaddingBottom: '8',
                 titleFontSize: '18', titleFontWeight: 'bold', titleFontStyle: 'normal', titleTextColor: '#000000', titleBgColor: 'transparent', titleAlignment: 'center', titlePaddingTop: '8', titlePaddingBottom: '8', titlePaddingLeftRight: '0',
@@ -1138,20 +1137,20 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
         case 'sales_offer':
             return {
                 layout: 'center',
-                imageSrc: 'https://via.placeholder.com/600x300', imageLink: '', imageWidth: '100%',
-                vehicleText: 'New {{customer.last_transaction.vehicle.year}} {{customer.last_transaction.vehicle.make}} {{customer.last_transaction.vehicle.model}}',
-                mainOfferText: '$2,500 Trade-In Bonus',
-                detailsText: 'Upgrade your current ride today with our exclusive seasonal offer.',
-                vinValue: '{{customer.last_transaction.vehicle.vin}}', stockValue: '',
-                mileageValue: '{{customer.last_transaction.vehicle.mileage}}',
-                disclaimerText: '*Terms and conditions apply. Offer valid through end of month.',
-                additionalOffers: '[]', btnText: 'View Details', btnLink: '{{dealership.tracked_website_homepage_url}}',
-                imageSrc2: 'https://via.placeholder.com/600x300', imageLink2: '', imageWidth2: '100%',
-                vehicleText2: 'Pre-Owned Vehicle Special', mainOfferText2: 'Low APR Financing',
-                detailsText2: 'Get behind the wheel of a quality pre-owned vehicle with great financing options.',
+                imageSrc: '', imageLink: '', imageWidth: '100%',
+                vehicleText: '',
+                mainOfferText: '',
+                detailsText: '',
+                vinValue: '', stockValue: '',
+                mileageValue: '',
+                disclaimerText: '',
+                additionalOffers: '[]', btnText: '', btnLink: '',
+                imageSrc2: '', imageLink2: '', imageWidth2: '100%',
+                vehicleText2: '', mainOfferText2: '',
+                detailsText2: '',
                 vinValue2: '', stockValue2: '', mileageValue2: '',
-                disclaimerText2: '*With approved credit. See dealer for details.',
-                additionalOffers2: '[]', btnText2: 'View Inventory', btnLink2: '{{dealership.tracked_website_specials_url}}',
+                disclaimerText2: '',
+                additionalOffers2: '[]', btnText2: '', btnLink2: '',
                 vehicleFontSize: '18', vehicleFontWeight: 'normal', vehicleFontStyle: 'normal', vehicleColor: '#1d1d1f', vehicleBgColor: 'transparent', vehicleTextAlign: 'center', vehiclePaddingTop: '0', vehiclePaddingBottom: '6', vehiclePaddingLeftRight: '0',
                 mainOfferFontSize: '21', mainOfferFontWeight: 'normal', mainOfferFontStyle: 'normal', mainOfferColor: '#007aff', mainOfferBgColor: 'transparent', mainOfferTextAlign: 'center', mainOfferPaddingTop: '0', mainOfferPaddingBottom: '6', mainOfferPaddingLeftRight: '0',
                 detailsFontSize: '12', detailsFontWeight: 'normal', detailsFontStyle: 'normal', detailsColor: '#6e6e73', detailsBgColor: 'transparent', detailsTextAlign: 'center', detailsPaddingTop: '0', detailsPaddingBottom: '9', detailsPaddingLeftRight: '0',
@@ -1173,11 +1172,7 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
         case 'footer':
             return {
                 layout: 'inline',
-                links: JSON.stringify([
-                    { text: 'Privacy Policy', url: '{{dealership.tracked_website_homepage_url}}' },
-                    { text: 'Unsubscribe', url: '{{unsubscribe_url}}' },
-                    { text: 'Contact Us', url: '{{dealership.tracked_website_homepage_url}}' },
-                ]),
+                links: '[]',
                 fontSize: '12',
                 fontWeight: 'normal',
                 fontStyle: 'normal',
@@ -2978,6 +2973,27 @@ downloadBtn?.addEventListener('click', () => {
     showToast('HTML file downloaded', 'success');
 });
 
+downloadPdfBtn?.addEventListener('click', () => {
+    const html = generateEmailHtml();
+    const printHtml = html.replace(
+        '</head>',
+        `<style>@media print { @page { margin: 0; size: A4; } body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }</style></head>`
+    );
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        showToast('Pop-ups blocked — please allow pop-ups and try again', 'error');
+        return;
+    }
+    printWindow.document.write(printHtml);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 500);
+    showToast('PDF download dialog opened', 'success');
+});
+
 const getSavedTemplates = (): SavedTemplate[] => {
     try {
         const data = localStorage.getItem(LS_TEMPLATES_KEY);
@@ -4253,43 +4269,6 @@ const moveComponent = (direction: 'up' | 'down') => {
     }, 50);
 };
 
-const openShortcutsModal = () => {
-    const listEl = document.getElementById('shortcuts-list');
-    if (!listEl) return;
-
-    const grouped = shortcuts.reduce((acc, s) => {
-        if (!acc[s.category]) acc[s.category] = [];
-        acc[s.category].push(s);
-        return acc;
-    }, {} as Record<string, KeyboardShortcut[]>);
-
-    let html = '';
-    for (const category in grouped) {
-        html += `<div class="shortcut-category"><h4>${category}</h4>`;
-        grouped[category].forEach(s => {
-            const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-            const ctrlKey = isMac ? 'Cmd' : 'Ctrl';
-            html += `
-                <div class="shortcut-item">
-                    <span>${s.description}</span>
-                    <div class="shortcut-keys">
-                        ${s.ctrl ? `<kbd>${ctrlKey}</kbd>` : ''}
-                        ${s.shift ? `<kbd>Shift</kbd>` : ''}
-                        ${s.alt ? `<kbd>Alt</kbd>` : ''}
-                        <kbd>${s.key === ' ' ? 'Space' : s.key.length === 1 ? s.key.toUpperCase() : s.key}</kbd>
-                    </div>
-                </div>
-            `;
-        });
-        html += '</div>';
-    }
-    listEl.innerHTML = html;
-    shortcutsModalOverlay?.classList.add('visible');
-};
-
-const closeShortcutsModal = () => {
-    shortcutsModalOverlay?.classList.remove('visible');
-};
 
 const isTypingContext = (e: KeyboardEvent): boolean => {
     const target = e.target as HTMLElement;
@@ -4329,7 +4308,6 @@ const initKeyboardShortcuts = () => {
         { key: 'n', ctrl: true, description: 'Add new section', category: 'Components', action: () => addComponentBtn?.click() },
         { key: 'd', ctrl: true, description: 'Duplicate selected section', category: 'Components', condition: () => !!selectedComponentId, action: () => selectedComponentId && duplicateComponent(selectedComponentId) },
         { key: 'b', ctrl: true, description: 'Save section to library', category: 'Components', condition: () => !!selectedComponentId, action: () => selectedComponentId && saveComponentToLibrary(selectedComponentId) },
-        { key: '/', shift: true, description: 'Show keyboard shortcuts', category: 'General', action: openShortcutsModal },
         { key: 'ArrowUp', description: 'Select previous section', category: 'Navigation', action: () => {
             if (!selectedComponentId) {
                 selectComponent(activeComponents[activeComponents.length - 1]?.id);
@@ -4351,25 +4329,13 @@ const initKeyboardShortcuts = () => {
         { key: 'Delete', description: 'Delete selected section', category: 'Components', condition: () => !!selectedComponentId, action: () => selectedComponentId && removeComponent(selectedComponentId) },
         { key: 'Backspace', description: 'Delete selected section', category: 'Components', condition: () => !!selectedComponentId, action: () => selectedComponentId && removeComponent(selectedComponentId) },
         { key: 'Escape', description: 'Deselect section / Close modal', category: 'Navigation', action: () => {
-            if (shortcutsModalOverlay?.classList.contains('visible')) {
-                closeShortcutsModal();
-            } else if (componentPickerOverlay?.classList.contains('visible')) {
+            if (componentPickerOverlay?.classList.contains('visible')) {
                 closeComponentPickerFunc();
             } else if (selectedComponentId) {
                 selectComponent(null);
             }
         }},
     ];
-
-    shortcutsModalOverlay = document.getElementById('shortcuts-modal-overlay');
-    const closeShortcutsBtn = document.getElementById('close-shortcuts-modal');
-    const openShortcutsBtn = document.getElementById('shortcuts-help-btn');
-
-    openShortcutsBtn?.addEventListener('click', openShortcutsModal);
-    closeShortcutsBtn?.addEventListener('click', closeShortcutsModal);
-    shortcutsModalOverlay?.addEventListener('click', (e) => {
-        if (e.target === shortcutsModalOverlay) closeShortcutsModal();
-    });
 
     document.addEventListener('keydown', handleGlobalKeydown);
 }
