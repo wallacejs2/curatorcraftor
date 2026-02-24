@@ -3212,17 +3212,45 @@ const renderDealershipList = () => {
         </div>`;
     }).join('');
 
+    const globalTplCount = allTemplates.filter(t => !t.dealershipId).length;
+    const globalLibCount = allLibrary.filter(l => !l.dealershipId).length;
+    const globalIsActive = !activeDealershipId;
+
     body.innerHTML = `
         <div class="dealership-list-section">
             <button type="button" class="btn btn-secondary w-full" id="show-create-dealership-form">
                 <span class="material-symbols-rounded" style="font-size:16px;">add</span>
                 New Dealership Group
             </button>
+            <!-- Global option -->
+            <div class="dealership-card ${globalIsActive ? 'dealership-card--active' : ''}" style="margin-top:var(--spacing-md);">
+                <div class="dealership-card-left">
+                    <div class="dealership-card-swatches" style="background:var(--background-secondary);border-radius:var(--radius-sm);width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
+                        <span class="material-symbols-rounded" style="font-size:16px;color:var(--label-secondary);">public</span>
+                    </div>
+                    <div class="dealership-card-info">
+                        <span class="dealership-card-name">Global</span>
+                        <span class="dealership-card-meta">${globalTplCount} template${globalTplCount !== 1 ? 's' : ''} · ${globalLibCount} component${globalLibCount !== 1 ? 's' : ''}</span>
+                    </div>
+                </div>
+                <div class="dealership-card-actions">
+                    ${globalIsActive
+                        ? `<span class="dealership-active-badge">Active</span>`
+                        : `<button class="btn btn-primary btn-sm" id="open-global-btn">Open</button>`
+                    }
+                </div>
+            </div>
             ${groups.length === 0
                 ? `<p class="text-sm" style="color:var(--label-secondary);text-align:center;margin-top:var(--spacing-lg);">No dealership groups yet. Create one to get started.</p>`
                 : `<div class="dealership-card-list">${groupCards}</div>`
             }
         </div>`;
+
+    body.querySelector('#open-global-btn')?.addEventListener('click', () => {
+        setActiveDealership(null);
+        closeDealershipManager();
+        showToast('Switched to Global', 'success');
+    });
 
     body.querySelector('#show-create-dealership-form')?.addEventListener('click', () => showDealershipForm());
 
@@ -3395,7 +3423,255 @@ const showDealershipForm = (editId?: string) => {
     body.querySelector('#cancel-dealership-form')?.addEventListener('click', renderDealershipList);
 };
 
-// --- End Dealership Groups ---
+// --- Dealership Assignment Helpers ---
+
+/** Renders clickable assignment options (Global + all dealerships) inside `containerId`. */
+const renderSaveAssignList = (containerId: string, selectedId: string | null | undefined) => {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const groups = getDealershipGroups();
+    const effective = selectedId === undefined ? activeDealershipId : selectedId;
+
+    const globalActive = !effective;
+    const items = [
+        { id: null as string | null, label: 'Global', meta: 'Available in all dealerships', icon: 'public', accent: '' },
+        ...groups.map(g => ({ id: g.id, label: g.name, meta: g.defaultColorSchemeId ? `${g.defaultColorSchemeId} scheme` : '', icon: '', accent: g.defaultAccentColor })),
+    ];
+
+    container.innerHTML = items.map(item => {
+        const isSelected = item.id === null ? globalActive : item.id === effective;
+        const dotHtml = item.icon
+            ? `<span class="material-symbols-rounded" style="font-size:15px;color:var(--label-secondary);">${item.icon}</span>`
+            : `<span class="save-assign-dot" style="background:${item.accent};"></span>`;
+        return `
+        <div class="save-assign-item ${isSelected ? 'save-assign-item--selected' : ''}" data-assign-id="${item.id ?? ''}">
+            ${dotHtml}
+            <div class="save-assign-info">
+                <span class="save-assign-name">${item.label}</span>
+                ${item.meta ? `<span class="save-assign-meta">${item.meta}</span>` : ''}
+            </div>
+            ${isSelected ? '<span class="material-symbols-rounded save-assign-check">check</span>' : ''}
+        </div>`;
+    }).join('');
+
+    container.querySelectorAll('.save-assign-item').forEach(el => {
+        el.addEventListener('click', () => {
+            container.querySelectorAll('.save-assign-item').forEach(e => {
+                e.classList.remove('save-assign-item--selected');
+                e.querySelector('.save-assign-check')?.remove();
+            });
+            el.classList.add('save-assign-item--selected');
+            const check = document.createElement('span');
+            check.className = 'material-symbols-rounded save-assign-check';
+            check.textContent = 'check';
+            el.appendChild(check);
+        });
+    });
+};
+
+const getAssignListSelection = (containerId: string): string | null => {
+    const container = document.getElementById(containerId);
+    const selected = container?.querySelector('.save-assign-item--selected') as HTMLElement | null;
+    if (!selected) return activeDealershipId;
+    const raw = selected.dataset.assignId ?? '';
+    return raw === '' ? null : raw;
+};
+
+/** Floating assignment dropdown for "Move to" on existing cards. */
+const showAssignmentDropdown = (anchor: HTMLElement, currentId: string | null | undefined, onSelect: (id: string | null) => void) => {
+    document.getElementById('assignment-dropdown')?.remove();
+    const groups = getDealershipGroups();
+    const dropdown = document.createElement('div');
+    dropdown.id = 'assignment-dropdown';
+    dropdown.className = 'assignment-dropdown';
+
+    const items = [
+        { id: null as string | null, label: 'Global', icon: 'public', accent: '' },
+        ...groups.map(g => ({ id: g.id, label: g.name, icon: '', accent: g.defaultAccentColor })),
+    ];
+
+    dropdown.innerHTML = `
+        <div class="assignment-dropdown-title">Move to</div>
+        ${items.map(item => {
+            const active = item.id === (currentId ?? null);
+            const dot = item.icon
+                ? `<span class="material-symbols-rounded" style="font-size:13px;color:var(--label-secondary);">${item.icon}</span>`
+                : `<span style="width:10px;height:10px;border-radius:50%;background:${item.accent};flex-shrink:0;display:inline-block;"></span>`;
+            return `
+            <button class="assignment-dropdown-item${active ? ' active' : ''}" data-assign-id="${item.id ?? ''}">
+                ${dot}
+                <span>${item.label}</span>
+                ${active ? '<span class="material-symbols-rounded" style="font-size:13px;margin-left:auto;">check</span>' : ''}
+            </button>`;
+        }).join('')}
+    `;
+
+    document.body.appendChild(dropdown);
+
+    const rect = anchor.getBoundingClientRect();
+    const dropW = 180;
+    let left = rect.right - dropW;
+    let top = rect.bottom + 4;
+    if (left < 8) left = 8;
+    if (top + 200 > window.innerHeight) top = rect.top - 204;
+    dropdown.style.position = 'fixed';
+    dropdown.style.top = `${top}px`;
+    dropdown.style.left = `${left}px`;
+    dropdown.style.width = `${dropW}px`;
+    dropdown.style.zIndex = '9999';
+
+    dropdown.querySelectorAll('.assignment-dropdown-item').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const raw = (btn as HTMLElement).dataset.assignId ?? '';
+            onSelect(raw === '' ? null : raw);
+            dropdown.remove();
+        });
+    });
+
+    const closeHandler = (e: Event) => {
+        if (!dropdown.contains(e.target as Node)) {
+            dropdown.remove();
+            document.removeEventListener('click', closeHandler, true);
+        }
+    };
+    setTimeout(() => document.addEventListener('click', closeHandler, true), 0);
+};
+
+const reassignTemplate = (templateId: string, newDealershipId: string | null) => {
+    const all = getSavedTemplates();
+    const idx = all.findIndex(t => t.id === templateId);
+    if (idx < 0) return;
+    if (newDealershipId) {
+        all[idx] = { ...all[idx], dealershipId: newDealershipId };
+    } else {
+        const { dealershipId: _, ...rest } = all[idx];
+        all[idx] = rest as SavedTemplate;
+    }
+    localStorage.setItem(LS_TEMPLATES_KEY, JSON.stringify(all));
+    renderSavedTemplates();
+    const dest = newDealershipId ? getDealershipGroups().find(g => g.id === newDealershipId)?.name : 'Global';
+    showToast(`Moved to ${dest}`, 'success');
+};
+
+const reassignLibraryComponent = (compId: string, newDealershipId: string | null) => {
+    const all = getSavedLibraryComponents();
+    const idx = all.findIndex(c => c.id === compId);
+    if (idx < 0) return;
+    if (newDealershipId) {
+        all[idx] = { ...all[idx], dealershipId: newDealershipId };
+    } else {
+        const { dealershipId: _, ...rest } = all[idx];
+        all[idx] = rest as SavedLibraryComponent;
+    }
+    localStorage.setItem(LS_LIBRARY_KEY, JSON.stringify(all));
+    renderComponentLibrary();
+    const dest = newDealershipId ? getDealershipGroups().find(g => g.id === newDealershipId)?.name : 'Global';
+    showToast(`Moved to ${dest}`, 'success');
+};
+
+// Save template modal
+const openSaveTemplateModal = () => {
+    const overlay = document.getElementById('save-template-modal');
+    if (!overlay) return;
+    const nameInput = document.getElementById('save-template-name-input') as HTMLInputElement;
+    if (nameInput) nameInput.value = `Template ${new Date().toLocaleDateString()}`;
+    renderSaveAssignList('save-template-assign-list', activeDealershipId);
+    overlay.classList.add('visible');
+
+    const close = () => overlay.classList.remove('visible');
+
+    document.getElementById('close-save-template-modal')?.replaceWith(
+        (() => { const b = document.getElementById('close-save-template-modal')?.cloneNode(true) as HTMLElement; return b; })()
+    );
+    document.getElementById('cancel-save-template')?.replaceWith(
+        (() => { const b = document.getElementById('cancel-save-template')?.cloneNode(true) as HTMLElement; return b; })()
+    );
+    document.getElementById('confirm-save-template')?.replaceWith(
+        (() => { const b = document.getElementById('confirm-save-template')?.cloneNode(true) as HTMLElement; return b; })()
+    );
+
+    document.getElementById('close-save-template-modal')?.addEventListener('click', close);
+    document.getElementById('cancel-save-template')?.addEventListener('click', close);
+    document.getElementById('confirm-save-template')?.addEventListener('click', () => {
+        const name = (document.getElementById('save-template-name-input') as HTMLInputElement)?.value.trim();
+        if (!name) { showToast('Please enter a template name', 'error'); return; }
+        const dealershipId = getAssignListSelection('save-template-assign-list');
+        const newTemplate: SavedTemplate = {
+            id: Date.now().toString(),
+            name,
+            createdAt: new Date().toISOString(),
+            designSettings: { ...designSettings },
+            components: [...activeComponents],
+            ...(dealershipId ? { dealershipId } : {}),
+        };
+        const templates = getSavedTemplates();
+        templates.unshift(newTemplate);
+        localStorage.setItem(LS_TEMPLATES_KEY, JSON.stringify(templates));
+        renderSavedTemplates();
+        close();
+        const dest = dealershipId ? getDealershipGroups().find(g => g.id === dealershipId)?.name : 'Global';
+        showToast(`Template saved to ${dest}`, 'success');
+    });
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(); }, { once: true });
+};
+
+// Save component modal
+let _pendingComponentId: string | null = null;
+
+const openSaveComponentModal = (componentId: string) => {
+    const comp = activeComponents.find(c => c.id === componentId);
+    if (!comp) return;
+    _pendingComponentId = componentId;
+
+    const overlay = document.getElementById('save-component-modal');
+    if (!overlay) return;
+    const nameInput = document.getElementById('save-component-name-input') as HTMLInputElement;
+    if (nameInput) nameInput.value = `${formatComponentTypeName(comp.type)} ${new Date().toLocaleDateString()}`;
+    renderSaveAssignList('save-component-assign-list', activeDealershipId);
+    overlay.classList.add('visible');
+
+    const close = () => { overlay.classList.remove('visible'); _pendingComponentId = null; };
+
+    document.getElementById('close-save-component-modal')?.replaceWith(
+        (() => { const b = document.getElementById('close-save-component-modal')?.cloneNode(true) as HTMLElement; return b; })()
+    );
+    document.getElementById('cancel-save-component')?.replaceWith(
+        (() => { const b = document.getElementById('cancel-save-component')?.cloneNode(true) as HTMLElement; return b; })()
+    );
+    document.getElementById('confirm-save-component')?.replaceWith(
+        (() => { const b = document.getElementById('confirm-save-component')?.cloneNode(true) as HTMLElement; return b; })()
+    );
+
+    document.getElementById('close-save-component-modal')?.addEventListener('click', close);
+    document.getElementById('cancel-save-component')?.addEventListener('click', close);
+    document.getElementById('confirm-save-component')?.addEventListener('click', () => {
+        const cId = _pendingComponentId;
+        const c = cId ? activeComponents.find(x => x.id === cId) : null;
+        if (!c) { close(); return; }
+        const name = (document.getElementById('save-component-name-input') as HTMLInputElement)?.value.trim();
+        if (!name) { showToast('Please enter a component name', 'error'); return; }
+        const dealershipId = getAssignListSelection('save-component-assign-list');
+        const libraryItem: SavedLibraryComponent = {
+            id: Date.now().toString(),
+            name,
+            type: c.type,
+            data: JSON.parse(JSON.stringify(c.data)),
+            createdAt: new Date().toISOString(),
+            ...(dealershipId ? { dealershipId } : {}),
+        };
+        const library = getSavedLibraryComponents();
+        library.unshift(libraryItem);
+        localStorage.setItem(LS_LIBRARY_KEY, JSON.stringify(library));
+        renderComponentLibrary();
+        close();
+        const dest = dealershipId ? getDealershipGroups().find(g => g.id === dealershipId)?.name : 'Global';
+        showToast(`Component saved to ${dest}`, 'success');
+    });
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(); }, { once: true });
+};
+
+// --- End Dealership Assignment Helpers ---
 
 const getSavedTemplates = (): SavedTemplate[] => {
     try {
@@ -3407,25 +3683,7 @@ const getSavedTemplates = (): SavedTemplate[] => {
     }
 };
 
-const saveTemplate = () => {
-    const name = prompt('Enter a name for this template:', `Template ${new Date().toLocaleDateString()}`);
-    if (!name) return;
-
-    const newTemplate: SavedTemplate = {
-        id: Date.now().toString(),
-        name,
-        createdAt: new Date().toISOString(),
-        designSettings: { ...designSettings },
-        components: [...activeComponents],
-        ...(activeDealershipId ? { dealershipId: activeDealershipId } : {}),
-    };
-
-    const templates = getSavedTemplates();
-    templates.unshift(newTemplate);
-    localStorage.setItem(LS_TEMPLATES_KEY, JSON.stringify(templates));
-    renderSavedTemplates();
-    showToast('Template saved', 'success');
-};
+const saveTemplate = () => openSaveTemplateModal();
 
 const deleteTemplate = (id: string) => {
     const allTemplates = getSavedTemplates();
@@ -3490,6 +3748,9 @@ const renderSavedTemplates = () => {
             </div>
             <div class="library-card-actions">
                 <button class="btn btn-primary btn-sm load-tpl-btn" data-id="${t.id}">Load</button>
+                <button class="btn btn-ghost btn-sm move-tpl-btn" data-id="${t.id}" data-dealership="${t.dealershipId ?? ''}" data-tooltip="Move to...">
+                    <span class="material-symbols-rounded" style="font-size:14px;">drive_file_move</span>
+                </button>
                 <button class="btn btn-ghost btn-sm del-tpl-btn" data-id="${t.id}" style="color: var(--destructive);">Delete</button>
             </div>
         </div>`;
@@ -3497,6 +3758,14 @@ const renderSavedTemplates = () => {
 
     savedTemplatesList.querySelectorAll('.load-tpl-btn').forEach(btn => {
         btn.addEventListener('click', () => loadTemplate(btn.getAttribute('data-id') || ''));
+    });
+    savedTemplatesList.querySelectorAll('.move-tpl-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const id = btn.getAttribute('data-id') || '';
+            const currentDealership = btn.getAttribute('data-dealership') || null;
+            showAssignmentDropdown(btn as HTMLElement, currentDealership || null, newId => reassignTemplate(id, newId));
+        });
     });
     savedTemplatesList.querySelectorAll('.del-tpl-btn').forEach(btn => {
         btn.addEventListener('click', () => deleteTemplate(btn.getAttribute('data-id') || ''));
@@ -3515,29 +3784,7 @@ const getSavedLibraryComponents = (): SavedLibraryComponent[] => {
     }
 };
 
-const saveComponentToLibrary = (id: string) => {
-    const comp = activeComponents.find(c => c.id === id);
-    if (!comp) return;
-
-    const defaultName = `${formatComponentTypeName(comp.type)} ${new Date().toLocaleDateString()}`;
-    const name = prompt('Save to Component Library.\nEnter a name for this component:', defaultName);
-    if (!name) return;
-
-    const libraryItem: SavedLibraryComponent = {
-        id: Date.now().toString(),
-        name,
-        type: comp.type,
-        data: JSON.parse(JSON.stringify(comp.data)),
-        createdAt: new Date().toISOString(),
-        ...(activeDealershipId ? { dealershipId: activeDealershipId } : {}),
-    };
-
-    const library = getSavedLibraryComponents();
-    library.unshift(libraryItem);
-    localStorage.setItem(LS_LIBRARY_KEY, JSON.stringify(library));
-    renderComponentLibrary();
-    showToast('Component saved to library', 'success');
-};
+const saveComponentToLibrary = (id: string) => openSaveComponentModal(id);
 
 const addComponentFromLibrary = (libraryId: string) => {
     const library = getSavedLibraryComponents();
@@ -3643,6 +3890,9 @@ const renderComponentLibrary = () => {
             </div>
             <div class="library-card-actions">
                 <button class="btn btn-primary btn-sm add-from-library-btn" data-id="${item.id}">Add</button>
+                <button class="btn btn-ghost btn-sm move-lib-btn" data-id="${item.id}" data-dealership="${item.dealershipId ?? ''}" data-tooltip="Move to...">
+                    <span class="material-symbols-rounded" style="font-size:14px;">drive_file_move</span>
+                </button>
                 <button class="btn btn-ghost btn-sm del-library-btn" data-id="${item.id}" style="color: var(--destructive);">Delete</button>
             </div>
         </div>
@@ -3650,6 +3900,14 @@ const renderComponentLibrary = () => {
 
     componentLibraryList.querySelectorAll('.add-from-library-btn').forEach(btn => {
         btn.addEventListener('click', () => addComponentFromLibrary(btn.getAttribute('data-id') || ''));
+    });
+    componentLibraryList.querySelectorAll('.move-lib-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const id = btn.getAttribute('data-id') || '';
+            const currentDealership = btn.getAttribute('data-dealership') || null;
+            showAssignmentDropdown(btn as HTMLElement, currentDealership || null, newId => reassignLibraryComponent(id, newId));
+        });
     });
     componentLibraryList.querySelectorAll('.del-library-btn').forEach(btn => {
         btn.addEventListener('click', () => deleteLibraryComponent(btn.getAttribute('data-id') || ''));

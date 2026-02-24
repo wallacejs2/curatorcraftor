@@ -439,6 +439,54 @@
       </div>
     </div>
 
+    <!-- Save Template Modal -->
+    <div id="save-template-modal" class="quick-picker-overlay">
+      <div class="quick-picker-modal save-modal">
+        <div class="quick-picker-header">
+          <h3 class="text-xl">Save Template</h3>
+          <button type="button" id="close-save-template-modal" class="btn btn-secondary btn-sm" style="width:24px;height:24px;padding:0;border-radius:50%;">&times;</button>
+        </div>
+        <div class="save-modal-body">
+          <div class="form-group">
+            <label class="form-label">Template Name</label>
+            <input type="text" id="save-template-name-input" class="form-control" placeholder="e.g. Monthly Oil Change Promo">
+          </div>
+          <div class="form-group" style="margin-top:var(--spacing-md);">
+            <label class="form-label">Save In</label>
+            <div id="save-template-assign-list" class="save-assign-list"></div>
+          </div>
+        </div>
+        <div class="save-modal-footer">
+          <button type="button" class="btn btn-primary flex-1" id="confirm-save-template">Save Template</button>
+          <button type="button" class="btn btn-ghost" id="cancel-save-template">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save Component Modal -->
+    <div id="save-component-modal" class="quick-picker-overlay">
+      <div class="quick-picker-modal save-modal">
+        <div class="quick-picker-header">
+          <h3 class="text-xl">Save to Library</h3>
+          <button type="button" id="close-save-component-modal" class="btn btn-secondary btn-sm" style="width:24px;height:24px;padding:0;border-radius:50%;">&times;</button>
+        </div>
+        <div class="save-modal-body">
+          <div class="form-group">
+            <label class="form-label">Component Name</label>
+            <input type="text" id="save-component-name-input" class="form-control" placeholder="e.g. Service Coupon Hero">
+          </div>
+          <div class="form-group" style="margin-top:var(--spacing-md);">
+            <label class="form-label">Save In</label>
+            <div id="save-component-assign-list" class="save-assign-list"></div>
+          </div>
+        </div>
+        <div class="save-modal-footer">
+          <button type="button" class="btn btn-primary flex-1" id="confirm-save-component">Save to Library</button>
+          <button type="button" class="btn btn-ghost" id="cancel-save-component">Cancel</button>
+        </div>
+      </div>
+    </div>
+
     <script type="module" src="./index.tsx"></script>
   </body>
 </html>
