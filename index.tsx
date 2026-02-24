@@ -26,6 +26,16 @@ const COLOR_SCHEMES = [
   { id: 'mono',     name: 'Mono',      bodyColor: '#000000', accentColor: '#666666' },
 ] as const;
 
+type TemplateStatus = 'open' | 'building' | 'review' | 'pending' | 'approved';
+
+const TEMPLATE_STATUSES: { value: TemplateStatus; label: string }[] = [
+    { value: 'open',     label: 'Open'     },
+    { value: 'building', label: 'Building' },
+    { value: 'review',   label: 'Review'   },
+    { value: 'pending',  label: 'Pending'  },
+    { value: 'approved', label: 'Approved' },
+];
+
 interface SavedTemplate {
     id: string;
     name: string;
@@ -33,6 +43,7 @@ interface SavedTemplate {
     designSettings: DesignSettings;
     components: EmailComponent[];
     dealershipId?: string;
+    status?: TemplateStatus;
 }
 
 interface SavedLibraryComponent {
@@ -346,6 +357,11 @@ const savedTemplatesList = document.getElementById('saved-templates-list') as HT
 const componentLibraryList = document.getElementById('component-library-list') as HTMLElement;
 const libraryFilterBar = document.getElementById('library-filter-bar') as HTMLElement;
 let activeLibraryFilter = 'all';
+
+// Template search / filter / sort state
+let templateSearchQuery = '';
+let templateStatusFilter: TemplateStatus | 'all' = 'all';
+let templateSortBy: 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'status' = 'date-desc';
 
 const ALIGNMENT_ICONS = {
     left: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="17" y1="18" x2="3" y2="18"></line></svg>`,
@@ -3706,6 +3722,10 @@ const loadTemplate = (id: string) => {
     if (template) {
         designSettings = { ...designSettings, ...template.designSettings };
         activeComponents = [...template.components];
+        // Collapse all sections by default when loading a template
+        collapsedStates = {};
+        activeComponents.forEach(c => { collapsedStates[c.id] = true; });
+        saveCollapsedStates();
         if (fontSelect) fontSelect.value = designSettings.fontFamily;
         syncGlobalTextStylesUI();
         saveToHistory();
@@ -3715,14 +3735,152 @@ const loadTemplate = (id: string) => {
     }
 };
 
+const updateTemplateStatus = (id: string, status: TemplateStatus) => {
+    const all = getSavedTemplates();
+    const idx = all.findIndex(t => t.id === id);
+    if (idx < 0) return;
+    all[idx] = { ...all[idx], status };
+    localStorage.setItem(LS_TEMPLATES_KEY, JSON.stringify(all));
+    renderSavedTemplates();
+};
+
+const showStatusDropdown = (anchor: HTMLElement, current: TemplateStatus, onSelect: (s: TemplateStatus) => void) => {
+    document.getElementById('status-dropdown')?.remove();
+    const dropdown = document.createElement('div');
+    dropdown.id = 'status-dropdown';
+    dropdown.className = 'assignment-dropdown';
+
+    dropdown.innerHTML = `
+        <div class="assignment-dropdown-title">Set Status</div>
+        ${TEMPLATE_STATUSES.map(s => `
+            <button class="assignment-dropdown-item${s.value === current ? ' active' : ''}" data-status="${s.value}">
+                <span class="status-dot status-dot--${s.value}"></span>
+                <span>${s.label}</span>
+                ${s.value === current ? '<span class="material-symbols-rounded" style="font-size:13px;margin-left:auto;">check</span>' : ''}
+            </button>`).join('')}
+    `;
+
+    document.body.appendChild(dropdown);
+
+    const rect = anchor.getBoundingClientRect();
+    const dropW = 160;
+    let left = rect.right - dropW;
+    let top = rect.bottom + 4;
+    if (left < 8) left = 8;
+    if (top + 220 > window.innerHeight) top = rect.top - 224;
+    dropdown.style.cssText = `position:fixed;top:${top}px;left:${left}px;width:${dropW}px;z-index:9999;`;
+
+    dropdown.querySelectorAll('.assignment-dropdown-item').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            onSelect((btn as HTMLElement).dataset.status as TemplateStatus);
+            dropdown.remove();
+        });
+    });
+    const closeHandler = (e: Event) => {
+        if (!dropdown.contains(e.target as Node)) {
+            dropdown.remove();
+            document.removeEventListener('click', closeHandler, true);
+        }
+    };
+    setTimeout(() => document.addEventListener('click', closeHandler, true), 0);
+};
+
 const renderSavedTemplates = () => {
-    const allTemplates = getSavedTemplates();
-    // Show templates belonging to active dealership OR global templates (no dealershipId)
-    const templates = allTemplates.filter(t =>
-        !t.dealershipId || t.dealershipId === activeDealershipId
-    );
     if (!savedTemplatesList) return;
 
+    const allTemplates = getSavedTemplates();
+    // 1. Dealership scope filter
+    const scopedTemplates = allTemplates.filter(t =>
+        !t.dealershipId || t.dealershipId === activeDealershipId
+    );
+
+    // 2. Render controls (search + status chips + sort) into #template-controls
+    const controlsEl = document.getElementById('template-controls');
+    if (controlsEl) {
+        // Count per status for badge numbers
+        const statusCounts: Record<string, number> = { all: scopedTemplates.length };
+        TEMPLATE_STATUSES.forEach(s => {
+            statusCounts[s.value] = scopedTemplates.filter(t => (t.status ?? 'open') === s.value).length;
+        });
+
+        controlsEl.innerHTML = `
+            <div class="template-toolbar">
+                <div class="template-search-wrap">
+                    <span class="material-symbols-rounded template-search-icon">search</span>
+                    <input type="text" id="template-search-input" class="template-search-input"
+                        placeholder="Search templates…" value="${templateSearchQuery.replace(/"/g, '&quot;')}">
+                    ${templateSearchQuery ? `<button class="template-search-clear" id="template-search-clear" title="Clear">
+                        <span class="material-symbols-rounded" style="font-size:14px;">close</span>
+                    </button>` : ''}
+                </div>
+                <div class="template-sort-wrap">
+                    <select id="template-sort-select" class="template-sort-select">
+                        <option value="date-desc" ${templateSortBy === 'date-desc' ? 'selected' : ''}>Newest</option>
+                        <option value="date-asc"  ${templateSortBy === 'date-asc'  ? 'selected' : ''}>Oldest</option>
+                        <option value="name-asc"  ${templateSortBy === 'name-asc'  ? 'selected' : ''}>Name A–Z</option>
+                        <option value="name-desc" ${templateSortBy === 'name-desc' ? 'selected' : ''}>Name Z–A</option>
+                        <option value="status"    ${templateSortBy === 'status'    ? 'selected' : ''}>By Status</option>
+                    </select>
+                </div>
+            </div>
+            <div class="template-status-filter-bar">
+                <button class="tpl-status-chip ${templateStatusFilter === 'all' ? 'tpl-status-chip--active' : ''}" data-status="all">
+                    All <span class="tpl-status-chip-count">${statusCounts.all}</span>
+                </button>
+                ${TEMPLATE_STATUSES.map(s => `
+                <button class="tpl-status-chip tpl-status-chip--${s.value} ${templateStatusFilter === s.value ? 'tpl-status-chip--active' : ''}" data-status="${s.value}">
+                    ${s.label} <span class="tpl-status-chip-count">${statusCounts[s.value]}</span>
+                </button>`).join('')}
+            </div>
+        `;
+
+        // Wire controls
+        const searchInput = controlsEl.querySelector('#template-search-input') as HTMLInputElement;
+        searchInput?.addEventListener('input', () => {
+            templateSearchQuery = searchInput.value;
+            renderSavedTemplates();
+        });
+        controlsEl.querySelector('#template-search-clear')?.addEventListener('click', () => {
+            templateSearchQuery = '';
+            renderSavedTemplates();
+        });
+        (controlsEl.querySelector('#template-sort-select') as HTMLSelectElement)?.addEventListener('change', e => {
+            templateSortBy = (e.target as HTMLSelectElement).value as typeof templateSortBy;
+            renderSavedTemplates();
+        });
+        controlsEl.querySelectorAll('.tpl-status-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                templateStatusFilter = (chip as HTMLElement).dataset.status as typeof templateStatusFilter;
+                renderSavedTemplates();
+            });
+        });
+    }
+
+    // 3. Apply search
+    const query = templateSearchQuery.trim().toLowerCase();
+    let templates = query
+        ? scopedTemplates.filter(t => t.name.toLowerCase().includes(query))
+        : scopedTemplates;
+
+    // 4. Apply status filter
+    if (templateStatusFilter !== 'all') {
+        templates = templates.filter(t => (t.status ?? 'open') === templateStatusFilter);
+    }
+
+    // 5. Sort
+    const STATUS_ORDER: Record<TemplateStatus, number> = { open: 0, building: 1, review: 2, pending: 3, approved: 4 };
+    templates = [...templates].sort((a, b) => {
+        switch (templateSortBy) {
+            case 'date-asc':  return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+            case 'name-asc':  return a.name.localeCompare(b.name);
+            case 'name-desc': return b.name.localeCompare(a.name);
+            case 'status':    return STATUS_ORDER[a.status ?? 'open'] - STATUS_ORDER[b.status ?? 'open'];
+            default:          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        }
+    });
+
+    // 6. Render list
     const groups = getDealershipGroups();
     const activeName = activeDealershipId ? groups.find(g => g.id === activeDealershipId)?.name : null;
     const contextLabel = activeName
@@ -3730,32 +3888,46 @@ const renderSavedTemplates = () => {
         : '';
 
     if (templates.length === 0) {
-        savedTemplatesList.innerHTML = `
-            ${contextLabel}
-            <p class="text-sm" style="color: var(--label-secondary); text-align: center;">No saved templates found.</p>`;
+        const msg = query || templateStatusFilter !== 'all' ? 'No templates match your filters.' : 'No saved templates found.';
+        savedTemplatesList.innerHTML = `${contextLabel}<p class="text-sm" style="color:var(--label-secondary);text-align:center;">${msg}</p>`;
         return;
     }
+
     savedTemplatesList.innerHTML = contextLabel + templates.map(t => {
+        const status: TemplateStatus = t.status ?? 'open';
+        const statusLabel = TEMPLATE_STATUSES.find(s => s.value === status)?.label ?? 'Open';
         const isTagged = !!t.dealershipId;
         return `
-        <div class="library-card">
-            <div class="library-card-info">
-                <h4 class="library-card-name">${t.name}</h4>
-                <p class="library-card-meta">
-                    ${!isTagged ? '<span class="global-badge">Global</span> ' : ''}
-                    ${new Date(t.createdAt).toLocaleString()}
-                </p>
+        <div class="library-card tpl-card">
+            <div class="tpl-card-top">
+                <h4 class="library-card-name tpl-card-name">${t.name}</h4>
+                <button class="status-badge status-badge--${status} tpl-status-btn" data-id="${t.id}" data-status="${status}" data-tooltip="Change status">
+                    ${statusLabel}
+                </button>
             </div>
+            <p class="library-card-meta tpl-card-meta">
+                ${!isTagged ? '<span class="global-badge">Global</span>' : ''}
+                <span>${new Date(t.createdAt).toLocaleString()}</span>
+            </p>
             <div class="library-card-actions">
                 <button class="btn btn-primary btn-sm load-tpl-btn" data-id="${t.id}">Load</button>
-                <button class="btn btn-ghost btn-sm move-tpl-btn" data-id="${t.id}" data-dealership="${t.dealershipId ?? ''}" data-tooltip="Move to...">
+                <button class="btn btn-ghost btn-sm move-tpl-btn" data-id="${t.id}" data-dealership="${t.dealershipId ?? ''}" data-tooltip="Move to…">
                     <span class="material-symbols-rounded" style="font-size:14px;">drive_file_move</span>
                 </button>
-                <button class="btn btn-ghost btn-sm del-tpl-btn" data-id="${t.id}" style="color: var(--destructive);">Delete</button>
+                <button class="btn btn-ghost btn-sm del-tpl-btn" data-id="${t.id}" style="color:var(--destructive);">Delete</button>
             </div>
         </div>`;
     }).join('');
 
+    // Wire card actions
+    savedTemplatesList.querySelectorAll('.tpl-status-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const id = (btn as HTMLElement).dataset.id!;
+            const cur = (btn as HTMLElement).dataset.status as TemplateStatus;
+            showStatusDropdown(btn as HTMLElement, cur, s => updateTemplateStatus(id, s));
+        });
+    });
     savedTemplatesList.querySelectorAll('.load-tpl-btn').forEach(btn => {
         btn.addEventListener('click', () => loadTemplate(btn.getAttribute('data-id') || ''));
     });
@@ -3763,8 +3935,8 @@ const renderSavedTemplates = () => {
         btn.addEventListener('click', e => {
             e.stopPropagation();
             const id = btn.getAttribute('data-id') || '';
-            const currentDealership = btn.getAttribute('data-dealership') || null;
-            showAssignmentDropdown(btn as HTMLElement, currentDealership || null, newId => reassignTemplate(id, newId));
+            const curD = btn.getAttribute('data-dealership') || null;
+            showAssignmentDropdown(btn as HTMLElement, curD || null, newId => reassignTemplate(id, newId));
         });
     });
     savedTemplatesList.querySelectorAll('.del-tpl-btn').forEach(btn => {
