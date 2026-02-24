@@ -194,6 +194,33 @@ main {
   transform: scale(0.9);
 }
 
+.quickadd-actions {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.quickadd-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--separator-secondary);
+  flex-shrink: 0;
+  align-self: center;
+  margin: 0 4px;
+}
+
+.quickadd-btn--danger:hover {
+  color: var(--system-red, #ff3b30);
+  background: var(--background-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.quickadd-btn--warning:hover {
+  color: var(--system-orange, #ff9500);
+  background: var(--background-primary);
+  box-shadow: var(--shadow-sm);
+}
+
 .card-body {
   padding: var(--spacing-xl);
 }
@@ -401,6 +428,17 @@ main {
   height: 24px;
   padding: 0 12px;
   font-size: 12px;
+}
+
+.btn-icon {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+}
+
+.btn-icon .material-symbols-rounded {
+  font-size: 18px;
+  line-height: 1;
 }
 
 .btn-primary {
