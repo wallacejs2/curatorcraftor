@@ -287,7 +287,6 @@ const previewPane = document.getElementById('preview-pane') as HTMLIFrameElement
 const copyBtn = document.getElementById('copy-btn') as HTMLButtonElement;
 const downloadBtn = document.getElementById('download-btn') as HTMLButtonElement;
 const downloadPdfBtn = document.getElementById('download-pdf-btn') as HTMLButtonElement;
-const downloadPdfBtn = document.getElementById('download-pdf-btn') as HTMLButtonElement;
 const componentsContainer = document.getElementById('form-components-container') as HTMLElement;
 const addComponentBtn = document.getElementById('add-component-btn') as HTMLButtonElement;
 
@@ -2983,32 +2982,6 @@ downloadPdfBtn?.addEventListener('click', () => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
         showToast('Pop-ups blocked — please allow pop-ups and try again', 'error');
-        return;
-    }
-    printWindow.document.write(printHtml);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-    }, 500);
-    showToast('PDF download dialog opened', 'success');
-});
-
-downloadPdfBtn?.addEventListener('click', () => {
-    const html = generateEmailHtml();
-    const printHtml = html.replace(
-        '</head>',
-        `<style>
-          @media print {
-            @page { margin: 0; size: A4; }
-            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          }
-        </style></head>`
-    );
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-        showToast('Pop-up blocked — please allow pop-ups and try again', 'error');
         return;
     }
     printWindow.document.write(printHtml);
