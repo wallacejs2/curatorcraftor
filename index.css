@@ -2265,15 +2265,16 @@ textarea.form-control.compact {
 /* --- Library Card Layout --- */
 .library-card {
   padding: var(--spacing-md);
-  border: 1px solid var(--separator-secondary);
+  border: 1px solid var(--separator-primary);
   border-radius: var(--radius-md);
-  background: var(--background-secondary);
+  background: var(--background-primary);
   margin-bottom: var(--spacing-sm);
-  transition: background var(--transition-fast);
+  transition: background var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .library-card:hover {
-  background: var(--fill-tertiary);
+  background: var(--background-secondary);
+  box-shadow: var(--shadow-sm);
 }
 
 .library-card-info {
@@ -2299,6 +2300,67 @@ textarea.form-control.compact {
 .library-card-actions {
   display: flex;
   gap: var(--spacing-sm);
+}
+
+/* Compact override shared by template + library cards */
+.tpl-card,
+.lib-card {
+  padding: 9px 12px;
+  margin-bottom: 4px;
+}
+
+/* ===== Library Component Card ===== */
+.lib-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  margin-bottom: 3px;
+}
+.lib-card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+.lib-card-title-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--label-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lib-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.lib-card-actions .btn-ghost {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--label-tertiary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+.lib-card-actions .btn-ghost:hover {
+  color: var(--label-primary);
+  background: var(--fill-tertiary);
+}
+.lib-card-actions .lib-del-btn:hover {
+  color: var(--destructive) !important;
+}
+.lib-card-meta {
+  margin-bottom: 0;
 }
 /* ======================================================
    DEALERSHIP GROUPS
@@ -2709,14 +2771,17 @@ textarea.form-control.compact {
   flex-shrink: 0;
 }
 .tpl-card-actions .btn-ghost {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-sm);
   color: var(--label-tertiary);
+  background: none;
+  border: none;
+  cursor: pointer;
 }
 .tpl-card-actions .btn-ghost:hover { color: var(--label-primary); background: var(--fill-tertiary); }
 .tpl-card-actions .tpl-del-btn:hover { color: var(--destructive) !important; }

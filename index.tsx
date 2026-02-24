@@ -4052,24 +4052,28 @@ const renderComponentLibrary = () => {
     }
 
     componentLibraryList.innerHTML = filtered.map(item => `
-        <div class="library-card">
-            <div class="library-card-info">
-                <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
-                    <span class="material-symbols-rounded" style="font-size: 16px; color: var(--label-secondary);">${getComponentTypeIcon(item.type)}</span>
-                    <h4 class="library-card-name">${item.name}</h4>
+        <div class="library-card lib-card">
+            <div class="lib-card-top">
+                <div class="lib-card-title">
+                    <span class="material-symbols-rounded" style="font-size:14px;color:var(--label-tertiary);flex-shrink:0;">${getComponentTypeIcon(item.type)}</span>
+                    <span class="lib-card-title-text">${item.name}</span>
                 </div>
-                <div class="library-card-meta">
-                    <span class="library-type-badge">${formatComponentTypeName(item.type)}</span>
-                    ${!item.dealershipId ? '<span class="global-badge">Global</span>' : ''}
-                    <span>${new Date(item.createdAt).toLocaleDateString()}</span>
+                <div class="lib-card-actions">
+                    <button class="btn btn-ghost add-from-library-btn" data-id="${item.id}" data-tooltip="Add to canvas">
+                        <span class="material-symbols-rounded" style="font-size:15px;">library_add</span>
+                    </button>
+                    <button class="btn btn-ghost move-lib-btn" data-id="${item.id}" data-dealership="${item.dealershipId ?? ''}" data-tooltip="Move to…">
+                        <span class="material-symbols-rounded" style="font-size:15px;">move_item</span>
+                    </button>
+                    <button class="btn btn-ghost lib-del-btn del-library-btn" data-id="${item.id}" data-tooltip="Delete">
+                        <span class="material-symbols-rounded" style="font-size:15px;">delete_forever</span>
+                    </button>
                 </div>
             </div>
-            <div class="library-card-actions">
-                <button class="btn btn-primary btn-sm add-from-library-btn" data-id="${item.id}">Add</button>
-                <button class="btn btn-ghost btn-sm move-lib-btn" data-id="${item.id}" data-dealership="${item.dealershipId ?? ''}" data-tooltip="Move to...">
-                    <span class="material-symbols-rounded" style="font-size:14px;">drive_file_move</span>
-                </button>
-                <button class="btn btn-ghost btn-sm del-library-btn" data-id="${item.id}" style="color: var(--destructive);">Delete</button>
+            <div class="library-card-meta lib-card-meta">
+                <span class="library-type-badge">${formatComponentTypeName(item.type)}</span>
+                ${!item.dealershipId ? '<span class="global-badge">Global</span>' : ''}
+                <span>${new Date(item.createdAt).toLocaleDateString()}</span>
             </div>
         </div>
     `).join('');
