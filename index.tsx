@@ -1368,6 +1368,7 @@ function generateServiceOfferFormHtml(comp: EmailComponent, suffix: string): str
 
     const imgUrl = d[`imageUrl${suffix}`] || '';
     return `
+        <div class="compact-separator"><span>Image</span></div>
         <div class="offer-img-row">
             <div class="offer-img-fields" style="display: flex;">
                 <div class="img-field-group">
@@ -1378,9 +1379,6 @@ function generateServiceOfferFormHtml(comp: EmailComponent, suffix: string): str
                     </div>
                 </div>
                 <div class="img-field-group">
-                    <input type="text" class="form-control compact" data-key="imageAlt${suffix}" value="${d[`imageAlt${suffix}`] || ''}" placeholder="Image Alt Text">
-                </div>
-                <div class="img-field-group">
                     <input type="text" class="form-control compact" data-key="imageLink${suffix}" value="${d[`imageLink${suffix}`] || ''}" placeholder="Image Link">
                 </div>
             </div>
@@ -1388,21 +1386,20 @@ function generateServiceOfferFormHtml(comp: EmailComponent, suffix: string): str
         <div class="img-thumbnail-preview" style="display: ${imgUrl ? 'block' : 'none'}">
             <img src="${imgUrl}" alt="" />
         </div>
-        <div class="compact-separator"><span>Content</span></div>
+        <div class="compact-separator"><span>Offer</span></div>
         <div class="form-group">
             <input type="text" class="form-control compact" data-key="serviceTitle${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferTitle${suffix}" data-field-label="Service Title ${suffix || '1'}" value="${d[`serviceTitle${suffix}`] || ''}" placeholder="Title">
         </div>
         <div class="form-group">
-            <input type="text" class="form-control compact" data-key="couponCode${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferCoupon${suffix}" data-field-label="Coupon Code ${suffix || '1'}" value="${d[`couponCode${suffix}`] || ''}" placeholder="Coupon Code">
+            <input type="text" class="form-control compact" data-key="couponCode${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferCoupon${suffix}" data-field-label="Offer ${suffix || '1'}" value="${d[`couponCode${suffix}`] || ''}" placeholder="Offer">
         </div>
-        <div class="compact-separator"><span>Details</span></div>
         <div class="form-group">
             <textarea class="form-control" data-key="serviceDetails${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferDetails${suffix}" data-field-label="Service Details ${suffix || '1'}" placeholder="Details">${d[`serviceDetails${suffix}`] || ''}</textarea>
         </div>
         <div class="form-group">
             <textarea class="form-control" data-key="disclaimer${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferDisclaimer${suffix}" data-field-label="Disclaimer ${suffix || '1'}" placeholder="Disclaimer">${d[`disclaimer${suffix}`] || ''}</textarea>
         </div>
-        <div class="compact-separator"><span>Action</span></div>
+        <div class="compact-separator"><span>CTA</span></div>
         <div class="component-row component-row--keep-inline">
             <div class="component-row-item">
                 <input type="text" class="form-control compact" data-key="buttonText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferButton${suffix}" data-field-label="Button ${suffix || '1'} Text" value="${d[`buttonText${suffix}`] || ''}" placeholder="Button Text">
