@@ -2300,3 +2300,242 @@ textarea.form-control.compact {
   display: flex;
   gap: var(--spacing-sm);
 }
+/* ======================================================
+   DEALERSHIP GROUPS
+   ====================================================== */
+
+/* Banner in hero section */
+.dealership-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 6px 14px;
+  background: var(--background-secondary);
+  border: 1px solid var(--separator-primary);
+  border-radius: var(--radius-xl);
+  font-family: var(--font-family);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--label-primary);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  margin-top: var(--spacing-md);
+}
+
+.dealership-banner:hover {
+  background: var(--background-primary);
+  border-color: var(--system-blue);
+  color: var(--system-blue);
+  box-shadow: var(--shadow-sm);
+}
+
+.dealership-banner--active {
+  background: var(--background-primary);
+  border-color: var(--separator-primary);
+}
+
+.dealership-banner--empty {
+  color: var(--label-secondary);
+  border-style: dashed;
+}
+
+.dealership-banner--empty:hover {
+  border-style: solid;
+}
+
+.dealership-banner-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+.dealership-banner-name {
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dealership-banner-chevron {
+  font-size: 16px !important;
+  color: var(--label-secondary);
+  flex-shrink: 0;
+}
+
+/* Modal overlay */
+.dealership-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-base);
+}
+
+.dealership-modal-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.dealership-modal-container {
+  background: var(--background-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  width: 100%;
+  max-width: 480px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: translateY(10px);
+  transition: transform var(--transition-base);
+}
+
+.dealership-modal-overlay.open .dealership-modal-container {
+  transform: translateY(0);
+}
+
+.dealership-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-bottom: 1px solid var(--separator-secondary);
+  flex-shrink: 0;
+}
+
+.dealership-modal-body {
+  padding: var(--spacing-xl);
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Dealership card list */
+.dealership-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.dealership-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--background-secondary);
+  border: 1px solid var(--separator-secondary);
+  border-radius: var(--radius-md);
+  gap: var(--spacing-md);
+  transition: border-color var(--transition-fast);
+}
+
+.dealership-card:hover {
+  border-color: var(--separator-primary);
+}
+
+.dealership-card--active {
+  border-color: var(--system-blue);
+  background: var(--background-tertiary);
+}
+
+.dealership-card-left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  min-width: 0;
+}
+
+.dealership-card-swatches {
+  display: flex;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.dealership-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.12);
+}
+
+.dealership-card-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dealership-card-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--label-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dealership-card-meta {
+  font-size: 11px;
+  color: var(--label-secondary);
+}
+
+.dealership-card-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  flex-shrink: 0;
+}
+
+.dealership-active-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--system-blue);
+  background: rgba(0, 122, 255, 0.1);
+  border-radius: var(--radius-sm);
+  padding: 2px 7px;
+}
+
+/* Form inside modal */
+.dealership-form-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.dealership-scheme-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-xs);
+}
+
+/* Context label in templates panel */
+.dealership-context-label {
+  font-size: 11px;
+  color: var(--system-blue);
+  font-weight: 500;
+  margin-bottom: var(--spacing-sm);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Global badge on template/library cards */
+.global-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: var(--label-tertiary);
+  background: var(--background-secondary);
+  border: 1px solid var(--separator-secondary);
+  border-radius: 3px;
+  padding: 1px 5px;
+  vertical-align: middle;
+}

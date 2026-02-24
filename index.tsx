@@ -32,6 +32,7 @@ interface SavedTemplate {
     createdAt: string;
     designSettings: DesignSettings;
     components: EmailComponent[];
+    dealershipId?: string;
 }
 
 interface SavedLibraryComponent {
@@ -39,6 +40,18 @@ interface SavedLibraryComponent {
     name: string;
     type: string;
     data: Record<string, string>;
+    createdAt: string;
+    dealershipId?: string;
+}
+
+interface DealershipGroup {
+    id: string;
+    name: string;
+    defaultBodyColor: string;
+    defaultAccentColor: string;
+    defaultColorSchemeId?: string;
+    defaultFontFamily?: string;
+    defaultButtonStyle?: string;
     createdAt: string;
 }
 
@@ -439,6 +452,11 @@ const LS_TEMPLATES_KEY = 'craftor_saved_templates';
 const LS_DRAFT_KEY = 'craftor_current_draft';
 const LS_COLLAPSED_KEY = 'craftor_component_states';
 const LS_LIBRARY_KEY = 'craftor_component_library';
+const LS_DEALERSHIPS_KEY = 'craftor_dealership_groups';
+const LS_ACTIVE_DEALERSHIP_KEY = 'craftor_active_dealership';
+
+// Active dealership group
+let activeDealershipId: string | null = null;
 
 
 const loadCollapsedStates = () => {
@@ -545,10 +563,16 @@ const triggerPreviewUpdate = () => {
     }, 300);
 };
 
+// Returns the correct draft localStorage key depending on active dealership
+const getDraftKey = (dealershipId?: string | null): string => {
+    const id = dealershipId !== undefined ? dealershipId : activeDealershipId;
+    return id ? `craftor_draft_${id}` : LS_DRAFT_KEY;
+};
+
 // Write state to localStorage without side-effects (used by debounced hot path)
 const persistDraft = () => {
     try {
-        localStorage.setItem(LS_DRAFT_KEY, JSON.stringify({ designSettings, activeComponents }));
+        localStorage.setItem(getDraftKey(), JSON.stringify({ designSettings, activeComponents }));
     } catch (e) {
         console.error("Failed to save draft", e);
     }
@@ -3037,6 +3061,342 @@ downloadPdfBtn?.addEventListener('click', () => {
     showToast('PDF download dialog opened', 'success');
 });
 
+// --- Dealership Groups ---
+
+const getDealershipGroups = (): DealershipGroup[] => {
+    try {
+        const data = localStorage.getItem(LS_DEALERSHIPS_KEY);
+        return data ? JSON.parse(data) : [];
+    } catch (e) {
+        console.error('Failed to load dealership groups', e);
+        return [];
+    }
+};
+
+const saveDealershipGroupsToStorage = (groups: DealershipGroup[]) => {
+    localStorage.setItem(LS_DEALERSHIPS_KEY, JSON.stringify(groups));
+};
+
+const setActiveDealership = (id: string | null) => {
+    // Save current draft before switching
+    persistDraft();
+
+    activeDealershipId = id;
+    try {
+        if (id) {
+            localStorage.setItem(LS_ACTIVE_DEALERSHIP_KEY, id);
+        } else {
+            localStorage.removeItem(LS_ACTIVE_DEALERSHIP_KEY);
+        }
+    } catch (e) {
+        console.error('Failed to persist active dealership', e);
+    }
+
+    // Load draft for the new dealership context
+    const hasDraft = (() => {
+        try {
+            const data = localStorage.getItem(getDraftKey());
+            if (!data) return false;
+            const draft = JSON.parse(data);
+            return !!(draft && draft.designSettings && Array.isArray(draft.activeComponents));
+        } catch { return false; }
+    })();
+
+    if (hasDraft) {
+        loadDraft();
+    } else {
+        // No saved draft — start fresh, applying this dealership's default scheme
+        activeComponents = [];
+        selectedComponentId = null;
+        collapsedStates = {};
+        if (id) {
+            const groups = getDealershipGroups();
+            const group = groups.find(g => g.id === id);
+            if (group) {
+                designSettings = {
+                    ...designSettings,
+                    globalBodyColor: group.defaultBodyColor,
+                    globalLinkColor: group.defaultAccentColor,
+                    colorScheme: group.defaultColorSchemeId ?? 'custom',
+                    ...(group.defaultFontFamily ? { fontFamily: group.defaultFontFamily } : {}),
+                    ...(group.defaultButtonStyle ? { buttonStyle: group.defaultButtonStyle as DesignSettings['buttonStyle'] } : {}),
+                };
+                if (fontSelect) fontSelect.value = designSettings.fontFamily;
+                syncGlobalTextStylesUI();
+            }
+        }
+        renderComponents();
+        saveDraft();
+        saveToHistory();
+    }
+
+    renderDealershipBanner();
+    renderSavedTemplates();
+    renderComponentLibrary();
+    triggerPreviewUpdate();
+};
+
+const renderDealershipBanner = () => {
+    const container = document.getElementById('dealership-banner-container');
+    if (!container) return;
+
+    const groups = getDealershipGroups();
+    const active = activeDealershipId ? groups.find(g => g.id === activeDealershipId) : null;
+
+    if (active) {
+        container.innerHTML = `
+            <button type="button" class="dealership-banner dealership-banner--active" id="open-dealership-manager">
+                <span class="dealership-banner-dot" style="background:${active.defaultAccentColor};"></span>
+                <span class="dealership-banner-name">${active.name}</span>
+                <span class="material-symbols-rounded dealership-banner-chevron">expand_more</span>
+            </button>`;
+    } else {
+        container.innerHTML = `
+            <button type="button" class="dealership-banner dealership-banner--empty" id="open-dealership-manager">
+                <span class="material-symbols-rounded" style="font-size:15px;">add_business</span>
+                <span>Select or Create Dealership</span>
+                <span class="material-symbols-rounded dealership-banner-chevron">expand_more</span>
+            </button>`;
+    }
+
+    document.getElementById('open-dealership-manager')?.addEventListener('click', openDealershipManager);
+};
+
+const openDealershipManager = () => {
+    const overlay = document.getElementById('dealership-modal');
+    if (!overlay) return;
+    renderDealershipList();
+    overlay.classList.add('open');
+};
+
+const closeDealershipManager = () => {
+    const overlay = document.getElementById('dealership-modal');
+    overlay?.classList.remove('open');
+};
+
+const renderDealershipList = () => {
+    const body = document.getElementById('dealership-modal-body');
+    if (!body) return;
+    const groups = getDealershipGroups();
+    const allTemplates = getSavedTemplates();
+    const allLibrary = getSavedLibraryComponents();
+
+    const groupCards = groups.map(g => {
+        const tplCount = allTemplates.filter(t => t.dealershipId === g.id).length;
+        const libCount = allLibrary.filter(l => l.dealershipId === g.id).length;
+        const isActive = activeDealershipId === g.id;
+        return `
+        <div class="dealership-card ${isActive ? 'dealership-card--active' : ''}">
+            <div class="dealership-card-left">
+                <div class="dealership-card-swatches">
+                    <div class="dealership-swatch" style="background:${g.defaultBodyColor};" title="Background"></div>
+                    <div class="dealership-swatch" style="background:${g.defaultAccentColor};" title="Accent"></div>
+                </div>
+                <div class="dealership-card-info">
+                    <span class="dealership-card-name">${g.name}</span>
+                    <span class="dealership-card-meta">${tplCount} template${tplCount !== 1 ? 's' : ''} · ${libCount} component${libCount !== 1 ? 's' : ''}</span>
+                </div>
+            </div>
+            <div class="dealership-card-actions">
+                ${isActive
+                    ? `<span class="dealership-active-badge">Active</span>`
+                    : `<button class="btn btn-primary btn-sm open-dealership-btn" data-id="${g.id}">Open</button>`
+                }
+                <button class="btn btn-ghost btn-sm edit-dealership-btn" data-id="${g.id}">
+                    <span class="material-symbols-rounded" style="font-size:15px;">edit</span>
+                </button>
+                <button class="btn btn-ghost btn-sm del-dealership-btn" data-id="${g.id}" style="color:var(--destructive);">
+                    <span class="material-symbols-rounded" style="font-size:15px;">delete</span>
+                </button>
+            </div>
+        </div>`;
+    }).join('');
+
+    body.innerHTML = `
+        <div class="dealership-list-section">
+            <button type="button" class="btn btn-secondary w-full" id="show-create-dealership-form">
+                <span class="material-symbols-rounded" style="font-size:16px;">add</span>
+                New Dealership Group
+            </button>
+            ${groups.length === 0
+                ? `<p class="text-sm" style="color:var(--label-secondary);text-align:center;margin-top:var(--spacing-lg);">No dealership groups yet. Create one to get started.</p>`
+                : `<div class="dealership-card-list">${groupCards}</div>`
+            }
+        </div>`;
+
+    body.querySelector('#show-create-dealership-form')?.addEventListener('click', () => showDealershipForm());
+
+    body.querySelectorAll('.open-dealership-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = (btn as HTMLElement).dataset.id!;
+            setActiveDealership(id);
+            closeDealershipManager();
+            showToast(`Opened: ${getDealershipGroups().find(g => g.id === id)?.name}`, 'success');
+        });
+    });
+
+    body.querySelectorAll('.edit-dealership-btn').forEach(btn => {
+        btn.addEventListener('click', () => showDealershipForm((btn as HTMLElement).dataset.id));
+    });
+
+    body.querySelectorAll('.del-dealership-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = (btn as HTMLElement).dataset.id!;
+            const groups = getDealershipGroups();
+            const group = groups.find(g => g.id === id);
+            if (!group) return;
+            const updated = groups.filter(g => g.id !== id);
+            saveDealershipGroupsToStorage(updated);
+            if (activeDealershipId === id) {
+                setActiveDealership(null);
+            }
+            renderDealershipList();
+            showToast(`Deleted: ${group.name}`, 'success');
+        });
+    });
+};
+
+const showDealershipForm = (editId?: string) => {
+    const body = document.getElementById('dealership-modal-body');
+    if (!body) return;
+
+    const groups = getDealershipGroups();
+    const existing = editId ? groups.find(g => g.id === editId) : null;
+    const defaultBodyColor = existing?.defaultBodyColor ?? '#1d1d1f';
+    const defaultAccentColor = existing?.defaultAccentColor ?? '#007aff';
+    const activeSchemeId = existing?.defaultColorSchemeId ?? 'classic';
+
+    const schemeCards = COLOR_SCHEMES.map(scheme => {
+        const isSelected = existing
+            ? existing.defaultColorSchemeId === scheme.id
+            : scheme.id === 'classic';
+        return `
+            <div class="color-scheme-card${isSelected ? ' selected' : ''} dealership-scheme-card"
+                 data-scheme-id="${scheme.id}"
+                 data-body-color="${scheme.bodyColor}"
+                 data-accent-color="${scheme.accentColor}"
+                 data-tooltip="${scheme.name}">
+                <div class="scheme-swatches">
+                    <div class="scheme-swatch" style="background:${scheme.bodyColor};"></div>
+                    <div class="scheme-swatch" style="background:${scheme.accentColor};"></div>
+                </div>
+            </div>`;
+    }).join('');
+
+    body.innerHTML = `
+        <div class="dealership-form-section">
+            <button type="button" class="btn btn-ghost btn-sm" id="back-to-dealership-list" style="margin-bottom:var(--spacing-md);">
+                <span class="material-symbols-rounded" style="font-size:15px;">arrow_back</span>
+                Back
+            </button>
+            <h4 style="margin-bottom:var(--spacing-md);">${existing ? 'Edit Dealership' : 'New Dealership Group'}</h4>
+            <div class="form-group">
+                <label class="form-label">Dealership Name</label>
+                <input type="text" id="dealership-name-input" class="form-control" placeholder="e.g. Honda of Springfield" value="${existing?.name ?? ''}">
+            </div>
+            <div class="form-group" style="margin-top:var(--spacing-md);">
+                <label class="form-label">Default Color Scheme</label>
+                <div class="color-scheme-grid dealership-scheme-grid" id="dealership-scheme-grid">
+                    ${schemeCards}
+                </div>
+                <div style="display:flex;gap:var(--spacing-sm);margin-top:var(--spacing-sm);align-items:center;">
+                    <label class="form-label" style="margin:0;white-space:nowrap;">Custom:</label>
+                    <div class="color-input-container mini" id="d-body-picker-wrap" onclick="this.querySelector('input').click()">
+                        <div class="color-swatch-display" id="d-body-swatch" style="background-color:${defaultBodyColor};"></div>
+                        <input type="color" class="color-input-hidden" id="d-body-color" value="${defaultBodyColor}">
+                    </div>
+                    <div class="color-input-container mini" id="d-accent-picker-wrap" onclick="this.querySelector('input').click()">
+                        <div class="color-swatch-display" id="d-accent-swatch" style="background-color:${defaultAccentColor};"></div>
+                        <input type="color" class="color-input-hidden" id="d-accent-color" value="${defaultAccentColor}">
+                    </div>
+                </div>
+            </div>
+            <div style="display:flex;gap:var(--spacing-sm);margin-top:var(--spacing-lg);">
+                <button type="button" class="btn btn-primary flex-1" id="save-dealership-btn">${existing ? 'Save Changes' : 'Create Group'}</button>
+                <button type="button" class="btn btn-secondary" id="cancel-dealership-form">Cancel</button>
+            </div>
+        </div>`;
+
+    // Track selected scheme
+    let selectedSchemeId: string = activeSchemeId;
+    let selectedBodyColor = defaultBodyColor;
+    let selectedAccentColor = defaultAccentColor;
+
+    const grid = body.querySelector('#dealership-scheme-grid')!;
+    grid.addEventListener('click', (e) => {
+        const card = (e.target as Element).closest('.dealership-scheme-card') as HTMLElement | null;
+        if (!card) return;
+        selectedSchemeId = card.dataset.schemeId!;
+        selectedBodyColor = card.dataset.bodyColor!;
+        selectedAccentColor = card.dataset.accentColor!;
+        // Update color pickers visually
+        const bodySwatch = body.querySelector('#d-body-swatch') as HTMLElement | null;
+        const accentSwatch = body.querySelector('#d-accent-swatch') as HTMLElement | null;
+        const bodyInput = body.querySelector('#d-body-color') as HTMLInputElement | null;
+        const accentInput = body.querySelector('#d-accent-color') as HTMLInputElement | null;
+        if (bodySwatch) bodySwatch.style.backgroundColor = selectedBodyColor;
+        if (accentSwatch) accentSwatch.style.backgroundColor = selectedAccentColor;
+        if (bodyInput) bodyInput.value = selectedBodyColor;
+        if (accentInput) accentInput.value = selectedAccentColor;
+        grid.querySelectorAll('.dealership-scheme-card').forEach(c => c.classList.toggle('selected', c === card));
+    });
+
+    const bodyColorInput = body.querySelector('#d-body-color') as HTMLInputElement | null;
+    const accentColorInput = body.querySelector('#d-accent-color') as HTMLInputElement | null;
+
+    bodyColorInput?.addEventListener('input', () => {
+        selectedSchemeId = 'custom';
+        selectedBodyColor = bodyColorInput.value;
+        const swatch = body.querySelector('#d-body-swatch') as HTMLElement | null;
+        if (swatch) swatch.style.backgroundColor = selectedBodyColor;
+        grid.querySelectorAll('.dealership-scheme-card').forEach(c => c.classList.remove('selected'));
+    });
+
+    accentColorInput?.addEventListener('input', () => {
+        selectedSchemeId = 'custom';
+        selectedAccentColor = accentColorInput.value;
+        const swatch = body.querySelector('#d-accent-swatch') as HTMLElement | null;
+        if (swatch) swatch.style.backgroundColor = selectedAccentColor;
+        grid.querySelectorAll('.dealership-scheme-card').forEach(c => c.classList.remove('selected'));
+    });
+
+    body.querySelector('#save-dealership-btn')?.addEventListener('click', () => {
+        const nameInput = body.querySelector('#dealership-name-input') as HTMLInputElement;
+        const name = nameInput?.value.trim();
+        if (!name) { showToast('Please enter a dealership name', 'error'); return; }
+
+        const allGroups = getDealershipGroups();
+        if (existing) {
+            const idx = allGroups.findIndex(g => g.id === existing.id);
+            if (idx >= 0) {
+                allGroups[idx] = { ...allGroups[idx], name, defaultBodyColor: selectedBodyColor, defaultAccentColor: selectedAccentColor, defaultColorSchemeId: selectedSchemeId };
+            }
+            saveDealershipGroupsToStorage(allGroups);
+            // If this is the active dealership, re-render banner
+            if (activeDealershipId === existing.id) renderDealershipBanner();
+            showToast(`Updated: ${name}`, 'success');
+        } else {
+            const newGroup: DealershipGroup = {
+                id: Date.now().toString(),
+                name,
+                defaultBodyColor: selectedBodyColor,
+                defaultAccentColor: selectedAccentColor,
+                defaultColorSchemeId: selectedSchemeId,
+                createdAt: new Date().toISOString(),
+            };
+            allGroups.unshift(newGroup);
+            saveDealershipGroupsToStorage(allGroups);
+            showToast(`Created: ${name}`, 'success');
+        }
+        renderDealershipList();
+    });
+
+    body.querySelector('#back-to-dealership-list')?.addEventListener('click', renderDealershipList);
+    body.querySelector('#cancel-dealership-form')?.addEventListener('click', renderDealershipList);
+};
+
+// --- End Dealership Groups ---
+
 const getSavedTemplates = (): SavedTemplate[] => {
     try {
         const data = localStorage.getItem(LS_TEMPLATES_KEY);
@@ -3056,7 +3416,8 @@ const saveTemplate = () => {
         name,
         createdAt: new Date().toISOString(),
         designSettings: { ...designSettings },
-        components: [...activeComponents]
+        components: [...activeComponents],
+        ...(activeDealershipId ? { dealershipId: activeDealershipId } : {}),
     };
 
     const templates = getSavedTemplates();
@@ -3097,25 +3458,43 @@ const loadTemplate = (id: string) => {
 };
 
 const renderSavedTemplates = () => {
-    const templates = getSavedTemplates();
+    const allTemplates = getSavedTemplates();
+    // Show templates belonging to active dealership OR global templates (no dealershipId)
+    const templates = allTemplates.filter(t =>
+        !t.dealershipId || t.dealershipId === activeDealershipId
+    );
     if (!savedTemplatesList) return;
+
+    const groups = getDealershipGroups();
+    const activeName = activeDealershipId ? groups.find(g => g.id === activeDealershipId)?.name : null;
+    const contextLabel = activeName
+        ? `<p class="text-xs dealership-context-label"><span class="material-symbols-rounded" style="font-size:12px;vertical-align:middle;">store</span> ${activeName}</p>`
+        : '';
+
     if (templates.length === 0) {
-        savedTemplatesList.innerHTML = `<p class="text-sm" style="color: var(--label-secondary); text-align: center;">No saved templates found.</p>`;
+        savedTemplatesList.innerHTML = `
+            ${contextLabel}
+            <p class="text-sm" style="color: var(--label-secondary); text-align: center;">No saved templates found.</p>`;
         return;
     }
-    savedTemplatesList.innerHTML = templates.map(t => `
+    savedTemplatesList.innerHTML = contextLabel + templates.map(t => {
+        const isTagged = !!t.dealershipId;
+        return `
         <div class="library-card">
             <div class="library-card-info">
                 <h4 class="library-card-name">${t.name}</h4>
-                <p class="library-card-meta">${new Date(t.createdAt).toLocaleString()}</p>
+                <p class="library-card-meta">
+                    ${!isTagged ? '<span class="global-badge">Global</span> ' : ''}
+                    ${new Date(t.createdAt).toLocaleString()}
+                </p>
             </div>
             <div class="library-card-actions">
                 <button class="btn btn-primary btn-sm load-tpl-btn" data-id="${t.id}">Load</button>
                 <button class="btn btn-ghost btn-sm del-tpl-btn" data-id="${t.id}" style="color: var(--destructive);">Delete</button>
             </div>
-        </div>
-    `).join('');
-    
+        </div>`;
+    }).join('');
+
     savedTemplatesList.querySelectorAll('.load-tpl-btn').forEach(btn => {
         btn.addEventListener('click', () => loadTemplate(btn.getAttribute('data-id') || ''));
     });
@@ -3150,6 +3529,7 @@ const saveComponentToLibrary = (id: string) => {
         type: comp.type,
         data: JSON.parse(JSON.stringify(comp.data)),
         createdAt: new Date().toISOString(),
+        ...(activeDealershipId ? { dealershipId: activeDealershipId } : {}),
     };
 
     const library = getSavedLibraryComponents();
@@ -3203,10 +3583,14 @@ const deleteLibraryComponent = (id: string) => {
 };
 
 const renderComponentLibrary = () => {
-    const library = getSavedLibraryComponents();
+    const allLibrary = getSavedLibraryComponents();
+    // Filter by active dealership: show global items + dealership-specific items
+    const library = allLibrary.filter(item =>
+        !item.dealershipId || item.dealershipId === activeDealershipId
+    );
     if (!componentLibraryList) return;
 
-    // Reset filter if its type no longer exists in library
+    // Reset filter if its type no longer exists in visible library
     if (activeLibraryFilter !== 'all' && !library.some(item => item.type === activeLibraryFilter)) {
         activeLibraryFilter = 'all';
     }
@@ -3253,6 +3637,7 @@ const renderComponentLibrary = () => {
                 </div>
                 <div class="library-card-meta">
                     <span class="library-type-badge">${formatComponentTypeName(item.type)}</span>
+                    ${!item.dealershipId ? '<span class="global-badge">Global</span>' : ''}
                     <span>${new Date(item.createdAt).toLocaleDateString()}</span>
                 </div>
             </div>
@@ -3383,9 +3768,9 @@ const addStarterComponent = (componentKey: string) => {
 
 // --- End Starter Templates & Components ---
 
-const loadDraft = () => {
+const loadDraft = (dealershipId?: string | null) => {
     try {
-        const data = localStorage.getItem(LS_DRAFT_KEY);
+        const data = localStorage.getItem(getDraftKey(dealershipId));
         if (data) {
             const draft = JSON.parse(data);
             if (draft && draft.designSettings && Array.isArray(draft.activeComponents)) {
@@ -4550,6 +4935,12 @@ function initGlobalTextStyles() {
 
 saveTemplateBtn?.addEventListener('click', saveTemplate);
 
+// Dealership modal close handlers
+document.getElementById('close-dealership-modal')?.addEventListener('click', closeDealershipManager);
+document.getElementById('dealership-modal')?.addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeDealershipManager();
+});
+
 // Starter template click handlers
 document.querySelectorAll('[data-starter-template]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -4568,10 +4959,13 @@ document.querySelectorAll('[data-starter-component]').forEach(btn => {
 
 loadCollapsedStates();
 renderMergeFieldsSidebar();
+// Load active dealership from localStorage before loading draft
+try { activeDealershipId = localStorage.getItem(LS_ACTIVE_DEALERSHIP_KEY) || null; } catch (e) {}
 loadDraft();
 initGlobalTextStyles();
 renderComponents();
 renderSavedTemplates();
 renderComponentLibrary();
+renderDealershipBanner();
 initKeyboardShortcuts();
 autocompleteDropdown = document.getElementById('autocomplete-dropdown');

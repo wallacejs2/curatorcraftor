@@ -149,6 +149,7 @@
             <p class="text-lg hero-subtitle">
               Automotive Email Builder: Create, customize, and conquer.
             </p>
+            <div id="dealership-banner-container"></div>
           </section>
 
           <section class="card mb-6">
@@ -424,6 +425,19 @@
     </button>
     
     <div id="autocomplete-dropdown"></div>
+
+    <!-- Dealership Manager Modal -->
+    <div id="dealership-modal" class="dealership-modal-overlay">
+      <div class="dealership-modal-container">
+        <div class="dealership-modal-header">
+          <h3 class="text-xl">Dealership Groups</h3>
+          <button type="button" id="close-dealership-modal" class="btn btn-secondary btn-sm" style="width: 24px; height: 24px; padding: 0; border-radius: 50%;">&times;</button>
+        </div>
+        <div id="dealership-modal-body" class="dealership-modal-body">
+          <!-- Dynamically rendered by JS -->
+        </div>
+      </div>
+    </div>
 
     <script type="module" src="./index.tsx"></script>
   </body>
