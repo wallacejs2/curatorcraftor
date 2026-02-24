@@ -3901,21 +3901,25 @@ const renderSavedTemplates = () => {
         <div class="library-card tpl-card">
             <div class="tpl-card-top">
                 <h4 class="library-card-name tpl-card-name">${t.name}</h4>
-                <button class="status-badge status-badge--${status} tpl-status-btn" data-id="${t.id}" data-status="${status}" data-tooltip="Change status">
-                    ${statusLabel}
-                </button>
+                <div class="tpl-card-actions">
+                    <button class="btn btn-ghost load-tpl-btn" data-id="${t.id}" data-tooltip="Load Template">
+                        <span class="material-symbols-rounded" style="font-size:16px;">file_open</span>
+                    </button>
+                    <button class="btn btn-ghost move-tpl-btn" data-id="${t.id}" data-dealership="${t.dealershipId ?? ''}" data-tooltip="Move to…">
+                        <span class="material-symbols-rounded" style="font-size:16px;">move_item</span>
+                    </button>
+                    <button class="btn btn-ghost tpl-del-btn del-tpl-btn" data-id="${t.id}" data-tooltip="Delete">
+                        <span class="material-symbols-rounded" style="font-size:16px;">delete_forever</span>
+                    </button>
+                    <button class="status-badge status-badge--${status} tpl-status-btn" data-id="${t.id}" data-status="${status}" data-tooltip="Change status">
+                        ${statusLabel}
+                    </button>
+                </div>
             </div>
             <p class="library-card-meta tpl-card-meta">
                 ${!isTagged ? '<span class="global-badge">Global</span>' : ''}
                 <span>${new Date(t.createdAt).toLocaleString()}</span>
             </p>
-            <div class="library-card-actions">
-                <button class="btn btn-primary btn-sm load-tpl-btn" data-id="${t.id}">Load</button>
-                <button class="btn btn-ghost btn-sm move-tpl-btn" data-id="${t.id}" data-dealership="${t.dealershipId ?? ''}" data-tooltip="Move to…">
-                    <span class="material-symbols-rounded" style="font-size:14px;">drive_file_move</span>
-                </button>
-                <button class="btn btn-ghost btn-sm del-tpl-btn" data-id="${t.id}" style="color:var(--destructive);">Delete</button>
-            </div>
         </div>`;
     }).join('');
 

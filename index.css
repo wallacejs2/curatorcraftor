@@ -2662,7 +2662,7 @@ textarea.form-control.compact {
 }
 .status-dot--open     { background: var(--label-tertiary); }
 .status-dot--building { background: var(--system-blue); }
-.status-dot--review   { background: var(--system-orange); }
+.status-dot--review   { background: #ff9500; }
 .status-dot--pending  { background: #af52de; }
 .status-dot--approved { background: var(--system-green); }
 
@@ -2683,10 +2683,10 @@ textarea.form-control.compact {
 }
 .status-badge:hover  { opacity: 0.8; transform: scale(1.04); }
 .status-badge--open     { background: var(--background-secondary); color: var(--label-secondary); border: 1px solid var(--separator-primary); }
-.status-badge--building { background: color-mix(in srgb, var(--system-blue) 15%, transparent);   color: var(--system-blue);   border: 1px solid color-mix(in srgb, var(--system-blue) 30%, transparent); }
-.status-badge--review   { background: color-mix(in srgb, var(--system-orange) 15%, transparent); color: var(--system-orange); border: 1px solid color-mix(in srgb, var(--system-orange) 30%, transparent); }
-.status-badge--pending  { background: color-mix(in srgb, #af52de 15%, transparent);              color: #af52de;              border: 1px solid color-mix(in srgb, #af52de 30%, transparent); }
-.status-badge--approved { background: color-mix(in srgb, var(--system-green) 15%, transparent);  color: var(--system-green);  border: 1px solid color-mix(in srgb, var(--system-green) 30%, transparent); }
+.status-badge--building { background: color-mix(in srgb, var(--system-blue) 15%, transparent);  color: var(--system-blue);  border: 1px solid color-mix(in srgb, var(--system-blue) 30%, transparent); }
+.status-badge--review   { background: color-mix(in srgb, #ff9500 15%, transparent);             color: #ff9500;             border: 1px solid color-mix(in srgb, #ff9500 30%, transparent); }
+.status-badge--pending  { background: color-mix(in srgb, #af52de 15%, transparent);             color: #af52de;             border: 1px solid color-mix(in srgb, #af52de 30%, transparent); }
+.status-badge--approved { background: color-mix(in srgb, var(--system-green) 15%, transparent); color: var(--system-green); border: 1px solid color-mix(in srgb, var(--system-green) 30%, transparent); }
 
 /* ===== Template Card ===== */
 .tpl-card-top {
@@ -2700,9 +2700,28 @@ textarea.form-control.compact {
   flex: 1;
   min-width: 0;
   word-break: break-word;
+  padding-top: 1px;
 }
+.tpl-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.tpl-card-actions .btn-ghost {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--label-tertiary);
+}
+.tpl-card-actions .btn-ghost:hover { color: var(--label-primary); background: var(--fill-tertiary); }
+.tpl-card-actions .tpl-del-btn:hover { color: var(--destructive) !important; }
 .tpl-card-meta {
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: 0;
 }
 
 /* ===== Template Toolbar (search + sort) ===== */
@@ -2807,7 +2826,7 @@ textarea.form-control.compact {
 }
 .tpl-status-chip--open.tpl-status-chip--active     { background: var(--label-secondary);  border-color: var(--label-secondary); }
 .tpl-status-chip--building.tpl-status-chip--active { background: var(--system-blue);   border-color: var(--system-blue); color: #fff; }
-.tpl-status-chip--review.tpl-status-chip--active   { background: var(--system-orange); border-color: var(--system-orange); color: #fff; }
+.tpl-status-chip--review.tpl-status-chip--active   { background: #ff9500; border-color: #ff9500; color: #fff; }
 .tpl-status-chip--pending.tpl-status-chip--active  { background: #af52de;              border-color: #af52de; color: #fff; }
 .tpl-status-chip--approved.tpl-status-chip--active { background: var(--system-green);  border-color: var(--system-green); color: #fff; }
 .tpl-status-chip-count {
