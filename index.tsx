@@ -1970,6 +1970,9 @@ const renderComponents = () => {
                     <button type="button" class="btn btn-ghost btn-sm save-to-library-btn" data-tooltip="Save to Library">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
                     </button>
+                    ${comp.librarySourceId ? `<button type="button" class="btn btn-ghost btn-sm update-library-btn" data-tooltip="Update Library Component" style="color:var(--system-blue);">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 .49-4.51"></path><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="12" x2="15" y2="14"></line></svg>
+                    </button>` : ''}
                     <button type="button" class="btn btn-ghost btn-sm reset-comp-btn" data-tooltip="Reset Styles">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"></path><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
                     </button>
@@ -2298,6 +2301,11 @@ const renderComponents = () => {
         item.querySelector('.save-to-library-btn')?.addEventListener('click', (e) => {
             e.stopPropagation();
             saveComponentToLibrary(comp.id);
+        });
+
+        item.querySelector('.update-library-btn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            updateLibraryComponent(comp.id);
         });
 
         item.querySelector('.duplicate-comp-btn')?.addEventListener('click', (e) => {
