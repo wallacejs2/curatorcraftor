@@ -3820,6 +3820,7 @@ const startNewTemplate = () => {
     renderComponents();
     saveDraft();
     renderSaveTemplateBtnArea();
+    renderSavedTemplates();
     showToast('Started new blank template', 'success');
 };
 
