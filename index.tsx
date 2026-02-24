@@ -3224,8 +3224,8 @@ const renderDealershipList = () => {
             </div>
             <div class="dealership-card-actions">
                 ${isActive
-                    ? `<span class="dealership-active-badge">Active</span>`
-                    : `<button class="btn btn-primary btn-sm open-dealership-btn" data-id="${g.id}">Open</button>`
+                    ? `<span class="dealership-active-badge" title="Active"><span class="material-symbols-rounded">task_alt</span></span>`
+                    : `<button class="btn btn-primary btn-sm open-dealership-btn" data-id="${g.id}" title="Open"><span class="material-symbols-rounded" style="font-size:16px;">open_in_new</span></button>`
                 }
                 <button class="btn btn-ghost btn-sm edit-dealership-btn" data-id="${g.id}">
                     <span class="material-symbols-rounded" style="font-size:15px;">edit</span>
@@ -3260,8 +3260,8 @@ const renderDealershipList = () => {
                 </div>
                 <div class="dealership-card-actions">
                     ${globalIsActive
-                        ? `<span class="dealership-active-badge">Active</span>`
-                        : `<button class="btn btn-primary btn-sm" id="open-global-btn">Open</button>`
+                        ? `<span class="dealership-active-badge" title="Active"><span class="material-symbols-rounded">task_alt</span></span>`
+                        : `<button class="btn btn-primary btn-sm" id="open-global-btn" title="Open"><span class="material-symbols-rounded" style="font-size:16px;">open_in_new</span></button>`
                     }
                 </div>
             </div>
