@@ -41,6 +41,7 @@ interface SavedTemplate {
     id: string;
     name: string;
     createdAt: string;
+    updatedAt?: string;
     designSettings: DesignSettings;
     components: EmailComponent[];
     dealershipId?: string;
@@ -53,6 +54,7 @@ interface SavedLibraryComponent {
     type: string;
     data: Record<string, string>;
     createdAt: string;
+    updatedAt?: string;
     dealershipId?: string;
 }
 
@@ -71,6 +73,7 @@ interface EmailComponent {
     id: string;
     type: string;
     data: Record<string, string>;
+    librarySourceId?: string;
 }
 
 interface MergeFieldItem {
@@ -302,6 +305,7 @@ let activeComponents: EmailComponent[] = [];
 let activeField: ActiveField | null = null;
 let collapsedStates: Record<string, boolean> = {};
 let draggedComponentId: string | null = null;
+let activeTemplateId: string | null = null;
 
 // DOM Elements
 const emailForm = document.getElementById('email-form') as HTMLFormElement;
@@ -1966,6 +1970,9 @@ const renderComponents = () => {
                     <button type="button" class="btn btn-ghost btn-sm save-to-library-btn" data-tooltip="Save to Library">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
                     </button>
+                    ${comp.librarySourceId ? `<button type="button" class="btn btn-ghost btn-sm update-library-btn" data-tooltip="Update Library Component" style="color:var(--system-blue);">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                    </button>` : ''}
                     <button type="button" class="btn btn-ghost btn-sm reset-comp-btn" data-tooltip="Reset Styles">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"></path><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
                     </button>
@@ -2294,6 +2301,11 @@ const renderComponents = () => {
         item.querySelector('.save-to-library-btn')?.addEventListener('click', (e) => {
             e.stopPropagation();
             saveComponentToLibrary(comp.id);
+        });
+
+        item.querySelector('.update-library-btn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            updateLibraryComponent(comp.id);
         });
 
         item.querySelector('.duplicate-comp-btn')?.addEventListener('click', (e) => {
@@ -3641,9 +3653,87 @@ const openSaveTemplateModal = () => {
 // Save component modal
 let _pendingComponentId: string | null = null;
 
+const updateLibraryComponent = (componentId: string) => {
+    const comp = activeComponents.find(c => c.id === componentId);
+    if (!comp || !comp.librarySourceId) return;
+    const all = getSavedLibraryComponents();
+    const idx = all.findIndex(item => item.id === comp.librarySourceId);
+    if (idx < 0) {
+        showToast('Original library component not found', 'error');
+        return;
+    }
+    all[idx] = {
+        ...all[idx],
+        data: JSON.parse(JSON.stringify(comp.data)),
+        updatedAt: new Date().toISOString(),
+    };
+    localStorage.setItem(LS_LIBRARY_KEY, JSON.stringify(all));
+    renderComponentLibrary();
+    showToast(`Updated "${all[idx].name}" in library`, 'success');
+};
+
 const openSaveComponentModal = (componentId: string) => {
     const comp = activeComponents.find(c => c.id === componentId);
     if (!comp) return;
+
+    // If this component originated from a library item, offer to update it directly
+    if (comp.librarySourceId) {
+        const all = getSavedLibraryComponents();
+        const sourceItem = all.find(item => item.id === comp.librarySourceId);
+        if (sourceItem) {
+            // Show update-or-new choice modal inline
+            const overlay = document.getElementById('save-component-modal');
+            if (!overlay) return;
+            _pendingComponentId = componentId;
+            const modalContainer = overlay.querySelector('.quick-picker-modal.save-modal') as HTMLElement;
+            if (!modalContainer) return;
+
+            const originalBody = modalContainer.innerHTML;
+            modalContainer.innerHTML = `
+                <div class="quick-picker-header">
+                    <h3 class="text-xl">Save to Library</h3>
+                    <button type="button" id="close-save-component-modal" class="btn btn-secondary btn-sm" style="width:24px;height:24px;padding:0;border-radius:50%;">&times;</button>
+                </div>
+                <div class="save-modal-body">
+                    <p class="text-sm" style="color:var(--label-secondary);margin-bottom:var(--spacing-md);">This component was loaded from <strong>${sourceItem.name}</strong>. What would you like to do?</p>
+                    <div style="display:flex;flex-direction:column;gap:8px;">
+                        <button type="button" id="update-library-source-btn" class="btn btn-primary w-full">
+                            Update "${sourceItem.name}"
+                        </button>
+                        <button type="button" id="save-as-new-library-btn" class="btn btn-secondary w-full">
+                            Save as New Component
+                        </button>
+                    </div>
+                </div>
+            `;
+            overlay.classList.add('visible');
+
+            const close = () => {
+                overlay.classList.remove('visible');
+                modalContainer.innerHTML = originalBody;
+                _pendingComponentId = null;
+            };
+
+            document.getElementById('close-save-component-modal')?.addEventListener('click', close);
+            document.getElementById('update-library-source-btn')?.addEventListener('click', () => {
+                updateLibraryComponent(componentId);
+                close();
+            });
+            document.getElementById('save-as-new-library-btn')?.addEventListener('click', () => {
+                close();
+                // Clear librarySourceId so the new save flow treats it as a fresh item
+                const cIdx = activeComponents.findIndex(c => c.id === componentId);
+                if (cIdx >= 0) {
+                    const { librarySourceId: _, ...rest } = activeComponents[cIdx];
+                    activeComponents[cIdx] = rest;
+                }
+                openSaveComponentModal(componentId);
+            });
+            overlay.addEventListener('click', e => { if (e.target === overlay) close(); }, { once: true });
+            return;
+        }
+    }
+
     _pendingComponentId = componentId;
 
     const overlay = document.getElementById('save-component-modal');
@@ -3707,12 +3797,74 @@ const getSavedTemplates = (): SavedTemplate[] => {
 
 const saveTemplate = () => openSaveTemplateModal();
 
+const updateActiveTemplate = () => {
+    if (!activeTemplateId) return;
+    const all = getSavedTemplates();
+    const idx = all.findIndex(t => t.id === activeTemplateId);
+    if (idx < 0) return;
+    all[idx] = {
+        ...all[idx],
+        designSettings: { ...designSettings },
+        components: [...activeComponents],
+        updatedAt: new Date().toISOString(),
+    };
+    localStorage.setItem(LS_TEMPLATES_KEY, JSON.stringify(all));
+    renderSavedTemplates();
+    showToast(`Updated: ${all[idx].name}`, 'success');
+};
+
+const renderSaveTemplateBtnArea = () => {
+    // --- Right panel save/update buttons ---
+    const container = document.getElementById('save-template-btn-area');
+    if (container) {
+        if (activeTemplateId) {
+            const tpl = getSavedTemplates().find(t => t.id === activeTemplateId);
+            const name = tpl ? tpl.name : 'Template';
+            container.innerHTML = `
+                <button type="button" id="update-template-btn" class="btn btn-primary w-full btn-sm">
+                    Update "${name}"
+                </button>
+                <button type="button" id="save-template-btn" class="btn btn-secondary w-full btn-sm" style="margin-top:6px;">
+                    Save as New Template
+                </button>
+            `;
+        } else {
+            container.innerHTML = `
+                <button type="button" id="save-template-btn" class="btn btn-primary w-full btn-sm">
+                    Save Current Template
+                </button>
+            `;
+        }
+        document.getElementById('update-template-btn')?.addEventListener('click', updateActiveTemplate);
+        document.getElementById('save-template-btn')?.addEventListener('click', saveTemplate);
+    }
+
+    // --- Toolbar quick-update button ---
+    const updateQuickBtn = document.getElementById('update-quick-btn') as HTMLButtonElement | null;
+    if (updateQuickBtn) {
+        if (activeTemplateId) {
+            const tpl = getSavedTemplates().find(t => t.id === activeTemplateId);
+            const name = tpl ? tpl.name : 'Template';
+            updateQuickBtn.style.display = '';
+            updateQuickBtn.dataset.tooltip = `Update "${name}"`;
+            updateQuickBtn.onclick = updateActiveTemplate;
+        } else {
+            updateQuickBtn.style.display = 'none';
+            updateQuickBtn.onclick = null;
+        }
+    }
+};
+
 const deleteTemplate = (id: string) => {
     const allTemplates = getSavedTemplates();
     const removedTemplate = allTemplates.find(t => t.id === id);
     const removedIndex = allTemplates.findIndex(t => t.id === id);
     const templates = allTemplates.filter(t => t.id !== id);
     localStorage.setItem(LS_TEMPLATES_KEY, JSON.stringify(templates));
+    if (activeTemplateId === id) {
+        activeTemplateId = null;
+        renderSaveTemplateBtnArea();
+    }
     renderSavedTemplates();
     showToast('Template deleted', 'success', removedTemplate ? () => {
         const current = getSavedTemplates();
@@ -3728,6 +3880,7 @@ const loadTemplate = (id: string) => {
     if (template) {
         designSettings = { ...designSettings, ...template.designSettings };
         activeComponents = [...template.components];
+        activeTemplateId = id;
         // Collapse all sections by default when loading a template
         collapsedStates = {};
         activeComponents.forEach(c => { collapsedStates[c.id] = true; });
@@ -3738,6 +3891,8 @@ const loadTemplate = (id: string) => {
         saveToHistory();
         renderComponents();
         saveDraft();
+        renderSaveTemplateBtnArea();
+        renderSavedTemplates();
         showToast(`Loaded: ${template.name}`, 'success');
     }
 };
@@ -3904,10 +4059,14 @@ const renderSavedTemplates = () => {
         const status: TemplateStatus = t.status ?? 'open';
         const statusLabel = TEMPLATE_STATUSES.find(s => s.value === status)?.label ?? 'Open';
         const isTagged = !!t.dealershipId;
+        const isActive = t.id === activeTemplateId;
+        const dateLabel = t.updatedAt
+            ? `Updated ${new Date(t.updatedAt).toLocaleString()}`
+            : `Created ${new Date(t.createdAt).toLocaleString()}`;
         return `
-        <div class="library-card tpl-card">
+        <div class="library-card tpl-card${isActive ? ' tpl-card--active' : ''}">
             <div class="tpl-card-top">
-                <h4 class="library-card-name tpl-card-name">${t.name}</h4>
+                <h4 class="library-card-name tpl-card-name">${t.name}${isActive ? ' <span class="tpl-active-badge">Loaded</span>' : ''}</h4>
                 <div class="tpl-card-actions">
                     <button class="btn btn-ghost load-tpl-btn" data-id="${t.id}" data-tooltip="Load Template">
                         <span class="material-symbols-rounded" style="font-size:16px;">file_open</span>
@@ -3925,7 +4084,8 @@ const renderSavedTemplates = () => {
             </div>
             <p class="library-card-meta tpl-card-meta">
                 ${!isTagged ? '<span class="global-badge">Global</span>' : ''}
-                <span>${new Date(t.createdAt).toLocaleString()}</span>
+                ${t.updatedAt ? '<span class="tpl-updated-badge">Updated</span>' : ''}
+                <span>${dateLabel}</span>
             </p>
         </div>`;
     }).join('');
@@ -3978,6 +4138,7 @@ const addComponentFromLibrary = (libraryId: string) => {
         id: Date.now().toString(),
         type: libraryItem.type,
         data: JSON.parse(JSON.stringify(libraryItem.data)),
+        librarySourceId: libraryId,
     };
 
     activeComponents.push(newComponent);
@@ -4080,7 +4241,8 @@ const renderComponentLibrary = () => {
             <div class="library-card-meta lib-card-meta">
                 <span class="library-type-badge">${formatComponentTypeName(item.type)}</span>
                 ${!item.dealershipId ? '<span class="global-badge">Global</span>' : ''}
-                <span>${new Date(item.createdAt).toLocaleDateString()}</span>
+                ${item.updatedAt ? '<span class="tpl-updated-badge">Updated</span>' : ''}
+                <span>${item.updatedAt ? `Updated ${new Date(item.updatedAt).toLocaleDateString()}` : new Date(item.createdAt).toLocaleDateString()}</span>
             </div>
         </div>
     `).join('');
@@ -5180,7 +5342,7 @@ const initKeyboardShortcuts = () => {
     shortcuts = [
         { key: 'z', ctrl: true, description: 'Undo last action', category: 'Editing', action: executeUndo },
         { key: 'z', ctrl: true, shift: true, description: 'Redo last action', category: 'Editing', action: executeRedo },
-        { key: 's', ctrl: true, description: 'Save current template', category: 'General', action: () => saveTemplateBtn?.click() },
+        { key: 's', ctrl: true, description: 'Save current template', category: 'General', action: () => activeTemplateId ? updateActiveTemplate() : saveTemplate() },
         { key: 'n', ctrl: true, description: 'Add new section', category: 'Components', action: () => addComponentBtn?.click() },
         { key: 'd', ctrl: true, description: 'Duplicate selected section', category: 'Components', condition: () => !!selectedComponentId, action: () => selectedComponentId && duplicateComponent(selectedComponentId) },
         { key: 'b', ctrl: true, description: 'Save section to library', category: 'Components', condition: () => !!selectedComponentId, action: () => selectedComponentId && saveComponentToLibrary(selectedComponentId) },
@@ -5381,7 +5543,7 @@ function initGlobalTextStyles() {
 }
 
 
-saveTemplateBtn?.addEventListener('click', saveTemplate);
+// Save template button is dynamically rendered by renderSaveTemplateBtnArea()
 document.getElementById('save-quick-btn')?.addEventListener('click', saveTemplate);
 
 // Dealership modal close handlers
@@ -5415,6 +5577,7 @@ initGlobalTextStyles();
 renderComponents();
 renderSavedTemplates();
 renderComponentLibrary();
+renderSaveTemplateBtnArea();
 renderDealershipBanner();
 initKeyboardShortcuts();
 autocompleteDropdown = document.getElementById('autocomplete-dropdown');
