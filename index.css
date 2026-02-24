@@ -2806,6 +2806,40 @@ textarea.form-control.compact {
   margin-bottom: 0;
 }
 
+/* Active loaded template highlight */
+.tpl-card--active {
+  border-color: color-mix(in srgb, var(--system-blue) 60%, transparent);
+  background: color-mix(in srgb, var(--system-blue) 6%, var(--background-primary));
+}
+.tpl-active-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--system-blue);
+  background: color-mix(in srgb, var(--system-blue) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--system-blue) 35%, transparent);
+  border-radius: 3px;
+  padding: 1px 5px;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
+/* Updated date badge */
+.tpl-updated-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: #ff9500;
+  background: color-mix(in srgb, #ff9500 12%, transparent);
+  border: 1px solid color-mix(in srgb, #ff9500 30%, transparent);
+  border-radius: 3px;
+  padding: 1px 5px;
+  vertical-align: middle;
+}
+
 /* ===== Template Toolbar (search + sort) ===== */
 #template-controls {
   margin-bottom: var(--spacing-sm);
