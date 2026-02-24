@@ -4059,7 +4059,7 @@ const renderComponentLibrary = () => {
                     <span class="lib-card-title-text">${item.name}</span>
                 </div>
                 <div class="lib-card-actions">
-                    <button class="btn btn-ghost add-from-library-btn" data-id="${item.id}" data-tooltip="Add to canvas">
+                    <button class="btn btn-ghost add-from-library-btn" data-id="${item.id}" data-tooltip="Add Component">
                         <span class="material-symbols-rounded" style="font-size:15px;">library_add</span>
                     </button>
                     <button class="btn btn-ghost move-lib-btn" data-id="${item.id}" data-dealership="${item.dealershipId ?? ''}" data-tooltip="Move to…">

@@ -2356,6 +2356,8 @@ textarea.form-control.compact {
   color: var(--label-primary);
   background: var(--fill-tertiary);
 }
+.lib-card-actions .add-from-library-btn:hover { color: #007aff !important; }
+.lib-card-actions .move-lib-btn:hover { color: #34c759 !important; }
 .lib-card-actions .lib-del-btn:hover {
   color: var(--destructive) !important;
 }
