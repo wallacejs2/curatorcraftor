@@ -3814,28 +3814,45 @@ const updateActiveTemplate = () => {
 };
 
 const renderSaveTemplateBtnArea = () => {
+    // --- Right panel save/update buttons ---
     const container = document.getElementById('save-template-btn-area');
-    if (!container) return;
-    if (activeTemplateId) {
-        const tpl = getSavedTemplates().find(t => t.id === activeTemplateId);
-        const name = tpl ? tpl.name : 'Template';
-        container.innerHTML = `
-            <button type="button" id="update-template-btn" class="btn btn-primary w-full btn-sm">
-                Update "${name}"
-            </button>
-            <button type="button" id="save-template-btn" class="btn btn-secondary w-full btn-sm" style="margin-top:6px;">
-                Save as New Template
-            </button>
-        `;
-    } else {
-        container.innerHTML = `
-            <button type="button" id="save-template-btn" class="btn btn-primary w-full btn-sm">
-                Save Current Template
-            </button>
-        `;
+    if (container) {
+        if (activeTemplateId) {
+            const tpl = getSavedTemplates().find(t => t.id === activeTemplateId);
+            const name = tpl ? tpl.name : 'Template';
+            container.innerHTML = `
+                <button type="button" id="update-template-btn" class="btn btn-primary w-full btn-sm">
+                    Update "${name}"
+                </button>
+                <button type="button" id="save-template-btn" class="btn btn-secondary w-full btn-sm" style="margin-top:6px;">
+                    Save as New Template
+                </button>
+            `;
+        } else {
+            container.innerHTML = `
+                <button type="button" id="save-template-btn" class="btn btn-primary w-full btn-sm">
+                    Save Current Template
+                </button>
+            `;
+        }
+        document.getElementById('update-template-btn')?.addEventListener('click', updateActiveTemplate);
+        document.getElementById('save-template-btn')?.addEventListener('click', saveTemplate);
     }
-    document.getElementById('update-template-btn')?.addEventListener('click', updateActiveTemplate);
-    document.getElementById('save-template-btn')?.addEventListener('click', saveTemplate);
+
+    // --- Toolbar quick-update button ---
+    const updateQuickBtn = document.getElementById('update-quick-btn') as HTMLButtonElement | null;
+    if (updateQuickBtn) {
+        if (activeTemplateId) {
+            const tpl = getSavedTemplates().find(t => t.id === activeTemplateId);
+            const name = tpl ? tpl.name : 'Template';
+            updateQuickBtn.style.display = '';
+            updateQuickBtn.dataset.tooltip = `Update "${name}"`;
+            updateQuickBtn.onclick = updateActiveTemplate;
+        } else {
+            updateQuickBtn.style.display = 'none';
+            updateQuickBtn.onclick = null;
+        }
+    }
 };
 
 const deleteTemplate = (id: string) => {
