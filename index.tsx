@@ -2512,10 +2512,10 @@ function generateEmailHtml(): string {
             </tr>
         `;
     } else if (comp.type === 'service_offer') {
-        const generateOfferContent = (data: Record<string, string>, suffix = '', imageMaxWidth?: number, renderMode: 'full' | 'imageOnly' | 'contentOnly' | 'mainOnly' | 'buttonOnly' = 'full') => {
+        const generateOfferContent = (data: Record<string, string>, suffix = '', imageMaxWidth?: number, renderMode: 'full' | 'imageOnly' | 'contentOnly' = 'full') => {
             let contentBlocks = '';
             // Image
-            if (renderMode !== 'contentOnly' && renderMode !== 'buttonOnly' && data[`imageUrl${suffix}`]) {
+            if (renderMode !== 'contentOnly' && data[`imageUrl${suffix}`]) {
                 const imgStyles = `display: block; width: ${imageMaxWidth ? '100%' : `${data[`imageWidth${suffix}`] || '100'}%`}; max-width: ${imageMaxWidth ? `${imageMaxWidth}px` : '100%'}; height: auto; border: 0; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;`;
                 let imgTag = `<img src="${DOMPurify.sanitize(data[`imageUrl${suffix}`])}" alt="${DOMPurify.sanitize(data[`imageAlt${suffix}`] || '')}" style="${imgStyles}" />`;
                 if (data[`imageLink${suffix}`]) {
@@ -2524,7 +2524,6 @@ function generateEmailHtml(): string {
                 contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${data[`imageAlignment${suffix}`] || 'center'}" style="padding: ${data[`imagePaddingTop${suffix}`] || 10}px 0 ${data[`imagePaddingBottom${suffix}`] || 10}px 0;">${imgTag}</td></tr></table>`;
             }
             if (renderMode === 'imageOnly') return contentBlocks;
-            if (renderMode !== 'buttonOnly') {
             // Title
             if (data[`serviceTitle${suffix}`]) {
                 contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${data[`titleAlignment${suffix}`] || 'center'}" style="padding: ${data[`titlePaddingTop${suffix}`] || 10}px ${data[`titlePaddingLeftRight${suffix}`] || '0'}px ${data[`titlePaddingBottom${suffix}`] || 10}px ${data[`titlePaddingLeftRight${suffix}`] || '0'}px; font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${data[`titleFontSize${suffix}`]}px; font-weight: ${data[`titleFontWeight${suffix}`]}; font-style: ${data[`titleFontStyle${suffix}`] || 'normal'}; color: ${data[`titleTextColor${suffix}`]}; line-height: 1.2;">${DOMPurify.sanitize(data[`serviceTitle${suffix}`])}</td></tr></table>`;
@@ -2540,14 +2539,8 @@ function generateEmailHtml(): string {
                 const sanitizedDetails = DOMPurify.sanitize(data[`serviceDetails${suffix}`]).replace(/\n/g, '<br>');
                 contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${data[`detailsAlignment${suffix}`] || 'center'}" style="padding: ${data[`detailsPaddingTop${suffix}`] || 12}px ${data[`detailsPaddingLeftRight${suffix}`] || '0'}px ${data[`detailsPaddingBottom${suffix}`] || 12}px ${data[`detailsPaddingLeftRight${suffix}`] || '0'}px; font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${data[`detailsFontSize${suffix}`]}px; font-weight: ${data[`detailsFontWeight${suffix}`] || 'normal'}; font-style: ${data[`detailsFontStyle${suffix}`] || 'normal'}; color: ${data[`detailsTextColor${suffix}`]}; line-height: ${data[`detailsLineHeight${suffix}`]};">${sanitizedDetails}</td></tr></table>`;
             }
-            // Disclaimer
-            if (data[`disclaimer${suffix}`]) {
-                const sanitizedDisclaimer = DOMPurify.sanitize(data[`disclaimer${suffix}`]).replace(/\n/g, '<br>');
-                contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${data[`disclaimerAlignment${suffix}`] || 'center'}" style="padding: ${data[`disclaimerPaddingTop${suffix}`] || 8}px ${data[`disclaimerPaddingLeftRight${suffix}`] || '0'}px ${data[`disclaimerPaddingBottom${suffix}`] || 8}px ${data[`disclaimerPaddingLeftRight${suffix}`] || '0'}px; font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${data[`disclaimerFontSize${suffix}`]}px; font-weight: ${data[`disclaimerFontWeight${suffix}`] || 'normal'}; font-style: ${data[`disclaimerFontStyle${suffix}`] || 'normal'}; color: ${data[`disclaimerTextColor${suffix}`]}; line-height: 1.4;">${sanitizedDisclaimer}</td></tr></table>`;
-            }
-            } // end renderMode !== 'buttonOnly'
             // Button
-            if (renderMode !== 'mainOnly' && data[`buttonText${suffix}`]) {
+            if (data[`buttonText${suffix}`]) {
                  const getButtonWidthForHtml = (widthType: string | undefined): string => {
                     switch(widthType) {
                         case 'full': return '100%'; case 'small': return '160px'; case 'medium': return '280px'; case 'large': return '400px'; case 'auto': return 'auto';
@@ -2577,6 +2570,11 @@ function generateEmailHtml(): string {
                 }
                 contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${data[`buttonAlignment${suffix}`] || 'center'}" style="padding: 12px 0;">${buttonContent}</td></tr></table>`;
             }
+            // Disclaimer
+            if (data[`disclaimer${suffix}`]) {
+                const sanitizedDisclaimer = DOMPurify.sanitize(data[`disclaimer${suffix}`]).replace(/\n/g, '<br>');
+                contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${data[`disclaimerAlignment${suffix}`] || 'center'}" style="padding: ${data[`disclaimerPaddingTop${suffix}`] || 8}px ${data[`disclaimerPaddingLeftRight${suffix}`] || '0'}px ${data[`disclaimerPaddingBottom${suffix}`] || 8}px ${data[`disclaimerPaddingLeftRight${suffix}`] || '0'}px; font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${data[`disclaimerFontSize${suffix}`]}px; font-weight: ${data[`disclaimerFontWeight${suffix}`] || 'normal'}; font-style: ${data[`disclaimerFontStyle${suffix}`] || 'normal'}; color: ${data[`disclaimerTextColor${suffix}`]}; line-height: 1.4;">${sanitizedDisclaimer}</td></tr></table>`;
+            }
             if (renderMode === 'full') {
                 const svcCardBorder = data.showBorder !== 'false' ? 'border: 1px solid #e2e8f0; ' : '';
                 return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="${svcCardBorder}border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;">${contentBlocks}</td></tr></table>`;
@@ -2589,25 +2587,16 @@ function generateEmailHtml(): string {
         let serviceOfferContentHtml = '';
 
         if (serviceLayout === 'grid') {
-            const offer1Main = generateOfferContent(d, '', undefined, 'mainOnly');
-            const offer1Button = generateOfferContent(d, '', undefined, 'buttonOnly');
-            const offer2Main = generateOfferContent(d, '2', undefined, 'mainOnly');
-            const offer2Button = generateOfferContent(d, '2', undefined, 'buttonOnly');
-            const svcGridBorder = d.showBorder !== 'false' ? 'border: 1px solid #e2e8f0; ' : '';
+            const offer1Html = generateOfferContent(d, '');
+            const offer2Html = generateOfferContent(d, '2');
             serviceOfferContentHtml = `
                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                     <tr>
                         <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-right: 8px; vertical-align: top;">
-                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" height="100%" style="height: 100%; ${svcGridBorder}border-radius: 8px; background-color: #ffffff;">
-                                <tr><td valign="top" style="padding: 15px 15px 0 15px;">${offer1Main}</td></tr>
-                                <tr><td valign="bottom" style="padding: 0 15px 15px 15px;">${offer1Button}</td></tr>
-                            </table>
+                            ${offer1Html}
                         </td>
                         <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-left: 8px; vertical-align: top;">
-                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" height="100%" style="height: 100%; ${svcGridBorder}border-radius: 8px; background-color: #ffffff;">
-                                <tr><td valign="top" style="padding: 15px 15px 0 15px;">${offer2Main}</td></tr>
-                                <tr><td valign="bottom" style="padding: 0 15px 15px 15px;">${offer2Button}</td></tr>
-                            </table>
+                            ${offer2Html}
                         </td>
                     </tr>
                 </table>
@@ -2638,7 +2627,7 @@ function generateEmailHtml(): string {
             </tr>
         `;
     } else if (comp.type === 'sales_offer') {
-        const renderSalesOfferContent = (data: Record<string, string>, suffix: string, imageMaxWidth?: number, renderMode: 'full' | 'imageOnly' | 'contentOnly' | 'mainOnly' | 'buttonOnly' = 'full') => {
+        const renderSalesOfferContent = (data: Record<string, string>, suffix: string, imageMaxWidth?: number, renderMode: 'full' | 'imageOnly' | 'contentOnly' = 'full') => {
             const rawAddOffers = JSON.parse(data[`additionalOffers${suffix}`] || '[]');
             const addOffers = rawAddOffers.map((o: any) => ({
                 ...o,
@@ -2656,15 +2645,15 @@ function generateEmailHtml(): string {
                 const style = [`font-family: ${designSettings.fontFamily}`,`color: ${color || '#000'}`,`font-size: ${fontSize || 14}px`,`background-color: ${bgColor === 'transparent' ? 'transparent' : bgColor}`,`font-weight: ${fontWeight || 'normal'}`,`font-style: ${fontStyle || 'normal'}`,`text-align: ${textAlign || 'center'}`,padding,`line-height: 1.2`].join(';');
                 return `<div style="${style}">${text.replace(/\n/g, '<br>')}</div>`;
             };
-
-            if (renderMode !== 'contentOnly' && renderMode !== 'buttonOnly' && data[`imageSrc${suffix}`]) {
+            
+            if (renderMode !== 'contentOnly' && data[`imageSrc${suffix}`]) {
                 const imgStyles = `display: block; width: 100%; max-width: ${imageMaxWidth ? `${imageMaxWidth}px` : '100%'}; height: auto; border: 0; border-radius: 8px; margin: 0 auto 15px;`;
                 let imgTag = `<img src="${DOMPurify.sanitize(data[`imageSrc${suffix}`] || '')}" alt="${DOMPurify.sanitize(data[`imageAlt${suffix}`] || 'Sales Offer')}" style="${imgStyles}" border="0" />`;
                 if (data[`imageLink${suffix}`]) imgTag = `<a href="${DOMPurify.sanitize(data[`imageLink${suffix}`])}" target="_blank" style="text-decoration: none;">${imgTag}</a>`;
                 contentHtml += imgTag;
             }
 
-            if (renderMode !== 'imageOnly' && renderMode !== 'buttonOnly') {
+            if (renderMode !== 'imageOnly') {
             contentHtml += renderField({ text: DOMPurify.sanitize(data[`vehicleText${suffix}`]), fontSize: data[`vehicleFontSize${suffix}`], color: data[`vehicleColor${suffix}`], bgColor: data[`vehicleBgColor${suffix}`], fontWeight: 'bold', fontStyle: data[`vehicleFontStyle${suffix}`], textAlign: data[`vehicleTextAlign${suffix}`], paddingTop: data[`vehiclePaddingTop${suffix}`], paddingBottom: data[`vehiclePaddingBottom${suffix}`], paddingLeftRight: data[`vehiclePaddingLeftRight${suffix}`] });
             contentHtml += renderField({ text: DOMPurify.sanitize(data[`mainOfferText${suffix}`]), fontSize: data[`mainOfferFontSize${suffix}`], color: data[`mainOfferColor${suffix}`], bgColor: data[`mainOfferBgColor${suffix}`], fontWeight: '800', fontStyle: data[`mainOfferFontStyle${suffix}`], textAlign: data[`mainOfferTextAlign${suffix}`], paddingTop: data[`mainOfferPaddingTop${suffix}`], paddingBottom: data[`mainOfferPaddingBottom${suffix}`], paddingLeftRight: data[`mainOfferPaddingLeftRight${suffix}`] });
             contentHtml += renderField({ text: DOMPurify.sanitize(data[`detailsText${suffix}`]), fontSize: data[`detailsFontSize${suffix}`], color: data[`detailsColor${suffix}`], bgColor: data[`detailsBgColor${suffix}`], fontWeight: data[`detailsFontWeight${suffix}`], fontStyle: data[`detailsFontStyle${suffix}`], textAlign: data[`detailsTextAlign${suffix}`], paddingTop: data[`detailsPaddingTop${suffix}`], paddingBottom: data[`detailsPaddingBottom${suffix}`], paddingLeftRight: data[`detailsPaddingLeftRight${suffix}`] });
@@ -2689,10 +2678,6 @@ function generateEmailHtml(): string {
             if (sanitizedMileage.trim() !== '') { finalMileageText = `Mileage: ${sanitizedMileage.trim()}`; }
             contentHtml += renderField({ text: finalMileageText, fontSize: data[`mileageFontSize${suffix}`], color: data[`mileageColor${suffix}`], bgColor: data[`mileageBgColor${suffix}`], fontWeight: data[`mileageFontWeight${suffix}`], fontStyle: data[`mileageFontStyle${suffix}`], textAlign: data[`mileageTextAlign${suffix}`], paddingTop: data[`mileagePaddingTop${suffix}`], paddingBottom: data[`mileagePaddingBottom${suffix}`], paddingLeftRight: data[`mileagePaddingLeftRight${suffix}`] });
 
-            contentHtml += renderField({ text: DOMPurify.sanitize(data[`disclaimerText${suffix}`]), fontSize: data[`disclaimerFontSize${suffix}`], color: data[`disclaimerColor${suffix}`], bgColor: data[`disclaimerBgColor${suffix}`], fontWeight: data[`disclaimerFontWeight${suffix}`], fontStyle: data[`disclaimerFontStyle${suffix}`], textAlign: data[`disclaimerTextAlign${suffix}`], paddingTop: data[`disclaimerPaddingTop${suffix}`], paddingBottom: data[`disclaimerPaddingBottom${suffix}`], paddingLeftRight: data[`disclaimerPaddingLeftRight${suffix}`] });
-            } // end renderMode !== 'imageOnly' && !== 'buttonOnly'
-
-            if (renderMode !== 'imageOnly' && renderMode !== 'mainOnly') {
             const radius = designSettings.buttonStyle === 'pill' ? '50px' : designSettings.buttonStyle === 'square' ? '0px' : '8px';
             const isOutlined = designSettings.buttonStyle === 'outlined';
             const btnBgColor = data[`btnColor${suffix}`] || '#007aff';
@@ -2708,8 +2693,9 @@ function generateEmailHtml(): string {
             if (btnAlign === 'center') btnMargin = '12px auto 0';
             else if (btnAlign === 'right') btnMargin = '12px 0 0 auto';
             const btnStyles = [`background-color: ${isOutlined ? 'transparent' : btnBgColor}`,`color: ${isOutlined ? btnBgColor : btnTextColor}`,`padding: ${data[`btnPaddingTop${suffix}`] || '12'}px ${data[`btnPaddingLeftRight${suffix}`] || '20'}px ${data[`btnPaddingBottom${suffix}`] || '12'}px`,`text-decoration: none`,`display: block`,`font-weight: bold`,`border-radius: ${radius}`,`font-size: ${data[`btnFontSize${suffix}`] || 16}px`,`font-family: ${designSettings.fontFamily}`,`text-align: center`,isOutlined ? `border: 2px solid ${btnBgColor}` : 'border: 0'].join('; ');
+            contentHtml += renderField({ text: DOMPurify.sanitize(data[`disclaimerText${suffix}`]), fontSize: data[`disclaimerFontSize${suffix}`], color: data[`disclaimerColor${suffix}`], bgColor: data[`disclaimerBgColor${suffix}`], fontWeight: data[`disclaimerFontWeight${suffix}`], fontStyle: data[`disclaimerFontStyle${suffix}`], textAlign: data[`disclaimerTextAlign${suffix}`], paddingTop: data[`disclaimerPaddingTop${suffix}`], paddingBottom: data[`disclaimerPaddingBottom${suffix}`], paddingLeftRight: data[`disclaimerPaddingLeftRight${suffix}`] });
             contentHtml += `<table border="0" cellspacing="0" cellpadding="0" ${btnTableWidthAttr ? `width="${btnTableWidthAttr}"` : ""} style="margin: ${btnMargin}; width: ${btnWidthType === 'full' ? '100%' : (btnTableWidthAttr ? btnTableWidthAttr+'px' : 'auto')}; max-width: 100%;"><tr><td align="center" bgcolor="${isOutlined ? 'transparent' : btnBgColor}" style="border-radius: ${radius};"><a href="${DOMPurify.sanitize(data[`btnLink${suffix}`] || '#')}" target="_blank" style="${btnStyles}">${DOMPurify.sanitize(data[`btnText${suffix}`] || 'View')}</a></td></tr></table>`;
-            } // end renderMode !== 'imageOnly' && !== 'mainOnly'
+            } // end renderMode !== 'imageOnly'
 
             return contentHtml;
         };
@@ -2718,26 +2704,22 @@ function generateEmailHtml(): string {
         let offerContentHtml = '';
 
         if (layout === 'grid') {
-            const offer1Main = renderSalesOfferContent(d, '', 250, 'mainOnly');
-            const offer1Button = renderSalesOfferContent(d, '', 250, 'buttonOnly');
-            const offer2Main = renderSalesOfferContent(d, '2', 250, 'mainOnly');
-            const offer2Button = renderSalesOfferContent(d, '2', 250, 'buttonOnly');
+            const offer1Content = renderSalesOfferContent(d, '', 250);
+            const offer2Content = renderSalesOfferContent(d, '2', 250);
             const salesGridBorder = d.showBorder !== 'false' ? 'border: 1px solid #e2e8f0; ' : '';
             offerContentHtml = `
                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                     <tbody>
                         <tr>
                             <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-right: 8px; vertical-align: top;">
-                                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" height="100%" style="height: 100%; background-color: #ffffff; ${salesGridBorder}border-radius: 8px;">
-                                    <tr><td valign="top" style="padding: 15px 15px 0 15px;">${offer1Main}</td></tr>
-                                    <tr><td valign="bottom" style="padding: 0 15px 15px 15px;">${offer1Button}</td></tr>
-                                </table>
+                                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; ${salesGridBorder}border-radius: 8px;"><tr><td style="padding: 15px;">
+                                    ${offer1Content}
+                                </td></tr></table>
                             </td>
                             <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-left: 8px; vertical-align: top;">
-                                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" height="100%" style="height: 100%; background-color: #ffffff; ${salesGridBorder}border-radius: 8px;">
-                                    <tr><td valign="top" style="padding: 15px 15px 0 15px;">${offer2Main}</td></tr>
-                                    <tr><td valign="bottom" style="padding: 0 15px 15px 15px;">${offer2Button}</td></tr>
-                                </table>
+                                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; ${salesGridBorder}border-radius: 8px;"><tr><td style="padding: 15px;">
+                                    ${offer2Content}
+                                </td></tr></table>
                             </td>
                         </tr>
                     </tbody>
