@@ -156,15 +156,27 @@
               <div class="card-header-top">
                 <h2 class="text-2xl">Customize Your Email</h2>
                 <div class="flex items-center gap-2">
-                  <button type="button" id="collapse-all-btn" class="btn btn-ghost btn-sm">
-                    Collapse All
+                  <button type="button" id="collapse-all-btn" class="btn btn-ghost btn-icon" data-tooltip="Collapse All">
+                    <span class="material-symbols-rounded">collapse_all</span>
                   </button>
-                  <button type="button" id="merge-fields-toggle" class="btn btn-ghost btn-sm">
-                    Insert Merge Fields
+                  <button type="button" id="expand-all-btn" class="btn btn-ghost btn-icon" data-tooltip="Expand All">
+                    <span class="material-symbols-rounded">expand_all</span>
                   </button>
                 </div>
               </div>
               <div class="card-header-quickadd">
+                <div class="quickadd-actions">
+                  <button type="button" id="delete-all-btn" class="quickadd-btn quickadd-btn--danger" data-tooltip="Delete All Sections">
+                    <span class="material-symbols-rounded">delete_sweep</span>
+                  </button>
+                  <button type="button" id="reset-all-btn" class="quickadd-btn quickadd-btn--warning" data-tooltip="Reset All Styles">
+                    <span class="material-symbols-rounded">format_clear</span>
+                  </button>
+                  <button type="button" id="clear-all-btn" class="quickadd-btn quickadd-btn--warning" data-tooltip="Clear All Content">
+                    <span class="material-symbols-rounded">clear_all</span>
+                  </button>
+                </div>
+                <span class="quickadd-divider"></span>
                 <span class="quickadd-label">Add</span>
                 <div class="quickadd-icons">
                   <button type="button" class="quickadd-btn" data-type="header" data-tooltip="Header">

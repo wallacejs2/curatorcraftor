@@ -301,9 +301,14 @@ const closeComponentPicker = document.getElementById('close-component-picker');
 
 // Toggle buttons
 const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
-const mergeFieldsToggle = document.getElementById('merge-fields-toggle');
 const collapseAllBtn = document.getElementById('collapse-all-btn');
+const expandAllBtn = document.getElementById('expand-all-btn');
 const floatingMergeBtn = document.getElementById('floating-merge-btn');
+
+// Bulk action buttons
+const deleteAllBtn = document.getElementById('delete-all-btn');
+const resetAllBtn = document.getElementById('reset-all-btn');
+const clearAllBtn = document.getElementById('clear-all-btn');
 
 // View Toggles
 const desktopViewBtn = document.getElementById('desktop-view-btn');
@@ -450,20 +455,64 @@ const saveCollapsedStates = () => {
     localStorage.setItem(LS_COLLAPSED_KEY, JSON.stringify(collapsedStates));
 };
 
-const updateCollapseAllBtn = () => {
-    if (!collapseAllBtn) return;
-    const allCollapsed = activeComponents.length > 0 && activeComponents.every(c => collapsedStates[c.id]);
-    collapseAllBtn.textContent = allCollapsed ? 'Expand All' : 'Collapse All';
-};
-
 collapseAllBtn?.addEventListener('click', () => {
-    const allCollapsed = activeComponents.length > 0 && activeComponents.every(c => collapsedStates[c.id]);
-    activeComponents.forEach(c => {
-        collapsedStates[c.id] = !allCollapsed;
-    });
+    activeComponents.forEach(c => { collapsedStates[c.id] = true; });
     saveCollapsedStates();
     renderComponents();
-    updateCollapseAllBtn();
+});
+
+expandAllBtn?.addEventListener('click', () => {
+    activeComponents.forEach(c => { collapsedStates[c.id] = false; });
+    saveCollapsedStates();
+    renderComponents();
+});
+
+deleteAllBtn?.addEventListener('click', () => {
+    if (activeComponents.length === 0) return;
+    activeComponents = [];
+    selectedComponentId = null;
+    collapsedStates = {};
+    saveCollapsedStates();
+    saveToHistory();
+    renderComponents();
+    saveDraft();
+    showToast('All sections deleted', 'success');
+});
+
+resetAllBtn?.addEventListener('click', () => {
+    if (activeComponents.length === 0) return;
+    activeComponents.forEach(comp => {
+        const defaults = getDefaultComponentData(comp.type);
+        const contentKeys = CONTENT_KEYS[comp.type] || [];
+        for (const key of Object.keys(comp.data)) {
+            if (contentKeys.includes(key)) continue;
+            if (STRUCTURAL_KEYS.includes(key)) continue;
+            if (key in defaults) comp.data[key] = defaults[key];
+        }
+    });
+    saveToHistory();
+    renderComponents();
+    saveDraft();
+    showToast('All styles reset to defaults', 'success');
+});
+
+clearAllBtn?.addEventListener('click', () => {
+    if (activeComponents.length === 0) return;
+    activeComponents.forEach(comp => {
+        const contentKeys = CONTENT_KEYS[comp.type] || [];
+        for (const key of contentKeys) {
+            if (!(key in comp.data)) continue;
+            if (key === 'additionalOffers' || key === 'additionalOffers2' || key === 'links') {
+                comp.data[key] = '[]';
+            } else {
+                comp.data[key] = '';
+            }
+        }
+    });
+    saveToHistory();
+    renderComponents();
+    saveDraft();
+    showToast('All content cleared', 'success');
 });
 
 const toggleComponent = (id: string) => {
@@ -970,11 +1019,6 @@ designSidebarOverlay?.addEventListener('click', closeDesignSidebarFunc);
 closeMergeSidebar?.addEventListener('click', closeSidebarFunc);
 sidebarOverlay?.addEventListener('click', closeSidebarFunc);
 
-mergeFieldsToggle?.addEventListener('click', () => {
-  mergeFieldsSidebar?.classList.add('open');
-  sidebarOverlay?.classList.add('visible');
-  document.body.style.overflow = 'hidden';
-});
 
 floatingMergeBtn?.addEventListener('click', () => {
   mergeFieldsSidebar?.classList.add('open');
@@ -2264,7 +2308,6 @@ const renderComponents = () => {
     });
 
     initializeDragAndDrop();
-    updateCollapseAllBtn();
 };
 
 function initializeDragAndDrop() {
