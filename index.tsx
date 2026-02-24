@@ -26,6 +26,16 @@ const COLOR_SCHEMES = [
   { id: 'mono',     name: 'Mono',      bodyColor: '#000000', accentColor: '#666666' },
 ] as const;
 
+type TemplateStatus = 'open' | 'building' | 'review' | 'pending' | 'approved';
+
+const TEMPLATE_STATUSES: { value: TemplateStatus; label: string }[] = [
+    { value: 'open',     label: 'Open'     },
+    { value: 'building', label: 'Building' },
+    { value: 'review',   label: 'Review'   },
+    { value: 'pending',  label: 'Pending'  },
+    { value: 'approved', label: 'Approved' },
+];
+
 interface SavedTemplate {
     id: string;
     name: string;
@@ -33,6 +43,7 @@ interface SavedTemplate {
     designSettings: DesignSettings;
     components: EmailComponent[];
     dealershipId?: string;
+    status?: TemplateStatus;
 }
 
 interface SavedLibraryComponent {
@@ -346,6 +357,11 @@ const savedTemplatesList = document.getElementById('saved-templates-list') as HT
 const componentLibraryList = document.getElementById('component-library-list') as HTMLElement;
 const libraryFilterBar = document.getElementById('library-filter-bar') as HTMLElement;
 let activeLibraryFilter = 'all';
+
+// Template search / filter / sort state
+let templateSearchQuery = '';
+let templateStatusFilter: TemplateStatus | 'all' = 'all';
+let templateSortBy: 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'status' = 'date-desc';
 
 const ALIGNMENT_ICONS = {
     left: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="17" y1="18" x2="3" y2="18"></line></svg>`,
@@ -3212,17 +3228,45 @@ const renderDealershipList = () => {
         </div>`;
     }).join('');
 
+    const globalTplCount = allTemplates.filter(t => !t.dealershipId).length;
+    const globalLibCount = allLibrary.filter(l => !l.dealershipId).length;
+    const globalIsActive = !activeDealershipId;
+
     body.innerHTML = `
         <div class="dealership-list-section">
             <button type="button" class="btn btn-secondary w-full" id="show-create-dealership-form">
                 <span class="material-symbols-rounded" style="font-size:16px;">add</span>
                 New Dealership Group
             </button>
+            <!-- Global option -->
+            <div class="dealership-card ${globalIsActive ? 'dealership-card--active' : ''}" style="margin-top:var(--spacing-md);">
+                <div class="dealership-card-left">
+                    <div class="dealership-card-swatches" style="background:var(--background-secondary);border-radius:var(--radius-sm);width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
+                        <span class="material-symbols-rounded" style="font-size:16px;color:var(--label-secondary);">public</span>
+                    </div>
+                    <div class="dealership-card-info">
+                        <span class="dealership-card-name">Global</span>
+                        <span class="dealership-card-meta">${globalTplCount} template${globalTplCount !== 1 ? 's' : ''} · ${globalLibCount} component${globalLibCount !== 1 ? 's' : ''}</span>
+                    </div>
+                </div>
+                <div class="dealership-card-actions">
+                    ${globalIsActive
+                        ? `<span class="dealership-active-badge">Active</span>`
+                        : `<button class="btn btn-primary btn-sm" id="open-global-btn">Open</button>`
+                    }
+                </div>
+            </div>
             ${groups.length === 0
                 ? `<p class="text-sm" style="color:var(--label-secondary);text-align:center;margin-top:var(--spacing-lg);">No dealership groups yet. Create one to get started.</p>`
                 : `<div class="dealership-card-list">${groupCards}</div>`
             }
         </div>`;
+
+    body.querySelector('#open-global-btn')?.addEventListener('click', () => {
+        setActiveDealership(null);
+        closeDealershipManager();
+        showToast('Switched to Global', 'success');
+    });
 
     body.querySelector('#show-create-dealership-form')?.addEventListener('click', () => showDealershipForm());
 
@@ -3395,7 +3439,255 @@ const showDealershipForm = (editId?: string) => {
     body.querySelector('#cancel-dealership-form')?.addEventListener('click', renderDealershipList);
 };
 
-// --- End Dealership Groups ---
+// --- Dealership Assignment Helpers ---
+
+/** Renders clickable assignment options (Global + all dealerships) inside `containerId`. */
+const renderSaveAssignList = (containerId: string, selectedId: string | null | undefined) => {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const groups = getDealershipGroups();
+    const effective = selectedId === undefined ? activeDealershipId : selectedId;
+
+    const globalActive = !effective;
+    const items = [
+        { id: null as string | null, label: 'Global', meta: 'Available in all dealerships', icon: 'public', accent: '' },
+        ...groups.map(g => ({ id: g.id, label: g.name, meta: g.defaultColorSchemeId ? `${g.defaultColorSchemeId} scheme` : '', icon: '', accent: g.defaultAccentColor })),
+    ];
+
+    container.innerHTML = items.map(item => {
+        const isSelected = item.id === null ? globalActive : item.id === effective;
+        const dotHtml = item.icon
+            ? `<span class="material-symbols-rounded" style="font-size:15px;color:var(--label-secondary);">${item.icon}</span>`
+            : `<span class="save-assign-dot" style="background:${item.accent};"></span>`;
+        return `
+        <div class="save-assign-item ${isSelected ? 'save-assign-item--selected' : ''}" data-assign-id="${item.id ?? ''}">
+            ${dotHtml}
+            <div class="save-assign-info">
+                <span class="save-assign-name">${item.label}</span>
+                ${item.meta ? `<span class="save-assign-meta">${item.meta}</span>` : ''}
+            </div>
+            ${isSelected ? '<span class="material-symbols-rounded save-assign-check">check</span>' : ''}
+        </div>`;
+    }).join('');
+
+    container.querySelectorAll('.save-assign-item').forEach(el => {
+        el.addEventListener('click', () => {
+            container.querySelectorAll('.save-assign-item').forEach(e => {
+                e.classList.remove('save-assign-item--selected');
+                e.querySelector('.save-assign-check')?.remove();
+            });
+            el.classList.add('save-assign-item--selected');
+            const check = document.createElement('span');
+            check.className = 'material-symbols-rounded save-assign-check';
+            check.textContent = 'check';
+            el.appendChild(check);
+        });
+    });
+};
+
+const getAssignListSelection = (containerId: string): string | null => {
+    const container = document.getElementById(containerId);
+    const selected = container?.querySelector('.save-assign-item--selected') as HTMLElement | null;
+    if (!selected) return activeDealershipId;
+    const raw = selected.dataset.assignId ?? '';
+    return raw === '' ? null : raw;
+};
+
+/** Floating assignment dropdown for "Move to" on existing cards. */
+const showAssignmentDropdown = (anchor: HTMLElement, currentId: string | null | undefined, onSelect: (id: string | null) => void) => {
+    document.getElementById('assignment-dropdown')?.remove();
+    const groups = getDealershipGroups();
+    const dropdown = document.createElement('div');
+    dropdown.id = 'assignment-dropdown';
+    dropdown.className = 'assignment-dropdown';
+
+    const items = [
+        { id: null as string | null, label: 'Global', icon: 'public', accent: '' },
+        ...groups.map(g => ({ id: g.id, label: g.name, icon: '', accent: g.defaultAccentColor })),
+    ];
+
+    dropdown.innerHTML = `
+        <div class="assignment-dropdown-title">Move to</div>
+        ${items.map(item => {
+            const active = item.id === (currentId ?? null);
+            const dot = item.icon
+                ? `<span class="material-symbols-rounded" style="font-size:13px;color:var(--label-secondary);">${item.icon}</span>`
+                : `<span style="width:10px;height:10px;border-radius:50%;background:${item.accent};flex-shrink:0;display:inline-block;"></span>`;
+            return `
+            <button class="assignment-dropdown-item${active ? ' active' : ''}" data-assign-id="${item.id ?? ''}">
+                ${dot}
+                <span>${item.label}</span>
+                ${active ? '<span class="material-symbols-rounded" style="font-size:13px;margin-left:auto;">check</span>' : ''}
+            </button>`;
+        }).join('')}
+    `;
+
+    document.body.appendChild(dropdown);
+
+    const rect = anchor.getBoundingClientRect();
+    const dropW = 180;
+    let left = rect.right - dropW;
+    let top = rect.bottom + 4;
+    if (left < 8) left = 8;
+    if (top + 200 > window.innerHeight) top = rect.top - 204;
+    dropdown.style.position = 'fixed';
+    dropdown.style.top = `${top}px`;
+    dropdown.style.left = `${left}px`;
+    dropdown.style.width = `${dropW}px`;
+    dropdown.style.zIndex = '9999';
+
+    dropdown.querySelectorAll('.assignment-dropdown-item').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const raw = (btn as HTMLElement).dataset.assignId ?? '';
+            onSelect(raw === '' ? null : raw);
+            dropdown.remove();
+        });
+    });
+
+    const closeHandler = (e: Event) => {
+        if (!dropdown.contains(e.target as Node)) {
+            dropdown.remove();
+            document.removeEventListener('click', closeHandler, true);
+        }
+    };
+    setTimeout(() => document.addEventListener('click', closeHandler, true), 0);
+};
+
+const reassignTemplate = (templateId: string, newDealershipId: string | null) => {
+    const all = getSavedTemplates();
+    const idx = all.findIndex(t => t.id === templateId);
+    if (idx < 0) return;
+    if (newDealershipId) {
+        all[idx] = { ...all[idx], dealershipId: newDealershipId };
+    } else {
+        const { dealershipId: _, ...rest } = all[idx];
+        all[idx] = rest as SavedTemplate;
+    }
+    localStorage.setItem(LS_TEMPLATES_KEY, JSON.stringify(all));
+    renderSavedTemplates();
+    const dest = newDealershipId ? getDealershipGroups().find(g => g.id === newDealershipId)?.name : 'Global';
+    showToast(`Moved to ${dest}`, 'success');
+};
+
+const reassignLibraryComponent = (compId: string, newDealershipId: string | null) => {
+    const all = getSavedLibraryComponents();
+    const idx = all.findIndex(c => c.id === compId);
+    if (idx < 0) return;
+    if (newDealershipId) {
+        all[idx] = { ...all[idx], dealershipId: newDealershipId };
+    } else {
+        const { dealershipId: _, ...rest } = all[idx];
+        all[idx] = rest as SavedLibraryComponent;
+    }
+    localStorage.setItem(LS_LIBRARY_KEY, JSON.stringify(all));
+    renderComponentLibrary();
+    const dest = newDealershipId ? getDealershipGroups().find(g => g.id === newDealershipId)?.name : 'Global';
+    showToast(`Moved to ${dest}`, 'success');
+};
+
+// Save template modal
+const openSaveTemplateModal = () => {
+    const overlay = document.getElementById('save-template-modal');
+    if (!overlay) return;
+    const nameInput = document.getElementById('save-template-name-input') as HTMLInputElement;
+    if (nameInput) nameInput.value = `Template ${new Date().toLocaleDateString()}`;
+    renderSaveAssignList('save-template-assign-list', activeDealershipId);
+    overlay.classList.add('visible');
+
+    const close = () => overlay.classList.remove('visible');
+
+    document.getElementById('close-save-template-modal')?.replaceWith(
+        (() => { const b = document.getElementById('close-save-template-modal')?.cloneNode(true) as HTMLElement; return b; })()
+    );
+    document.getElementById('cancel-save-template')?.replaceWith(
+        (() => { const b = document.getElementById('cancel-save-template')?.cloneNode(true) as HTMLElement; return b; })()
+    );
+    document.getElementById('confirm-save-template')?.replaceWith(
+        (() => { const b = document.getElementById('confirm-save-template')?.cloneNode(true) as HTMLElement; return b; })()
+    );
+
+    document.getElementById('close-save-template-modal')?.addEventListener('click', close);
+    document.getElementById('cancel-save-template')?.addEventListener('click', close);
+    document.getElementById('confirm-save-template')?.addEventListener('click', () => {
+        const name = (document.getElementById('save-template-name-input') as HTMLInputElement)?.value.trim();
+        if (!name) { showToast('Please enter a template name', 'error'); return; }
+        const dealershipId = getAssignListSelection('save-template-assign-list');
+        const newTemplate: SavedTemplate = {
+            id: Date.now().toString(),
+            name,
+            createdAt: new Date().toISOString(),
+            designSettings: { ...designSettings },
+            components: [...activeComponents],
+            ...(dealershipId ? { dealershipId } : {}),
+        };
+        const templates = getSavedTemplates();
+        templates.unshift(newTemplate);
+        localStorage.setItem(LS_TEMPLATES_KEY, JSON.stringify(templates));
+        renderSavedTemplates();
+        close();
+        const dest = dealershipId ? getDealershipGroups().find(g => g.id === dealershipId)?.name : 'Global';
+        showToast(`Template saved to ${dest}`, 'success');
+    });
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(); }, { once: true });
+};
+
+// Save component modal
+let _pendingComponentId: string | null = null;
+
+const openSaveComponentModal = (componentId: string) => {
+    const comp = activeComponents.find(c => c.id === componentId);
+    if (!comp) return;
+    _pendingComponentId = componentId;
+
+    const overlay = document.getElementById('save-component-modal');
+    if (!overlay) return;
+    const nameInput = document.getElementById('save-component-name-input') as HTMLInputElement;
+    if (nameInput) nameInput.value = `${formatComponentTypeName(comp.type)} ${new Date().toLocaleDateString()}`;
+    renderSaveAssignList('save-component-assign-list', activeDealershipId);
+    overlay.classList.add('visible');
+
+    const close = () => { overlay.classList.remove('visible'); _pendingComponentId = null; };
+
+    document.getElementById('close-save-component-modal')?.replaceWith(
+        (() => { const b = document.getElementById('close-save-component-modal')?.cloneNode(true) as HTMLElement; return b; })()
+    );
+    document.getElementById('cancel-save-component')?.replaceWith(
+        (() => { const b = document.getElementById('cancel-save-component')?.cloneNode(true) as HTMLElement; return b; })()
+    );
+    document.getElementById('confirm-save-component')?.replaceWith(
+        (() => { const b = document.getElementById('confirm-save-component')?.cloneNode(true) as HTMLElement; return b; })()
+    );
+
+    document.getElementById('close-save-component-modal')?.addEventListener('click', close);
+    document.getElementById('cancel-save-component')?.addEventListener('click', close);
+    document.getElementById('confirm-save-component')?.addEventListener('click', () => {
+        const cId = _pendingComponentId;
+        const c = cId ? activeComponents.find(x => x.id === cId) : null;
+        if (!c) { close(); return; }
+        const name = (document.getElementById('save-component-name-input') as HTMLInputElement)?.value.trim();
+        if (!name) { showToast('Please enter a component name', 'error'); return; }
+        const dealershipId = getAssignListSelection('save-component-assign-list');
+        const libraryItem: SavedLibraryComponent = {
+            id: Date.now().toString(),
+            name,
+            type: c.type,
+            data: JSON.parse(JSON.stringify(c.data)),
+            createdAt: new Date().toISOString(),
+            ...(dealershipId ? { dealershipId } : {}),
+        };
+        const library = getSavedLibraryComponents();
+        library.unshift(libraryItem);
+        localStorage.setItem(LS_LIBRARY_KEY, JSON.stringify(library));
+        renderComponentLibrary();
+        close();
+        const dest = dealershipId ? getDealershipGroups().find(g => g.id === dealershipId)?.name : 'Global';
+        showToast(`Component saved to ${dest}`, 'success');
+    });
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(); }, { once: true });
+};
+
+// --- End Dealership Assignment Helpers ---
 
 const getSavedTemplates = (): SavedTemplate[] => {
     try {
@@ -3407,25 +3699,7 @@ const getSavedTemplates = (): SavedTemplate[] => {
     }
 };
 
-const saveTemplate = () => {
-    const name = prompt('Enter a name for this template:', `Template ${new Date().toLocaleDateString()}`);
-    if (!name) return;
-
-    const newTemplate: SavedTemplate = {
-        id: Date.now().toString(),
-        name,
-        createdAt: new Date().toISOString(),
-        designSettings: { ...designSettings },
-        components: [...activeComponents],
-        ...(activeDealershipId ? { dealershipId: activeDealershipId } : {}),
-    };
-
-    const templates = getSavedTemplates();
-    templates.unshift(newTemplate);
-    localStorage.setItem(LS_TEMPLATES_KEY, JSON.stringify(templates));
-    renderSavedTemplates();
-    showToast('Template saved', 'success');
-};
+const saveTemplate = () => openSaveTemplateModal();
 
 const deleteTemplate = (id: string) => {
     const allTemplates = getSavedTemplates();
@@ -3448,6 +3722,10 @@ const loadTemplate = (id: string) => {
     if (template) {
         designSettings = { ...designSettings, ...template.designSettings };
         activeComponents = [...template.components];
+        // Collapse all sections by default when loading a template
+        collapsedStates = {};
+        activeComponents.forEach(c => { collapsedStates[c.id] = true; });
+        saveCollapsedStates();
         if (fontSelect) fontSelect.value = designSettings.fontFamily;
         syncGlobalTextStylesUI();
         saveToHistory();
@@ -3457,14 +3735,152 @@ const loadTemplate = (id: string) => {
     }
 };
 
+const updateTemplateStatus = (id: string, status: TemplateStatus) => {
+    const all = getSavedTemplates();
+    const idx = all.findIndex(t => t.id === id);
+    if (idx < 0) return;
+    all[idx] = { ...all[idx], status };
+    localStorage.setItem(LS_TEMPLATES_KEY, JSON.stringify(all));
+    renderSavedTemplates();
+};
+
+const showStatusDropdown = (anchor: HTMLElement, current: TemplateStatus, onSelect: (s: TemplateStatus) => void) => {
+    document.getElementById('status-dropdown')?.remove();
+    const dropdown = document.createElement('div');
+    dropdown.id = 'status-dropdown';
+    dropdown.className = 'assignment-dropdown';
+
+    dropdown.innerHTML = `
+        <div class="assignment-dropdown-title">Set Status</div>
+        ${TEMPLATE_STATUSES.map(s => `
+            <button class="assignment-dropdown-item${s.value === current ? ' active' : ''}" data-status="${s.value}">
+                <span class="status-dot status-dot--${s.value}"></span>
+                <span>${s.label}</span>
+                ${s.value === current ? '<span class="material-symbols-rounded" style="font-size:13px;margin-left:auto;">check</span>' : ''}
+            </button>`).join('')}
+    `;
+
+    document.body.appendChild(dropdown);
+
+    const rect = anchor.getBoundingClientRect();
+    const dropW = 160;
+    let left = rect.right - dropW;
+    let top = rect.bottom + 4;
+    if (left < 8) left = 8;
+    if (top + 220 > window.innerHeight) top = rect.top - 224;
+    dropdown.style.cssText = `position:fixed;top:${top}px;left:${left}px;width:${dropW}px;z-index:9999;`;
+
+    dropdown.querySelectorAll('.assignment-dropdown-item').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            onSelect((btn as HTMLElement).dataset.status as TemplateStatus);
+            dropdown.remove();
+        });
+    });
+    const closeHandler = (e: Event) => {
+        if (!dropdown.contains(e.target as Node)) {
+            dropdown.remove();
+            document.removeEventListener('click', closeHandler, true);
+        }
+    };
+    setTimeout(() => document.addEventListener('click', closeHandler, true), 0);
+};
+
 const renderSavedTemplates = () => {
-    const allTemplates = getSavedTemplates();
-    // Show templates belonging to active dealership OR global templates (no dealershipId)
-    const templates = allTemplates.filter(t =>
-        !t.dealershipId || t.dealershipId === activeDealershipId
-    );
     if (!savedTemplatesList) return;
 
+    const allTemplates = getSavedTemplates();
+    // 1. Dealership scope filter
+    const scopedTemplates = allTemplates.filter(t =>
+        !t.dealershipId || t.dealershipId === activeDealershipId
+    );
+
+    // 2. Render controls (search + status chips + sort) into #template-controls
+    const controlsEl = document.getElementById('template-controls');
+    if (controlsEl) {
+        // Count per status for badge numbers
+        const statusCounts: Record<string, number> = { all: scopedTemplates.length };
+        TEMPLATE_STATUSES.forEach(s => {
+            statusCounts[s.value] = scopedTemplates.filter(t => (t.status ?? 'open') === s.value).length;
+        });
+
+        controlsEl.innerHTML = `
+            <div class="template-toolbar">
+                <div class="template-search-wrap">
+                    <span class="material-symbols-rounded template-search-icon">search</span>
+                    <input type="text" id="template-search-input" class="template-search-input"
+                        placeholder="Search templates…" value="${templateSearchQuery.replace(/"/g, '&quot;')}">
+                    ${templateSearchQuery ? `<button class="template-search-clear" id="template-search-clear" title="Clear">
+                        <span class="material-symbols-rounded" style="font-size:14px;">close</span>
+                    </button>` : ''}
+                </div>
+                <div class="template-sort-wrap">
+                    <select id="template-sort-select" class="template-sort-select">
+                        <option value="date-desc" ${templateSortBy === 'date-desc' ? 'selected' : ''}>Newest</option>
+                        <option value="date-asc"  ${templateSortBy === 'date-asc'  ? 'selected' : ''}>Oldest</option>
+                        <option value="name-asc"  ${templateSortBy === 'name-asc'  ? 'selected' : ''}>Name A–Z</option>
+                        <option value="name-desc" ${templateSortBy === 'name-desc' ? 'selected' : ''}>Name Z–A</option>
+                        <option value="status"    ${templateSortBy === 'status'    ? 'selected' : ''}>By Status</option>
+                    </select>
+                </div>
+            </div>
+            <div class="template-status-filter-bar">
+                <button class="tpl-status-chip ${templateStatusFilter === 'all' ? 'tpl-status-chip--active' : ''}" data-status="all">
+                    All <span class="tpl-status-chip-count">${statusCounts.all}</span>
+                </button>
+                ${TEMPLATE_STATUSES.map(s => `
+                <button class="tpl-status-chip tpl-status-chip--${s.value} ${templateStatusFilter === s.value ? 'tpl-status-chip--active' : ''}" data-status="${s.value}">
+                    ${s.label} <span class="tpl-status-chip-count">${statusCounts[s.value]}</span>
+                </button>`).join('')}
+            </div>
+        `;
+
+        // Wire controls
+        const searchInput = controlsEl.querySelector('#template-search-input') as HTMLInputElement;
+        searchInput?.addEventListener('input', () => {
+            templateSearchQuery = searchInput.value;
+            renderSavedTemplates();
+        });
+        controlsEl.querySelector('#template-search-clear')?.addEventListener('click', () => {
+            templateSearchQuery = '';
+            renderSavedTemplates();
+        });
+        (controlsEl.querySelector('#template-sort-select') as HTMLSelectElement)?.addEventListener('change', e => {
+            templateSortBy = (e.target as HTMLSelectElement).value as typeof templateSortBy;
+            renderSavedTemplates();
+        });
+        controlsEl.querySelectorAll('.tpl-status-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                templateStatusFilter = (chip as HTMLElement).dataset.status as typeof templateStatusFilter;
+                renderSavedTemplates();
+            });
+        });
+    }
+
+    // 3. Apply search
+    const query = templateSearchQuery.trim().toLowerCase();
+    let templates = query
+        ? scopedTemplates.filter(t => t.name.toLowerCase().includes(query))
+        : scopedTemplates;
+
+    // 4. Apply status filter
+    if (templateStatusFilter !== 'all') {
+        templates = templates.filter(t => (t.status ?? 'open') === templateStatusFilter);
+    }
+
+    // 5. Sort
+    const STATUS_ORDER: Record<TemplateStatus, number> = { open: 0, building: 1, review: 2, pending: 3, approved: 4 };
+    templates = [...templates].sort((a, b) => {
+        switch (templateSortBy) {
+            case 'date-asc':  return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+            case 'name-asc':  return a.name.localeCompare(b.name);
+            case 'name-desc': return b.name.localeCompare(a.name);
+            case 'status':    return STATUS_ORDER[a.status ?? 'open'] - STATUS_ORDER[b.status ?? 'open'];
+            default:          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        }
+    });
+
+    // 6. Render list
     const groups = getDealershipGroups();
     const activeName = activeDealershipId ? groups.find(g => g.id === activeDealershipId)?.name : null;
     const contextLabel = activeName
@@ -3472,31 +3888,60 @@ const renderSavedTemplates = () => {
         : '';
 
     if (templates.length === 0) {
-        savedTemplatesList.innerHTML = `
-            ${contextLabel}
-            <p class="text-sm" style="color: var(--label-secondary); text-align: center;">No saved templates found.</p>`;
+        const msg = query || templateStatusFilter !== 'all' ? 'No templates match your filters.' : 'No saved templates found.';
+        savedTemplatesList.innerHTML = `${contextLabel}<p class="text-sm" style="color:var(--label-secondary);text-align:center;">${msg}</p>`;
         return;
     }
+
     savedTemplatesList.innerHTML = contextLabel + templates.map(t => {
+        const status: TemplateStatus = t.status ?? 'open';
+        const statusLabel = TEMPLATE_STATUSES.find(s => s.value === status)?.label ?? 'Open';
         const isTagged = !!t.dealershipId;
         return `
-        <div class="library-card">
-            <div class="library-card-info">
-                <h4 class="library-card-name">${t.name}</h4>
-                <p class="library-card-meta">
-                    ${!isTagged ? '<span class="global-badge">Global</span> ' : ''}
-                    ${new Date(t.createdAt).toLocaleString()}
-                </p>
+        <div class="library-card tpl-card">
+            <div class="tpl-card-top">
+                <h4 class="library-card-name tpl-card-name">${t.name}</h4>
+                <div class="tpl-card-actions">
+                    <button class="btn btn-ghost load-tpl-btn" data-id="${t.id}" data-tooltip="Load Template">
+                        <span class="material-symbols-rounded" style="font-size:16px;">file_open</span>
+                    </button>
+                    <button class="btn btn-ghost move-tpl-btn" data-id="${t.id}" data-dealership="${t.dealershipId ?? ''}" data-tooltip="Move to…">
+                        <span class="material-symbols-rounded" style="font-size:16px;">move_item</span>
+                    </button>
+                    <button class="btn btn-ghost tpl-del-btn del-tpl-btn" data-id="${t.id}" data-tooltip="Delete">
+                        <span class="material-symbols-rounded" style="font-size:16px;">delete_forever</span>
+                    </button>
+                    <button class="status-badge status-badge--${status} tpl-status-btn" data-id="${t.id}" data-status="${status}" data-tooltip="Change status">
+                        ${statusLabel}
+                    </button>
+                </div>
             </div>
-            <div class="library-card-actions">
-                <button class="btn btn-primary btn-sm load-tpl-btn" data-id="${t.id}">Load</button>
-                <button class="btn btn-ghost btn-sm del-tpl-btn" data-id="${t.id}" style="color: var(--destructive);">Delete</button>
-            </div>
+            <p class="library-card-meta tpl-card-meta">
+                ${!isTagged ? '<span class="global-badge">Global</span>' : ''}
+                <span>${new Date(t.createdAt).toLocaleString()}</span>
+            </p>
         </div>`;
     }).join('');
 
+    // Wire card actions
+    savedTemplatesList.querySelectorAll('.tpl-status-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const id = (btn as HTMLElement).dataset.id!;
+            const cur = (btn as HTMLElement).dataset.status as TemplateStatus;
+            showStatusDropdown(btn as HTMLElement, cur, s => updateTemplateStatus(id, s));
+        });
+    });
     savedTemplatesList.querySelectorAll('.load-tpl-btn').forEach(btn => {
         btn.addEventListener('click', () => loadTemplate(btn.getAttribute('data-id') || ''));
+    });
+    savedTemplatesList.querySelectorAll('.move-tpl-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const id = btn.getAttribute('data-id') || '';
+            const curD = btn.getAttribute('data-dealership') || null;
+            showAssignmentDropdown(btn as HTMLElement, curD || null, newId => reassignTemplate(id, newId));
+        });
     });
     savedTemplatesList.querySelectorAll('.del-tpl-btn').forEach(btn => {
         btn.addEventListener('click', () => deleteTemplate(btn.getAttribute('data-id') || ''));
@@ -3515,29 +3960,7 @@ const getSavedLibraryComponents = (): SavedLibraryComponent[] => {
     }
 };
 
-const saveComponentToLibrary = (id: string) => {
-    const comp = activeComponents.find(c => c.id === id);
-    if (!comp) return;
-
-    const defaultName = `${formatComponentTypeName(comp.type)} ${new Date().toLocaleDateString()}`;
-    const name = prompt('Save to Component Library.\nEnter a name for this component:', defaultName);
-    if (!name) return;
-
-    const libraryItem: SavedLibraryComponent = {
-        id: Date.now().toString(),
-        name,
-        type: comp.type,
-        data: JSON.parse(JSON.stringify(comp.data)),
-        createdAt: new Date().toISOString(),
-        ...(activeDealershipId ? { dealershipId: activeDealershipId } : {}),
-    };
-
-    const library = getSavedLibraryComponents();
-    library.unshift(libraryItem);
-    localStorage.setItem(LS_LIBRARY_KEY, JSON.stringify(library));
-    renderComponentLibrary();
-    showToast('Component saved to library', 'success');
-};
+const saveComponentToLibrary = (id: string) => openSaveComponentModal(id);
 
 const addComponentFromLibrary = (libraryId: string) => {
     const library = getSavedLibraryComponents();
@@ -3629,27 +4052,42 @@ const renderComponentLibrary = () => {
     }
 
     componentLibraryList.innerHTML = filtered.map(item => `
-        <div class="library-card">
-            <div class="library-card-info">
-                <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
-                    <span class="material-symbols-rounded" style="font-size: 16px; color: var(--label-secondary);">${getComponentTypeIcon(item.type)}</span>
-                    <h4 class="library-card-name">${item.name}</h4>
+        <div class="library-card lib-card">
+            <div class="lib-card-top">
+                <div class="lib-card-title">
+                    <span class="material-symbols-rounded" style="font-size:14px;color:var(--label-tertiary);flex-shrink:0;">${getComponentTypeIcon(item.type)}</span>
+                    <span class="lib-card-title-text">${item.name}</span>
                 </div>
-                <div class="library-card-meta">
-                    <span class="library-type-badge">${formatComponentTypeName(item.type)}</span>
-                    ${!item.dealershipId ? '<span class="global-badge">Global</span>' : ''}
-                    <span>${new Date(item.createdAt).toLocaleDateString()}</span>
+                <div class="lib-card-actions">
+                    <button class="btn btn-ghost add-from-library-btn" data-id="${item.id}" data-tooltip="Add Component">
+                        <span class="material-symbols-rounded" style="font-size:15px;">library_add</span>
+                    </button>
+                    <button class="btn btn-ghost move-lib-btn" data-id="${item.id}" data-dealership="${item.dealershipId ?? ''}" data-tooltip="Move to…">
+                        <span class="material-symbols-rounded" style="font-size:15px;">move_item</span>
+                    </button>
+                    <button class="btn btn-ghost lib-del-btn del-library-btn" data-id="${item.id}" data-tooltip="Delete">
+                        <span class="material-symbols-rounded" style="font-size:15px;">delete_forever</span>
+                    </button>
                 </div>
             </div>
-            <div class="library-card-actions">
-                <button class="btn btn-primary btn-sm add-from-library-btn" data-id="${item.id}">Add</button>
-                <button class="btn btn-ghost btn-sm del-library-btn" data-id="${item.id}" style="color: var(--destructive);">Delete</button>
+            <div class="library-card-meta lib-card-meta">
+                <span class="library-type-badge">${formatComponentTypeName(item.type)}</span>
+                ${!item.dealershipId ? '<span class="global-badge">Global</span>' : ''}
+                <span>${new Date(item.createdAt).toLocaleDateString()}</span>
             </div>
         </div>
     `).join('');
 
     componentLibraryList.querySelectorAll('.add-from-library-btn').forEach(btn => {
         btn.addEventListener('click', () => addComponentFromLibrary(btn.getAttribute('data-id') || ''));
+    });
+    componentLibraryList.querySelectorAll('.move-lib-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const id = btn.getAttribute('data-id') || '';
+            const currentDealership = btn.getAttribute('data-dealership') || null;
+            showAssignmentDropdown(btn as HTMLElement, currentDealership || null, newId => reassignLibraryComponent(id, newId));
+        });
     });
     componentLibraryList.querySelectorAll('.del-library-btn').forEach(btn => {
         btn.addEventListener('click', () => deleteLibraryComponent(btn.getAttribute('data-id') || ''));
