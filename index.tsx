@@ -1509,6 +1509,7 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
             ${generateSubOffersHtml(comp, suffix)}
         </div>
 
+        <div class="compact-separator"><span>Details</span></div>
         <div class="form-group">
             <textarea class="form-control" data-key="disclaimerText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="disclaimer${suffix}" data-field-label="Disclaimer" placeholder="Disclaimer">${d[`disclaimerText${suffix}`] || ''}</textarea>
         </div>
