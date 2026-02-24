@@ -1163,7 +1163,7 @@ textarea.form-control.compact {
   top: 0;
   right: 0;
   bottom: 0;
-  width: 420px;
+  width: 520px;
   height: 100vh;
   background: var(--background-primary);
   border-left: 1px solid var(--separator-secondary);
@@ -2784,6 +2784,8 @@ textarea.form-control.compact {
   cursor: pointer;
 }
 .tpl-card-actions .btn-ghost:hover { color: var(--label-primary); background: var(--fill-tertiary); }
+.tpl-card-actions .load-tpl-btn:hover { color: #007aff !important; }
+.tpl-card-actions .move-tpl-btn:hover { color: #34c759 !important; }
 .tpl-card-actions .tpl-del-btn:hover { color: var(--destructive) !important; }
 .tpl-card-meta {
   margin-bottom: 0;
