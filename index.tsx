@@ -3797,6 +3797,33 @@ const getSavedTemplates = (): SavedTemplate[] => {
 
 const saveTemplate = () => openSaveTemplateModal();
 
+const startNewTemplate = () => {
+    activeComponents = [];
+    activeTemplateId = null;
+    selectedComponentId = null;
+    collapsedStates = {};
+    designSettings = {
+        fontFamily: "'Arial', sans-serif",
+        buttonStyle: 'rounded',
+        offersLayout: 'list',
+        globalBodyColor: '#1d1d1f',
+        globalLinkColor: '#007aff',
+        globalFontSize: '14',
+        colorScheme: 'classic',
+        preheaderText: '',
+    };
+    if (fontSelect) fontSelect.value = designSettings.fontFamily;
+    if (preheaderInput) preheaderInput.value = '';
+    syncGlobalTextStylesUI();
+    saveCollapsedStates();
+    saveToHistory();
+    renderComponents();
+    saveDraft();
+    renderSaveTemplateBtnArea();
+    renderSavedTemplates();
+    showToast('Started new blank template', 'success');
+};
+
 const updateActiveTemplate = () => {
     if (!activeTemplateId) return;
     const all = getSavedTemplates();
@@ -3851,6 +3878,18 @@ const renderSaveTemplateBtnArea = () => {
         } else {
             updateQuickBtn.style.display = 'none';
             updateQuickBtn.onclick = null;
+        }
+    }
+
+    // --- Toolbar new-template button ---
+    const newTemplateQuickBtn = document.getElementById('new-template-quick-btn') as HTMLButtonElement | null;
+    if (newTemplateQuickBtn) {
+        if (activeTemplateId) {
+            newTemplateQuickBtn.style.display = '';
+            newTemplateQuickBtn.onclick = startNewTemplate;
+        } else {
+            newTemplateQuickBtn.style.display = 'none';
+            newTemplateQuickBtn.onclick = null;
         }
     }
 };
