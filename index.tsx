@@ -13,6 +13,7 @@ interface DesignSettings {
   globalLinkColor: string;
   globalFontSize: string;
   colorScheme?: string;
+  preheaderText?: string;
 }
 
 const COLOR_SCHEMES = [
@@ -350,6 +351,7 @@ const floatingPanelBtn = document.getElementById('floating-panel-btn');
 
 // Design Settings Controls
 const fontSelect = document.getElementById('design-font-family') as HTMLSelectElement;
+const preheaderInput = document.getElementById('design-preheader-text') as HTMLInputElement;
 
 // Saved Template Elements
 const saveTemplateBtn = document.getElementById('save-template-btn') as HTMLButtonElement;
@@ -610,6 +612,11 @@ fontSelect?.addEventListener('change', () => {
     saveDraft();
     saveToHistory();
     showToast('Font updated', 'success');
+});
+
+preheaderInput?.addEventListener('input', () => {
+    designSettings.preheaderText = preheaderInput.value;
+    saveDraft();
 });
 
 // View Toggles
@@ -2333,7 +2340,7 @@ const renderComponents = () => {
         item.querySelectorAll('input[data-key="src"], input[data-key="link"], input[data-key="imageLink"], input[data-key="imageLink2"], input[data-key="imageUrl"], input[data-key="imageUrl2"], input[data-key="imageSrc"], input[data-key="imageSrc2"], input[data-key="buttonLink"], input[data-key="buttonLink2"], input[data-key="btnLink"], input[data-key="btnLink2"]').forEach(input => {
             const doValidate = () => {
                 const val = (input as HTMLInputElement).value.trim();
-                const isValid = !val || val.startsWith('http://') || val.startsWith('https://') || val.startsWith('data:') || val.startsWith('mailto:') || val.startsWith('tel:');
+                const isValid = !val || val.startsWith('http://') || val.startsWith('https://') || val.startsWith('mailto:') || val.startsWith('tel:');
                 input.classList.toggle('url-invalid', !isValid);
             };
             let validateTimer: number;
@@ -2448,7 +2455,7 @@ function generateEmailHtml(): string {
       const txt = DOMPurify.sanitize(d.text || '');
       sectionsHtml += `
         <tr>
-            <td align="${d.textAlign || 'left'}" bgcolor="${isTransparent ? '' : d.backgroundColor}" style="${styles}">
+            <td align="${d.textAlign || 'left'}" ${isTransparent ? '' : `bgcolor="${d.backgroundColor}"`} style="${styles}">
                 <div style="font-family: ${designSettings.fontFamily}; color: ${d.textColor || '#000'}; font-size: ${d.fontSize || 16}px;">
                     ${txt.replace(/\n/g, '<br>')}
                 </div>
@@ -2463,7 +2470,7 @@ function generateEmailHtml(): string {
         if (d.link) imgTag = `<a href="${DOMPurify.sanitize(d.link)}" target="_blank" style="text-decoration: none;">${imgTag}</a>`;
         sectionsHtml += `
             <tr>
-                <td align="${d.align || 'center'}" bgcolor="${isTransparent ? '' : d.backgroundColor}" style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
+                <td align="${d.align || 'center'}" ${isTransparent ? '' : `bgcolor="${d.backgroundColor}"`} style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
                     <div style="display: block; width: 100%; max-width: ${styleWidth};">${imgTag}</div>
                 </td>
             </tr>
@@ -2584,7 +2591,7 @@ function generateEmailHtml(): string {
         
         sectionsHtml += `
             <tr>
-                <td style="height: ${height}px; line-height: ${height}px; font-size: 0; ${bgStyle}">
+                <td height="${height}" style="height: ${height}px; line-height: ${height}px; font-size: 0; mso-line-height-rule: exactly; ${bgStyle}">
                     &nbsp;
                 </td>
             </tr>
@@ -2832,7 +2839,7 @@ function generateEmailHtml(): string {
   });
 
   return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -2926,6 +2933,8 @@ function generateEmailHtml(): string {
     </style>
 </head>
 <body style="margin: 0; padding: 0; width: 100%; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; background-color: #f5f5f7;">
+    ${designSettings.preheaderText ? `<!-- Preheader text -->
+    <div style="display:none;font-size:1px;color:#fefefe;line-height:1px;font-family:Arial,sans-serif;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">${DOMPurify.sanitize(designSettings.preheaderText)}</div>` : ''}
     <!-- 100% background wrapper -->
     <table border="0" cellpadding="0" cellspacing="0" width="100%" id="bodyTable" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; margin: 0; padding: 0; width: 100%; height: 100%; background-color: #f5f5f7;">
         <tr>
@@ -3034,9 +3043,8 @@ emailForm.addEventListener('submit', (e: Event) => {
 });
 
 copyBtn?.addEventListener('click', async () => {
-  const codeBlock = document.getElementById('code-block') as HTMLElement;
   try {
-    const html = (codeBlock.textContent || '').replace(/[ \t]*<title>Email<\/title>\n?/g, '');
+    const html = generateEmailHtml().replace(/[ \t]*<title>Email<\/title>\n?/g, '');
     await navigator.clipboard.writeText(html);
     showToast('Copied to clipboard', 'success');
   } catch (err) { console.error(err); }
@@ -3138,6 +3146,7 @@ const setActiveDealership = (id: string | null) => {
                     ...(group.defaultButtonStyle ? { buttonStyle: group.defaultButtonStyle as DesignSettings['buttonStyle'] } : {}),
                 };
                 if (fontSelect) fontSelect.value = designSettings.fontFamily;
+                if (preheaderInput) preheaderInput.value = designSettings.preheaderText || '';
                 syncGlobalTextStylesUI();
             }
         }
@@ -3727,6 +3736,7 @@ const loadTemplate = (id: string) => {
         activeComponents.forEach(c => { collapsedStates[c.id] = true; });
         saveCollapsedStates();
         if (fontSelect) fontSelect.value = designSettings.fontFamily;
+        if (preheaderInput) preheaderInput.value = designSettings.preheaderText || '';
         syncGlobalTextStylesUI();
         saveToHistory();
         renderComponents();
@@ -4215,6 +4225,7 @@ const loadDraft = (dealershipId?: string | null) => {
                 designSettings = { ...designSettings, ...draft.designSettings };
                 activeComponents = draft.activeComponents;
                 if (fontSelect) fontSelect.value = designSettings.fontFamily;
+                if (preheaderInput) preheaderInput.value = designSettings.preheaderText || '';
                 renderComponents();
             }
         }
@@ -5092,6 +5103,7 @@ const executeUndo = () => {
         designSettings = structuredClone(commandHistory[commandHistoryIndex].designSettings);
         renderComponents();
         if (fontSelect) fontSelect.value = designSettings.fontFamily;
+        if (preheaderInput) preheaderInput.value = designSettings.preheaderText || '';
         saveDraft();
         showToast('Undo', 'info');
     } else {
@@ -5106,6 +5118,7 @@ const executeRedo = () => {
         designSettings = structuredClone(commandHistory[commandHistoryIndex].designSettings);
         renderComponents();
         if (fontSelect) fontSelect.value = designSettings.fontFamily;
+        if (preheaderInput) preheaderInput.value = designSettings.preheaderText || '';
         saveDraft();
         showToast('Redo', 'info');
     } else {
