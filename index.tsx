@@ -104,19 +104,19 @@ const CONTENT_KEYS: Record<string, string[]> = {
     divider:       [],
     spacer:        [],
     service_offer: [
-        'showImage', 'imageUrl', 'imageAlt', 'imageLink',
+        'imageUrl', 'imageAlt', 'imageLink',
         'serviceTitle', 'couponCode', 'serviceDetails', 'disclaimer',
         'buttonText', 'buttonLink',
-        'showImage2', 'imageUrl2', 'imageAlt2', 'imageLink2',
+        'imageUrl2', 'imageAlt2', 'imageLink2',
         'serviceTitle2', 'couponCode2', 'serviceDetails2', 'disclaimer2',
         'buttonText2', 'buttonLink2',
     ],
     sales_offer: [
-        'imageEnabled', 'imageSrc', 'imageAlt', 'imageLink', 'imageWidth',
+        'imageSrc', 'imageAlt', 'imageLink', 'imageWidth',
         'vehicleText', 'mainOfferText', 'detailsText',
         'stockVinType', 'stockVinValue', 'mileageValue',
         'disclaimerText', 'additionalOffers', 'btnText', 'btnLink',
-        'imageEnabled2', 'imageSrc2', 'imageAlt2', 'imageLink2', 'imageWidth2',
+        'imageSrc2', 'imageAlt2', 'imageLink2', 'imageWidth2',
         'vehicleText2', 'mainOfferText2', 'detailsText2',
         'stockVinType2', 'stockVinValue2', 'mileageValue2',
         'disclaimerText2', 'additionalOffers2', 'btnText2', 'btnLink2',
@@ -1109,12 +1109,12 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
         case 'service_offer':
             return {
                 layout: 'center',
-                showImage: 'false', imageUrl: '', imageAlt: '', imageLink: '',
+                imageUrl: '', imageAlt: '', imageLink: '',
                 serviceTitle: 'Oil Change Special', couponCode: 'OILCHANGE50',
                 serviceDetails: 'Get $50 off your next oil change service. Includes up to 5 quarts of synthetic blend oil and filter replacement.',
                 disclaimer: '*Valid at participating dealers only. Cannot be combined with other offers.',
                 buttonText: 'Schedule Now', buttonLink: '',
-                showImage2: 'false', imageUrl2: '', imageAlt2: '', imageLink2: '',
+                imageUrl2: '', imageAlt2: '', imageLink2: '',
                 serviceTitle2: 'Tire Rotation Deal', couponCode2: 'TIRES25',
                 serviceDetails2: 'Get $25 off your next tire rotation. Keep your tires wearing evenly and extend their life.',
                 disclaimer2: '*Valid at participating dealers only. Cannot be combined with other offers.',
@@ -1138,7 +1138,7 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
         case 'sales_offer':
             return {
                 layout: 'center',
-                imageEnabled: 'true', imageSrc: 'https://via.placeholder.com/600x300', imageAlt: 'New Sales Offer', imageLink: '', imageWidth: '100%',
+                imageSrc: 'https://via.placeholder.com/600x300', imageAlt: 'New Sales Offer', imageLink: '', imageWidth: '100%',
                 vehicleText: 'New {{customer.last_transaction.vehicle.year}} {{customer.last_transaction.vehicle.make}} {{customer.last_transaction.vehicle.model}}',
                 mainOfferText: '$2,500 Trade-In Bonus',
                 detailsText: 'Upgrade your current ride today with our exclusive seasonal offer.',
@@ -1146,7 +1146,7 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 mileageValue: '{{customer.last_transaction.vehicle.mileage}}', showIdentifiers: 'true',
                 disclaimerText: '*Terms and conditions apply. Offer valid through end of month.',
                 additionalOffers: '[]', btnText: 'View Details', btnLink: '{{dealership.tracked_website_homepage_url}}',
-                imageEnabled2: 'true', imageSrc2: 'https://via.placeholder.com/600x300', imageAlt2: 'Used Sales Offer', imageLink2: '', imageWidth2: '100%',
+                imageSrc2: 'https://via.placeholder.com/600x300', imageAlt2: 'Used Sales Offer', imageLink2: '', imageWidth2: '100%',
                 vehicleText2: 'Pre-Owned Vehicle Special', mainOfferText2: 'Low APR Financing',
                 detailsText2: 'Get behind the wheel of a quality pre-owned vehicle with great financing options.',
                 stockVinType2: 'stock', stockVinValue2: '', mileageValue2: '', showIdentifiers2: 'true',
@@ -1230,8 +1230,6 @@ const clearComponentContent = (id: string) => {
 
         if (key === 'additionalOffers' || key === 'additionalOffers2' || key === 'links') {
             comp.data[key] = '[]';
-        } else if (key === 'showImage' || key === 'showImage2' || key === 'imageEnabled' || key === 'imageEnabled2') {
-            comp.data[key] = 'false';
         } else if (key === 'stockVinType' || key === 'stockVinType2') {
             comp.data[key] = 'stock';
         } else {
@@ -1369,37 +1367,23 @@ const selectComponent = (id: string | null) => {
 // --- START: Fix for missing functions
 function generateServiceOfferFormHtml(comp: EmailComponent, suffix: string): string {
     const d = comp.data;
-    const isChecked = d[`showImage${suffix}`] === 'true';
-    const displayStyle = isChecked ? 'flex' : 'none';
 
     const imgUrl = d[`imageUrl${suffix}`] || '';
     return `
         <div class="offer-img-row">
-            <div class="offer-img-toggle">
-                <label class="form-label">Image</label>
-                <div class="toggle-switch-group">
-                    <div class="toggle-switch compact">
-                        <input type="checkbox" id="show-image-${comp.id}-${suffix || '1'}" class="toggle-switch-checkbox" data-key="showImage${suffix}" ${isChecked ? 'checked' : ''}>
-                        <label for="show-image-${comp.id}-${suffix || '1'}" class="toggle-switch-label"></label>
-                    </div>
-                </div>
-            </div>
-            <div id="service-image-fields-${comp.id}-${suffix || '1'}" class="offer-img-fields" style="display: ${displayStyle};">
+            <div class="offer-img-fields" style="display: flex;">
                 <div class="img-field-group">
-                    <label class="form-label">URL</label>
                     <div class="img-url-inner">
-                        <input type="text" class="form-control compact" data-key="imageUrl${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferImage${suffix}" data-field-label="Image ${suffix || '1'}" value="${imgUrl}" placeholder="https://...">
+                        <input type="text" class="form-control compact" data-key="imageUrl${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferImage${suffix}" data-field-label="Image ${suffix || '1'}" value="${imgUrl}" placeholder="Image URL">
                         <button type="button" class="btn btn-secondary btn-sm upload-btn"><span class="material-symbols-rounded">upload</span></button>
                         <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="${suffix || '1'}">
                     </div>
                 </div>
                 <div class="img-field-group">
-                    <label class="form-label">Alt</label>
-                    <input type="text" class="form-control compact" data-key="imageAlt${suffix}" value="${d[`imageAlt${suffix}`] || ''}" placeholder="Description">
+                    <input type="text" class="form-control compact" data-key="imageAlt${suffix}" value="${d[`imageAlt${suffix}`] || ''}" placeholder="Image Alt Text">
                 </div>
                 <div class="img-field-group">
-                    <label class="form-label">Link</label>
-                    <input type="text" class="form-control compact" data-key="imageLink${suffix}" value="${d[`imageLink${suffix}`] || ''}" placeholder="https://...">
+                    <input type="text" class="form-control compact" data-key="imageLink${suffix}" value="${d[`imageLink${suffix}`] || ''}" placeholder="Image Link">
                 </div>
             </div>
         </div>
@@ -1408,31 +1392,25 @@ function generateServiceOfferFormHtml(comp: EmailComponent, suffix: string): str
         </div>
         <div class="compact-separator"><span>Content</span></div>
         <div class="form-group">
-            <label class="form-label">Title</label>
-            <input type="text" class="form-control compact" data-key="serviceTitle${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferTitle${suffix}" data-field-label="Service Title ${suffix || '1'}" value="${d[`serviceTitle${suffix}`] || ''}" placeholder="e.g. Oil Change Special">
+            <input type="text" class="form-control compact" data-key="serviceTitle${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferTitle${suffix}" data-field-label="Service Title ${suffix || '1'}" value="${d[`serviceTitle${suffix}`] || ''}" placeholder="Title">
         </div>
         <div class="form-group">
-            <label class="form-label">Coupon Code</label>
-            <input type="text" class="form-control compact" data-key="couponCode${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferCoupon${suffix}" data-field-label="Coupon Code ${suffix || '1'}" value="${d[`couponCode${suffix}`] || ''}" placeholder="e.g. SAVE20">
+            <input type="text" class="form-control compact" data-key="couponCode${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferCoupon${suffix}" data-field-label="Coupon Code ${suffix || '1'}" value="${d[`couponCode${suffix}`] || ''}" placeholder="Coupon Code">
         </div>
         <div class="compact-separator"><span>Details</span></div>
         <div class="form-group">
-            <label class="form-label">Details</label>
-            <textarea class="form-control" data-key="serviceDetails${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferDetails${suffix}" data-field-label="Service Details ${suffix || '1'}" placeholder="Describe the service offer...">${d[`serviceDetails${suffix}`] || ''}</textarea>
+            <textarea class="form-control" data-key="serviceDetails${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferDetails${suffix}" data-field-label="Service Details ${suffix || '1'}" placeholder="Details">${d[`serviceDetails${suffix}`] || ''}</textarea>
         </div>
         <div class="form-group">
-            <label class="form-label">Disclaimer</label>
-            <textarea class="form-control" data-key="disclaimer${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferDisclaimer${suffix}" data-field-label="Disclaimer ${suffix || '1'}" placeholder="Terms and conditions...">${d[`disclaimer${suffix}`] || ''}</textarea>
+            <textarea class="form-control" data-key="disclaimer${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferDisclaimer${suffix}" data-field-label="Disclaimer ${suffix || '1'}" placeholder="Disclaimer">${d[`disclaimer${suffix}`] || ''}</textarea>
         </div>
         <div class="compact-separator"><span>Action</span></div>
         <div class="component-row component-row--keep-inline">
             <div class="component-row-item">
-                <label class="form-label">Btn Text</label>
-                <input type="text" class="form-control compact" data-key="buttonText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferButton${suffix}" data-field-label="Button ${suffix || '1'} Text" value="${d[`buttonText${suffix}`] || ''}" placeholder="e.g. Schedule Now">
+                <input type="text" class="form-control compact" data-key="buttonText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferButton${suffix}" data-field-label="Button ${suffix || '1'} Text" value="${d[`buttonText${suffix}`] || ''}" placeholder="Button Text">
             </div>
             <div class="component-row-item">
-                <label class="form-label">Btn Link</label>
-                <input type="text" class="form-control compact" data-key="buttonLink${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferButton${suffix}" data-field-label="Button ${suffix || '1'} Link" value="${d[`buttonLink${suffix}`] || ''}" placeholder="https://...">
+                <input type="text" class="form-control compact" data-key="buttonLink${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="serviceOfferButton${suffix}" data-field-label="Button ${suffix || '1'} Link" value="${d[`buttonLink${suffix}`] || ''}" placeholder="Button Link">
             </div>
         </div>
     `;
@@ -1457,16 +1435,13 @@ function generateSubOffersHtml(comp: EmailComponent, suffix: string): string {
             </div>
             <div class="sub-offer-body">
                 <div class="form-group">
-                    <label class="form-label">Separator Text</label>
-                    <input type="text" class="form-control compact sub-offer-field" data-index="${index}" data-offer-index="${suffix || '1'}" data-field="separator" value="${offer.separator || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="separator${suffix}" data-sub-offer-index="${index}" data-field-label="Separator">
+                    <input type="text" class="form-control compact sub-offer-field" data-index="${index}" data-offer-index="${suffix || '1'}" data-field="separator" value="${offer.separator || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="separator${suffix}" data-sub-offer-index="${index}" data-field-label="Separator" placeholder="Separator Text">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Offer Title</label>
-                    <input type="text" class="form-control compact sub-offer-field" data-index="${index}" data-offer-index="${suffix || '1'}" data-field="offer" value="${offer.offer || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="offer${suffix}" data-sub-offer-index="${index}" data-field-label="Offer Title">
+                    <input type="text" class="form-control compact sub-offer-field" data-index="${index}" data-offer-index="${suffix || '1'}" data-field="offer" value="${offer.offer || ''}" data-stylable="true" data-component-id="${comp.id}" data-field-key="offer${suffix}" data-sub-offer-index="${index}" data-field-label="Offer Title" placeholder="Offer Title">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Details</label>
-                    <textarea class="form-control compact sub-offer-field" data-index="${index}" data-offer-index="${suffix || '1'}" data-field="details" data-stylable="true" data-component-id="${comp.id}" data-field-key="details${suffix}" data-sub-offer-index="${index}" data-field-label="Offer Details">${offer.details || ''}</textarea>
+                    <textarea class="form-control compact sub-offer-field" data-index="${index}" data-offer-index="${suffix || '1'}" data-field="details" data-stylable="true" data-component-id="${comp.id}" data-field-key="details${suffix}" data-sub-offer-index="${index}" data-field-label="Offer Details" placeholder="Details">${offer.details || ''}</textarea>
                 </div>
             </div>
         </div>
@@ -1488,36 +1463,22 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
     let html = '';
 
     if (suffix === '2' || isGrid) {
-        const isChecked = d[`imageEnabled${suffix}`] === 'true';
-        const displayStyle = isChecked ? 'flex' : 'none';
         const salesImgUrl = d[`imageSrc${suffix}`] || '';
         html += `
             <div class="offer-img-row">
-                <div class="offer-img-toggle">
-                    <label class="form-label">Image</label>
-                    <div class="toggle-switch-group">
-                        <div class="toggle-switch compact">
-                            <input type="checkbox" id="image-enabled-${comp.id}-${suffix || '1'}" class="toggle-switch-checkbox" data-key="imageEnabled${suffix}" ${isChecked ? 'checked' : ''}>
-                            <label for="image-enabled-${comp.id}-${suffix || '1'}" class="toggle-switch-label"></label>
-                        </div>
-                    </div>
-                </div>
-                <div id="image-fields-container-${comp.id}-${suffix || '1'}" class="offer-img-fields" style="display: ${displayStyle};">
+                <div class="offer-img-fields" style="display: flex;">
                     <div class="img-field-group">
-                        <label class="form-label">URL</label>
                         <div class="img-url-inner">
-                            <input type="text" class="form-control compact" data-key="imageSrc${suffix}" value="${salesImgUrl}" placeholder="https://...">
+                            <input type="text" class="form-control compact" data-key="imageSrc${suffix}" value="${salesImgUrl}" placeholder="Image URL">
                             <button type="button" class="btn btn-secondary btn-sm upload-btn"><span class="material-symbols-rounded">upload</span></button>
                             <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="${suffix || '1'}">
                         </div>
                     </div>
                     <div class="img-field-group">
-                        <label class="form-label">Alt</label>
-                        <input type="text" class="form-control compact" data-key="imageAlt${suffix}" value="${d[`imageAlt${suffix}`] || ''}" placeholder="Description">
+                        <input type="text" class="form-control compact" data-key="imageAlt${suffix}" value="${d[`imageAlt${suffix}`] || ''}" placeholder="Image Alt Text">
                     </div>
                     <div class="img-field-group">
-                        <label class="form-label">Link</label>
-                        <input type="text" class="form-control compact" data-key="imageLink${suffix}" value="${d[`imageLink${suffix}`] || ''}" placeholder="https://...">
+                        <input type="text" class="form-control compact" data-key="imageLink${suffix}" value="${d[`imageLink${suffix}`] || ''}" placeholder="Image Link">
                     </div>
                 </div>
             </div>
@@ -1530,8 +1491,7 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
     const isIdentifiersOn = d[`showIdentifiers${suffix}`] !== 'false';
     html += `
         <div class="form-group">
-            <label class="form-label">Vehicle</label>
-            <input type="text" class="form-control compact" data-key="vehicleText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="vehicle${suffix}" data-field-label="Vehicle Text" value="${d[`vehicleText${suffix}`] || ''}" placeholder="e.g. 2024 Honda Civic">
+            <input type="text" class="form-control compact" data-key="vehicleText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="vehicle${suffix}" data-field-label="Vehicle Text" value="${d[`vehicleText${suffix}`] || ''}" placeholder="Vehicle">
         </div>
         <div class="compact-separator">
             <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start;">
@@ -1545,30 +1505,25 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
         <div id="identifier-fields-${comp.id}-${suffix || '1'}" style="display: ${isIdentifiersOn ? 'block' : 'none'};">
             <div class="component-row component-row--keep-inline" style="margin-bottom: var(--spacing-sm);">
                 <div class="component-row-item" style="flex: 0 0 90px;">
-                    <label class="form-label">Type</label>
                     <select class="form-control compact" data-key="stockVinType${suffix}">
                         <option value="stock" ${d[`stockVinType${suffix}`] === 'stock' ? 'selected' : ''}>Stock #</option>
                         <option value="vin" ${d[`stockVinType${suffix}`] === 'vin' ? 'selected' : ''}>VIN</option>
                     </select>
                 </div>
                 <div class="component-row-item">
-                    <label class="form-label">Value</label>
-                    <input type="text" class="form-control compact" data-key="stockVinValue${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="stockVin${suffix}" data-field-label="Stock/VIN" value="${d[`stockVinValue${suffix}`] || ''}" placeholder="e.g. A12345">
+                    <input type="text" class="form-control compact" data-key="stockVinValue${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="stockVin${suffix}" data-field-label="Stock/VIN" value="${d[`stockVinValue${suffix}`] || ''}" placeholder="Stock/VIN Value">
                 </div>
             </div>
             <div class="form-group">
-                <label class="form-label">Mileage</label>
-                <input type="text" class="form-control compact" data-key="mileageValue${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="mileage${suffix}" data-field-label="Mileage" value="${d[`mileageValue${suffix}`] || ''}" placeholder="e.g. 25,000 mi">
+                <input type="text" class="form-control compact" data-key="mileageValue${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="mileage${suffix}" data-field-label="Mileage" value="${d[`mileageValue${suffix}`] || ''}" placeholder="Mileage">
             </div>
         </div>
         <div class="compact-separator"><span>Offer</span></div>
         <div class="form-group">
-            <label class="form-label">Main Offer</label>
-            <input type="text" class="form-control compact" data-key="mainOfferText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="mainOffer${suffix}" data-field-label="Main Offer" value="${d[`mainOfferText${suffix}`] || ''}" placeholder="e.g. $5,000 Off MSRP">
+            <input type="text" class="form-control compact" data-key="mainOfferText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="mainOffer${suffix}" data-field-label="Main Offer" value="${d[`mainOfferText${suffix}`] || ''}" placeholder="Main Offer">
         </div>
         <div class="form-group">
-            <label class="form-label">Details</label>
-            <textarea class="form-control" data-key="detailsText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="details${suffix}" data-field-label="Details" placeholder="Offer details...">${d[`detailsText${suffix}`] || ''}</textarea>
+            <textarea class="form-control" data-key="detailsText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="details${suffix}" data-field-label="Details" placeholder="Details">${d[`detailsText${suffix}`] || ''}</textarea>
         </div>
 
         <div class="sub-offers-container" id="sub-offers-${comp.id}${suffix}">
@@ -1577,18 +1532,15 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
 
         <div class="compact-separator"><span>Details</span></div>
         <div class="form-group">
-            <label class="form-label">Disclaimer</label>
-            <textarea class="form-control" data-key="disclaimerText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="disclaimer${suffix}" data-field-label="Disclaimer" placeholder="Terms and conditions...">${d[`disclaimerText${suffix}`] || ''}</textarea>
+            <textarea class="form-control" data-key="disclaimerText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="disclaimer${suffix}" data-field-label="Disclaimer" placeholder="Disclaimer">${d[`disclaimerText${suffix}`] || ''}</textarea>
         </div>
         <div class="compact-separator"><span>Action</span></div>
         <div class="component-row component-row--keep-inline">
             <div class="component-row-item">
-                <label class="form-label">Btn Text</label>
-                <input type="text" class="form-control compact" data-key="btnText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="salesOfferButton${suffix}" data-field-label="Button Text" value="${d[`btnText${suffix}`] || ''}" placeholder="e.g. View Offer">
+                <input type="text" class="form-control compact" data-key="btnText${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="salesOfferButton${suffix}" data-field-label="Button Text" value="${d[`btnText${suffix}`] || ''}" placeholder="Button Text">
             </div>
             <div class="component-row-item">
-                <label class="form-label">Btn Link</label>
-                <input type="text" class="form-control compact" data-key="btnLink${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="salesOfferButton${suffix}" data-field-label="Button Link" value="${d[`btnLink${suffix}`] || ''}" placeholder="https://...">
+                <input type="text" class="form-control compact" data-key="btnLink${suffix}" data-stylable="true" data-component-id="${comp.id}" data-field-key="salesOfferButton${suffix}" data-field-label="Button Link" value="${d[`btnLink${suffix}`] || ''}" placeholder="Button Link">
             </div>
         </div>
     `;
@@ -1685,42 +1637,36 @@ const renderComponents = () => {
         if (comp.type === 'header') {
             componentFormHtml = `
                 <div class="form-group">
-                    <label class="form-label">Header Content</label>
-                    <textarea class="form-control" data-key="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="header" data-field-label="Header Content" placeholder="Enter your header text...">${comp.data.text || ''}</textarea>
+                    <textarea class="form-control" data-key="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="header" data-field-label="Header Content" placeholder="Header Content">${comp.data.text || ''}</textarea>
                 </div>
             `;
         } else if (comp.type === 'text_block') {
             componentFormHtml = `
                 <div class="form-group">
-                    <label class="form-label">Text Content</label>
-                    <textarea class="form-control" data-key="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="textBlock" data-field-label="Text Block Content" placeholder="Enter your text content...">${comp.data.text || ''}</textarea>
+                    <textarea class="form-control" data-key="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="textBlock" data-field-label="Text Block Content" placeholder="Text Content">${comp.data.text || ''}</textarea>
                 </div>
             `;
         } else if (comp.type === 'disclaimers') {
             componentFormHtml = `
                 <div class="form-group">
-                    <label class="form-label">Disclaimer Text</label>
-                    <textarea class="form-control" data-key="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="disclaimers" data-field-label="Disclaimer Text" placeholder="Enter disclaimer text...">${comp.data.text || ''}</textarea>
+                    <textarea class="form-control" data-key="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="disclaimers" data-field-label="Disclaimer Text" placeholder="Disclaimer Text">${comp.data.text || ''}</textarea>
                 </div>
             `;
         } else if (comp.type === 'image') {
             componentFormHtml = `
                 <div class="img-fields-row">
                     <div class="img-field-group">
-                        <label class="form-label">URL</label>
                         <div class="img-url-inner">
-                            <input type="text" class="form-control compact" data-key="src" data-stylable="true" data-component-id="${comp.id}" data-field-key="image" data-field-label="Image Source" value="${comp.data.src || ''}" placeholder="https://example.com/image.jpg">
+                            <input type="text" class="form-control compact" data-key="src" data-stylable="true" data-component-id="${comp.id}" data-field-key="image" data-field-label="Image Source" value="${comp.data.src || ''}" placeholder="Image URL">
                             <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
                             <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp">
                         </div>
                     </div>
                     <div class="img-field-group">
-                        <label class="form-label">Alt</label>
-                        <input type="text" class="form-control compact" data-key="alt" data-stylable="true" data-component-id="${comp.id}" data-field-key="image" data-field-label="Image Alt Text" value="${comp.data.alt || ''}" placeholder="Image description">
+                        <input type="text" class="form-control compact" data-key="alt" data-stylable="true" data-component-id="${comp.id}" data-field-key="image" data-field-label="Image Alt Text" value="${comp.data.alt || ''}" placeholder="Alt Text">
                     </div>
                     <div class="img-field-group">
-                        <label class="form-label">Link</label>
-                        <input type="text" class="form-control compact" data-key="link" data-stylable="true" data-component-id="${comp.id}" data-field-key="image" data-field-label="Image Link" value="${comp.data.link || ''}" placeholder="https://example.com">
+                        <input type="text" class="form-control compact" data-key="link" data-stylable="true" data-component-id="${comp.id}" data-field-key="image" data-field-label="Image Link" value="${comp.data.link || ''}" placeholder="Image Link">
                     </div>
                 </div>
                 <div class="img-thumbnail-preview" style="display: ${comp.data.src && comp.data.src !== 'https://via.placeholder.com/600x300' ? 'block' : 'none'}">
@@ -1731,12 +1677,10 @@ const renderComponents = () => {
             componentFormHtml = `
                 <div class="component-row component-row--keep-inline">
                     <div class="component-row-item">
-                        <label class="form-label">Btn Text</label>
-                        <input type="text" class="form-control compact" data-key="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="button" data-field-label="Button Text" value="${comp.data.text || ''}" placeholder="e.g. Shop Now">
+                        <input type="text" class="form-control compact" data-key="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="button" data-field-label="Button Text" value="${comp.data.text || ''}" placeholder="Button Text">
                     </div>
                     <div class="component-row-item">
-                        <label class="form-label">Btn Link</label>
-                        <input type="text" class="form-control compact" data-key="link" data-stylable="true" data-component-id="${comp.id}" data-field-key="button" data-field-label="Button Link" value="${comp.data.link || ''}" placeholder="https://example.com">
+                        <input type="text" class="form-control compact" data-key="link" data-stylable="true" data-component-id="${comp.id}" data-field-key="button" data-field-label="Button Link" value="${comp.data.link || ''}" placeholder="Button Link">
                     </div>
                 </div>
             `;
@@ -1766,10 +1710,10 @@ const renderComponents = () => {
                     <div class="footer-link-fields">
                         <div class="component-row component-row--keep-inline">
                             <div class="component-row-item">
-                                <input type="text" class="form-control compact footer-link-field" data-link-index="${i}" data-link-field="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="footerLinks" data-field-label="Link Text" value="${link.text || ''}" placeholder="Link text">
+                                <input type="text" class="form-control compact footer-link-field" data-link-index="${i}" data-link-field="text" data-stylable="true" data-component-id="${comp.id}" data-field-key="footerLinks" data-field-label="Link Text" value="${link.text || ''}" placeholder="Link Text">
                             </div>
                             <div class="component-row-item">
-                                <input type="text" class="form-control compact footer-link-field" data-link-index="${i}" data-link-field="url" value="${link.url || ''}" placeholder="https://...">
+                                <input type="text" class="form-control compact footer-link-field" data-link-index="${i}" data-link-field="url" value="${link.url || ''}" placeholder="Link URL">
                             </div>
                         </div>
                     </div>
@@ -1852,31 +1796,19 @@ const renderComponents = () => {
                 ${!isGrid ? `
                 <div class="single-offer-settings">
                   <div class="offer-img-row">
-                      <div class="offer-img-toggle">
-                          <label class="form-label">Image</label>
-                          <div class="toggle-switch-group">
-                              <div class="toggle-switch compact">
-                                  <input type="checkbox" id="image-enabled-${comp.id}" class="toggle-switch-checkbox" data-key="imageEnabled" ${comp.data.imageEnabled === 'true' ? 'checked' : ''}>
-                                  <label for="image-enabled-${comp.id}" class="toggle-switch-label"></label>
-                              </div>
-                          </div>
-                      </div>
-                      <div id="image-fields-container-${comp.id}-1" class="offer-img-fields" style="display: ${comp.data.imageEnabled === 'true' ? 'flex' : 'none'};">
+                      <div class="offer-img-fields" style="display: flex;">
                           <div class="img-field-group">
-                              <label class="form-label">URL</label>
                               <div class="img-url-inner">
-                                  <input type="text" class="form-control compact" data-key="imageSrc" value="${comp.data.imageSrc || ''}" placeholder="https://...">
+                                  <input type="text" class="form-control compact" data-key="imageSrc" value="${comp.data.imageSrc || ''}" placeholder="Image URL">
                                   <button type="button" class="btn btn-secondary btn-sm upload-btn"><span class="material-symbols-rounded">upload</span></button>
                                   <input type="file" class="hidden file-input" accept="image/jpeg,image/png,image/gif,image/webp" data-offer-index="1">
                               </div>
                           </div>
                           <div class="img-field-group">
-                              <label class="form-label">Alt</label>
-                              <input type="text" class="form-control compact" data-key="imageAlt" value="${comp.data.imageAlt || ''}" placeholder="Description">
+                              <input type="text" class="form-control compact" data-key="imageAlt" value="${comp.data.imageAlt || ''}" placeholder="Image Alt Text">
                           </div>
                           <div class="img-field-group">
-                              <label class="form-label">Link</label>
-                              <input type="text" class="form-control compact" data-key="imageLink" value="${comp.data.imageLink || ''}" placeholder="https://...">
+                              <input type="text" class="form-control compact" data-key="imageLink" value="${comp.data.imageLink || ''}" placeholder="Image Link">
                           </div>
                       </div>
                   </div>
@@ -2266,17 +2198,6 @@ const renderComponents = () => {
                            if(swatch) swatch.style.background = target.value;
                         }
 
-                        if (key.startsWith('imageEnabled') || key.startsWith('showImage')) {
-                            const offerSuffix = key.endsWith('2') ? '2' : '';
-                            const containerId = key.startsWith('showImage')
-                                ? `#service-image-fields-${comp.id}-${offerSuffix || '1'}`
-                                : `#image-fields-container-${comp.id}-${offerSuffix || '1'}`;
-                            const fieldsContainer = item.querySelector(containerId) as HTMLElement;
-                            if (fieldsContainer) {
-                                fieldsContainer.style.display = (target as HTMLInputElement).checked ? 'flex' : 'none';
-                            }
-                        }
-
                         if (key.startsWith('showIdentifiers')) {
                             const offerSuffix = key.endsWith('2') ? '2' : '';
                             const container = item.querySelector(`#identifier-fields-${comp.id}-${offerSuffix || '1'}`) as HTMLElement;
@@ -2619,7 +2540,7 @@ function generateEmailHtml(): string {
         const generateOfferContent = (data: Record<string, string>, suffix = '', imageMaxWidth?: number, renderMode: 'full' | 'imageOnly' | 'contentOnly' = 'full') => {
             let contentBlocks = '';
             // Image
-            if (renderMode !== 'contentOnly' && data[`showImage${suffix}`] === 'true' && data[`imageUrl${suffix}`]) {
+            if (renderMode !== 'contentOnly' && data[`imageUrl${suffix}`]) {
                 const imgStyles = `display: block; width: ${imageMaxWidth ? '100%' : `${data[`imageWidth${suffix}`] || '100'}%`}; max-width: ${imageMaxWidth ? `${imageMaxWidth}px` : '100%'}; height: auto; border: 0; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;`;
                 let imgTag = `<img src="${DOMPurify.sanitize(data[`imageUrl${suffix}`])}" alt="${DOMPurify.sanitize(data[`imageAlt${suffix}`] || '')}" style="${imgStyles}" />`;
                 if (data[`imageLink${suffix}`]) {
@@ -2706,8 +2627,8 @@ function generateEmailHtml(): string {
                 </table>
             `;
         } else if (serviceLayout === 'left' || serviceLayout === 'right') {
-            const imageEnabled = d.showImage === 'true' && d.imageUrl;
-            if (!imageEnabled) {
+            const hasImage = !!d.imageUrl;
+            if (!hasImage) {
                 serviceOfferContentHtml = generateOfferContent(d, '');
             } else {
                 const isRightLayout = serviceLayout === 'right';
@@ -2750,7 +2671,7 @@ function generateEmailHtml(): string {
                 return `<div style="${style}">${text.replace(/\n/g, '<br>')}</div>`;
             };
             
-            if (renderMode !== 'contentOnly' && data[`imageEnabled${suffix}`] === 'true' && data[`imageSrc${suffix}`]) {
+            if (renderMode !== 'contentOnly' && data[`imageSrc${suffix}`]) {
                 const imgStyles = `display: block; width: 100%; max-width: ${imageMaxWidth ? `${imageMaxWidth}px` : '100%'}; height: auto; border: 0; border-radius: 8px; margin: 0 auto 15px;`;
                 let imgTag = `<img src="${DOMPurify.sanitize(data[`imageSrc${suffix}`] || '')}" alt="${DOMPurify.sanitize(data[`imageAlt${suffix}`] || 'Sales Offer')}" style="${imgStyles}" border="0" />`;
                 if (data[`imageLink${suffix}`]) imgTag = `<a href="${DOMPurify.sanitize(data[`imageLink${suffix}`])}" target="_blank" style="text-decoration: none;">${imgTag}</a>`;
@@ -2831,8 +2752,8 @@ function generateEmailHtml(): string {
             `;
         } else { // Handle single column layouts
             const salesSingleBorder = d.showBorder !== 'false' ? 'border: 1px solid #e2e8f0; ' : '';
-            const imageEnabled = d.imageEnabled === 'true';
-            if (!imageEnabled) {
+            const hasImage = !!d.imageSrc;
+            if (!hasImage) {
                 offerContentHtml = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="${salesSingleBorder}border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;">${renderSalesOfferContent(d, '')}</td></tr></table>`;
             } else if (layout === 'center') {
                 offerContentHtml = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="${salesSingleBorder}border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;">${renderSalesOfferContent(d, '')}</td></tr></table>`;
