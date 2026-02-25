@@ -2656,15 +2656,21 @@ function generateEmailHtml(): string {
                 let vmlWidthStyle = buttonWidth !== 'auto' ? `width:${buttonWidth};` : '';
                 const vmlArcSize = btnRadius.includes('px') ? `${Math.min(50, (parseInt(btnRadius) / (vmlHeight/2)) * 100)}%` : '8%';
                 const vmlButton = `<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${sanitizedButtonLink}" style="height:${vmlHeight}px;v-text-anchor:middle;${vmlWidthStyle}" arcsize="${vmlArcSize}" strokecolor="${isOutlined ? buttonBgColor : 'none'}" strokeweight="${isOutlined ? '2px' : '0'}" fillcolor="${isOutlined ? 'transparent' : buttonBgColor}"><w:anchorlock/><center style="color:${isOutlined ? buttonBgColor : buttonTextColor};font-family:Arial,sans-serif;font-size:${data[`buttonFontSize${suffix}`]}px;font-weight:bold;">${sanitizedButtonText}</center></v:roundrect><![endif]-->`;
-                const htmlButton = `<!--[if !mso]><!--><a href="${sanitizedButtonLink}" style="${aStyles}" target="_blank">${sanitizedButtonText}</a><!--<![endif]-->`;
+                // Outlook (MSO): VML renders the button natively — no extra wrapper needed.
+                // Non-Outlook (Gmail, etc.): Gmail strips background-color from <a>, so we wrap
+                // the HTML anchor in a <td bgcolor> for a reliable background fallback.
+                // We use conditional comments to keep the two rendering paths fully separate.
                 const bgAttr = isOutlined ? '' : `bgcolor="${buttonBgColor}"`;
-                const tdRadiusStyle = `border-radius: ${btnRadius};`;
+                const tdStyle = `border-radius: ${btnRadius};`;
+                const anchorTag = `<a href="${sanitizedButtonLink}" style="${aStyles}" target="_blank">${sanitizedButtonText}</a>`;
                 let buttonContent: string;
                 if (buttonWidth === 'auto') {
-                    buttonContent = `<table cellpadding="0" cellspacing="0" border="0"><tr><td align="center" ${bgAttr} style="${tdRadiusStyle}">${vmlButton}${htmlButton}</td></tr></table>`;
+                    const nonMsoTable = `<table cellpadding="0" cellspacing="0" border="0"><tr><td align="center" ${bgAttr} style="${tdStyle}">${anchorTag}</td></tr></table>`;
+                    buttonContent = `${vmlButton}<!--[if !mso]><!-->${nonMsoTable}<!--<![endif]-->`;
                 } else {
                     const w = buttonWidth; // '100%', '160px', '280px', '400px'
-                    buttonContent = `<table cellpadding="0" cellspacing="0" border="0" width="${w}" style="width:${w};"><tr><td align="center" ${bgAttr} style="${tdRadiusStyle}">${vmlButton}${htmlButton}</td></tr></table>`;
+                    const nonMsoTable = `<table cellpadding="0" cellspacing="0" border="0" width="${w}" style="width:${w};"><tr><td align="center" ${bgAttr} style="${tdStyle}">${anchorTag}</td></tr></table>`;
+                    buttonContent = `${vmlButton}<!--[if !mso]><!-->${nonMsoTable}<!--<![endif]-->`;
                 }
                 contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${data[`buttonAlignment${suffix}`] || 'center'}" style="padding: 12px 0;">${buttonContent}</td></tr></table>`;
             }
