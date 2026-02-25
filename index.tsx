@@ -2657,10 +2657,14 @@ function generateEmailHtml(): string {
                 const vmlArcSize = btnRadius.includes('px') ? `${Math.min(50, (parseInt(btnRadius) / (vmlHeight/2)) * 100)}%` : '8%';
                 const vmlButton = `<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${sanitizedButtonLink}" style="height:${vmlHeight}px;v-text-anchor:middle;${vmlWidthStyle}" arcsize="${vmlArcSize}" strokecolor="${isOutlined ? buttonBgColor : 'none'}" strokeweight="${isOutlined ? '2px' : '0'}" fillcolor="${isOutlined ? 'transparent' : buttonBgColor}"><w:anchorlock/><center style="color:${isOutlined ? buttonBgColor : buttonTextColor};font-family:Arial,sans-serif;font-size:${data[`buttonFontSize${suffix}`]}px;font-weight:bold;">${sanitizedButtonText}</center></v:roundrect><![endif]-->`;
                 const htmlButton = `<!--[if !mso]><!--><a href="${sanitizedButtonLink}" style="${aStyles}" target="_blank">${sanitizedButtonText}</a><!--<![endif]-->`;
-                let buttonContent = `${vmlButton}${htmlButton}`;
-                if (buttonWidth !== '100%') {
-                    const tableWidth = buttonWidth === 'auto' ? 'auto' : buttonWidth;
-                    buttonContent = `<table cellpadding="0" cellspacing="0" border="0" style="width: ${tableWidth};"><tr><td align="center">${vmlButton}${htmlButton}</td></tr></table>`;
+                const bgAttr = isOutlined ? '' : `bgcolor="${buttonBgColor}"`;
+                const tdRadiusStyle = `border-radius: ${btnRadius};`;
+                let buttonContent: string;
+                if (buttonWidth === 'auto') {
+                    buttonContent = `<table cellpadding="0" cellspacing="0" border="0"><tr><td align="center" ${bgAttr} style="${tdRadiusStyle}">${vmlButton}${htmlButton}</td></tr></table>`;
+                } else {
+                    const w = buttonWidth; // '100%', '160px', '280px', '400px'
+                    buttonContent = `<table cellpadding="0" cellspacing="0" border="0" width="${w}" style="width:${w};"><tr><td align="center" ${bgAttr} style="${tdRadiusStyle}">${vmlButton}${htmlButton}</td></tr></table>`;
                 }
                 contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${data[`buttonAlignment${suffix}`] || 'center'}" style="padding: 12px 0;">${buttonContent}</td></tr></table>`;
             }
@@ -2703,9 +2707,21 @@ function generateEmailHtml(): string {
                 const isRightLayout = serviceLayout === 'right';
                 const imgColWidth = 180;
                 const gutter = 15;
-                const imageTd = `<td width="${imgColWidth}" class="mobile-stack mobile-padding-bottom" valign="top" style="width: ${imgColWidth}px; vertical-align: top;">${generateOfferContent(d, '', imgColWidth, 'imageOnly')}</td>`;
                 const contentTdLeft = `<td class="mobile-stack" valign="top" style="vertical-align: top; padding-left: ${gutter}px;">${generateOfferContent(d, '', undefined, 'contentOnly')}</td>`;
-                const contentTdRight = `<td class="mobile-stack" valign="top" style="vertical-align: top; padding-right: ${gutter}px;">${generateOfferContent(d, '', undefined, 'contentOnly')}</td>`;
+                let imageTd: string;
+                let contentTdRight: string;
+                if (isRightLayout) {
+                    // Right layout: image is 2nd in DOM (right on desktop). On mobile we need image on top,
+                    // so inject a mobile-only full-width image before the content, and hide the desktop image TD.
+                    const mobileImg = generateOfferContent(d, '', undefined, 'imageOnly');
+                    const desktopImg = generateOfferContent(d, '', imgColWidth, 'imageOnly');
+                    const mobileOnlyBlock = `<table class="mobile-only" role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="display:none;"><tr><td style="padding-bottom:15px;">${mobileImg}</td></tr></table>`;
+                    imageTd = `<td width="${imgColWidth}" class="mobile-stack desktop-only" valign="top" style="width: ${imgColWidth}px; vertical-align: top;">${desktopImg}</td>`;
+                    contentTdRight = `<td class="mobile-stack" valign="top" style="vertical-align: top; padding-right: ${gutter}px;">${mobileOnlyBlock}${generateOfferContent(d, '', undefined, 'contentOnly')}</td>`;
+                } else {
+                    imageTd = `<td width="${imgColWidth}" class="mobile-stack mobile-padding-bottom" valign="top" style="width: ${imgColWidth}px; vertical-align: top;">${generateOfferContent(d, '', imgColWidth, 'imageOnly')}</td>`;
+                    contentTdRight = `<td class="mobile-stack" valign="top" style="vertical-align: top; padding-right: ${gutter}px;">${generateOfferContent(d, '', undefined, 'contentOnly')}</td>`;
+                }
                 const svcLRBorder = d.showBorder !== 'false' ? 'border: 1px solid #e2e8f0; ' : '';
                 serviceOfferContentHtml = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="${svcLRBorder}border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr class="mobile-block-row">${isRightLayout ? contentTdRight + imageTd : imageTd + contentTdLeft}</tr></table></td></tr></table>`;
             }
@@ -2737,7 +2753,7 @@ function generateEmailHtml(): string {
                 const { text, fontSize, color, bgColor, fontWeight, fontStyle, textAlign, paddingTop, paddingBottom, paddingLeftRight } = options;
                 const padding = `padding: ${paddingTop || 0}px ${paddingLeftRight || 0}px ${paddingBottom || 0}px ${paddingLeftRight || 0}px;`;
                 const style = [`font-family: ${designSettings.fontFamily}`,`color: ${color || '#000'}`,`font-size: ${fontSize || 14}px`,`background-color: ${bgColor === 'transparent' ? 'transparent' : bgColor}`,`font-weight: ${fontWeight || 'normal'}`,`font-style: ${fontStyle || 'normal'}`,`text-align: ${textAlign || 'center'}`,padding,`line-height: 1.2`].join(';');
-                return `<div style="${style}">${text.replace(/\n/g, '<br>')}</div>`;
+                return `<div class="mobile-center" style="${style}">${text.replace(/\n/g, '<br>')}</div>`;
             };
             
             if (renderMode !== 'contentOnly' && data[`imageSrc${suffix}`]) {
@@ -2788,7 +2804,7 @@ function generateEmailHtml(): string {
             else if (btnAlign === 'right') btnMargin = '12px 0 0 auto';
             const btnStyles = [`background-color: ${isOutlined ? 'transparent' : btnBgColor}`,`color: ${isOutlined ? btnBgColor : btnTextColor}`,`padding: ${data[`btnPaddingTop${suffix}`] || '12'}px ${data[`btnPaddingLeftRight${suffix}`] || '20'}px ${data[`btnPaddingBottom${suffix}`] || '12'}px`,`text-decoration: none`,`display: block`,`font-weight: bold`,`border-radius: ${radius}`,`font-size: ${data[`btnFontSize${suffix}`] || 16}px`,`font-family: ${designSettings.fontFamily}`,`text-align: center`,isOutlined ? `border: 2px solid ${btnBgColor}` : 'border: 0'].join('; ');
             contentHtml += renderField({ text: DOMPurify.sanitize(data[`disclaimerText${suffix}`]), fontSize: data[`disclaimerFontSize${suffix}`], color: data[`disclaimerColor${suffix}`], bgColor: data[`disclaimerBgColor${suffix}`], fontWeight: data[`disclaimerFontWeight${suffix}`], fontStyle: data[`disclaimerFontStyle${suffix}`], textAlign: data[`disclaimerTextAlign${suffix}`], paddingTop: data[`disclaimerPaddingTop${suffix}`], paddingBottom: data[`disclaimerPaddingBottom${suffix}`], paddingLeftRight: data[`disclaimerPaddingLeftRight${suffix}`] });
-            contentHtml += `<table border="0" cellspacing="0" cellpadding="0" ${btnTableWidthAttr ? `width="${btnTableWidthAttr}"` : ""} style="margin: ${btnMargin}; width: ${btnWidthType === 'full' ? '100%' : (btnTableWidthAttr ? btnTableWidthAttr+'px' : 'auto')}; max-width: 100%;"><tr><td align="center" bgcolor="${isOutlined ? 'transparent' : btnBgColor}" style="border-radius: ${radius};"><a href="${DOMPurify.sanitize(data[`btnLink${suffix}`] || '#')}" target="_blank" style="${btnStyles}">${DOMPurify.sanitize(data[`btnText${suffix}`] || 'View')}</a></td></tr></table>`;
+            contentHtml += `<table class="mobile-center-table" border="0" cellspacing="0" cellpadding="0" ${btnTableWidthAttr ? `width="${btnTableWidthAttr}"` : ""} style="margin: ${btnMargin}; width: ${btnWidthType === 'full' ? '100%' : (btnTableWidthAttr ? btnTableWidthAttr+'px' : 'auto')}; max-width: 100%;"><tr><td align="center" bgcolor="${isOutlined ? 'transparent' : btnBgColor}" style="border-radius: ${radius};"><a href="${DOMPurify.sanitize(data[`btnLink${suffix}`] || '#')}" target="_blank" style="${btnStyles}">${DOMPurify.sanitize(data[`btnText${suffix}`] || 'View')}</a></td></tr></table>`;
             } // end renderMode !== 'imageOnly'
 
             return contentHtml;
@@ -2804,7 +2820,7 @@ function generateEmailHtml(): string {
             offerContentHtml = `
                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                     <tbody>
-                        <tr>
+                        <tr class="mobile-block-row">
                             <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-right: 8px; vertical-align: top;">
                                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; ${salesGridBorder}border-radius: 8px;"><tr><td style="padding: 15px;">
                                     ${offer1Content}
@@ -2830,9 +2846,21 @@ function generateEmailHtml(): string {
                 const isRightLayout = layout === 'right';
                 const imgColWidth = 180;
                 const gutter = 15;
-                const imageTd = `<td width="${imgColWidth}" class="mobile-stack mobile-padding-bottom" valign="top" style="width: ${imgColWidth}px; vertical-align: top;">${renderSalesOfferContent(d, '', imgColWidth, 'imageOnly')}</td>`;
                 const contentTdLeft = `<td class="mobile-stack" valign="top" style="vertical-align: top; padding-left: ${gutter}px;">${renderSalesOfferContent(d, '', undefined, 'contentOnly')}</td>`;
-                const contentTdRight = `<td class="mobile-stack" valign="top" style="vertical-align: top; padding-right: ${gutter}px;">${renderSalesOfferContent(d, '', undefined, 'contentOnly')}</td>`;
+                let imageTd: string;
+                let contentTdRight: string;
+                if (isRightLayout) {
+                    // Right layout: image is 2nd in DOM (right on desktop). On mobile we need image on top,
+                    // so inject a mobile-only full-width image before the content, and hide the desktop image TD.
+                    const mobileImg = renderSalesOfferContent(d, '', undefined, 'imageOnly');
+                    const desktopImg = renderSalesOfferContent(d, '', imgColWidth, 'imageOnly');
+                    const mobileOnlyBlock = `<table class="mobile-only" role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="display:none;"><tr><td style="padding-bottom:15px;">${mobileImg}</td></tr></table>`;
+                    imageTd = `<td width="${imgColWidth}" class="mobile-stack desktop-only" valign="top" style="width: ${imgColWidth}px; vertical-align: top;">${desktopImg}</td>`;
+                    contentTdRight = `<td class="mobile-stack" valign="top" style="vertical-align: top; padding-right: ${gutter}px;">${mobileOnlyBlock}${renderSalesOfferContent(d, '', undefined, 'contentOnly')}</td>`;
+                } else {
+                    imageTd = `<td width="${imgColWidth}" class="mobile-stack mobile-padding-bottom" valign="top" style="width: ${imgColWidth}px; vertical-align: top;">${renderSalesOfferContent(d, '', imgColWidth, 'imageOnly')}</td>`;
+                    contentTdRight = `<td class="mobile-stack" valign="top" style="vertical-align: top; padding-right: ${gutter}px;">${renderSalesOfferContent(d, '', undefined, 'contentOnly')}</td>`;
+                }
                 offerContentHtml = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="${salesSingleBorder}border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr class="mobile-block-row">${isRightLayout ? contentTdRight + imageTd : imageTd + contentTdLeft}</tr></table></td></tr></table>`;
             }
         }
@@ -2944,6 +2972,19 @@ function generateEmailHtml(): string {
             .mobile-full-width {
                 width: 100% !important;
                 max-width: 100% !important;
+            }
+            .mobile-only {
+                display: block !important;
+            }
+            .desktop-only {
+                display: none !important;
+            }
+            .mobile-center {
+                text-align: center !important;
+            }
+            .mobile-center-table {
+                margin-left: auto !important;
+                margin-right: auto !important;
             }
         }
     </style>
