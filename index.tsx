@@ -2648,7 +2648,11 @@ function generateEmailHtml(): string {
                 const sanitizedButtonText = DOMPurify.sanitize(data[`buttonText${suffix}`]);
                 const buttonBgColor = data[`buttonBgColor${suffix}`] || '#0066FF';
                 const buttonTextColor = data[`buttonTextColor${suffix}`] || '#FFFFFF';
-                let aStylesList = [`background-color: ${isOutlined ? 'transparent' : buttonBgColor}`,`color: ${isOutlined ? buttonBgColor : buttonTextColor}`,`display: block`,`font-family: ${designSettings.fontFamily}, Arial, sans-serif`,`font-size: ${data[`buttonFontSize${suffix}`] || '16'}px`,`font-weight: bold`,`text-decoration: none`,`border-radius: ${btnRadius}`,isOutlined ? `border: 2px solid ${buttonBgColor}` : 'border: 0',`text-align: center`,`line-height: 1.2`,`box-sizing: border-box`,`-webkit-text-size-adjust: none`,];
+                // Auto-width buttons: inline-block so the anchor sizes to its content (text + padding)
+                // in every rendering engine — both browsers and email client simulators.
+                // Fixed-width buttons: block + explicit width fills the containing cell.
+                const displayStyle = buttonWidth === 'auto' ? 'display: inline-block' : 'display: block';
+                let aStylesList = [`background-color: ${isOutlined ? 'transparent' : buttonBgColor}`,`color: ${isOutlined ? buttonBgColor : buttonTextColor}`,displayStyle,`font-family: ${designSettings.fontFamily}, Arial, sans-serif`,`font-size: ${data[`buttonFontSize${suffix}`] || '16'}px`,`font-weight: bold`,`text-decoration: none`,`border-radius: ${btnRadius}`,isOutlined ? `border: 2px solid ${buttonBgColor}` : 'border: 0',`text-align: center`,`line-height: 1.2`,`box-sizing: border-box`,`-webkit-text-size-adjust: none`,];
                 if (buttonWidth === 'auto') aStylesList.push(`padding: ${data[`buttonPaddingTop${suffix}`] || '12'}px ${data[`buttonPaddingLeftRight${suffix}`] || '24'}px ${data[`buttonPaddingBottom${suffix}`] || '12'}px`);
                 else aStylesList.push(`padding: ${data[`buttonPaddingTop${suffix}`] || '12'}px 0 ${data[`buttonPaddingBottom${suffix}`] || '12'}px 0`, `width: 100%`);
                 const aStyles = aStylesList.join('; ');
@@ -2665,7 +2669,8 @@ function generateEmailHtml(): string {
                 const anchorTag = `<a href="${sanitizedButtonLink}" style="${aStyles}" target="_blank">${sanitizedButtonText}</a>`;
                 let buttonContent: string;
                 if (buttonWidth === 'auto') {
-                    const nonMsoTable = `<table cellpadding="0" cellspacing="0" border="0"><tr><td align="center" ${bgAttr} style="${tdStyle}">${anchorTag}</td></tr></table>`;
+                    // align="center" centers the auto-sized table within its container in email clients
+                    const nonMsoTable = `<table cellpadding="0" cellspacing="0" border="0" align="center"><tr><td align="center" ${bgAttr} style="${tdStyle}">${anchorTag}</td></tr></table>`;
                     buttonContent = `${vmlButton}<!--[if !mso]><!-->${nonMsoTable}<!--<![endif]-->`;
                 } else {
                     const w = buttonWidth; // '100%', '160px', '280px', '400px'
