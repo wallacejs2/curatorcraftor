@@ -2707,7 +2707,7 @@ function generateEmailHtml(): string {
                 const contentTdLeft = `<td class="mobile-stack" valign="top" style="vertical-align: top; padding-left: ${gutter}px;">${generateOfferContent(d, '', undefined, 'contentOnly')}</td>`;
                 const contentTdRight = `<td class="mobile-stack" valign="top" style="vertical-align: top; padding-right: ${gutter}px;">${generateOfferContent(d, '', undefined, 'contentOnly')}</td>`;
                 const svcLRBorder = d.showBorder !== 'false' ? 'border: 1px solid #e2e8f0; ' : '';
-                serviceOfferContentHtml = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="${svcLRBorder}border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr>${isRightLayout ? contentTdRight + imageTd : imageTd + contentTdLeft}</tr></table></td></tr></table>`;
+                serviceOfferContentHtml = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="${svcLRBorder}border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr class="mobile-block-row">${isRightLayout ? contentTdRight + imageTd : imageTd + contentTdLeft}</tr></table></td></tr></table>`;
             }
         } else {
             serviceOfferContentHtml = generateOfferContent(d, '');
@@ -2742,7 +2742,7 @@ function generateEmailHtml(): string {
             
             if (renderMode !== 'contentOnly' && data[`imageSrc${suffix}`]) {
                 const imgStyles = `display: block; width: 100%; max-width: ${imageMaxWidth ? `${imageMaxWidth}px` : '100%'}; height: auto; border: 0; border-radius: 8px; margin: 0 auto 15px;`;
-                let imgTag = `<img src="${DOMPurify.sanitize(data[`imageSrc${suffix}`] || '')}" alt="${DOMPurify.sanitize(data[`imageAlt${suffix}`] || 'Sales Offer')}" style="${imgStyles}" border="0" />`;
+                let imgTag = `<img src="${DOMPurify.sanitize(data[`imageSrc${suffix}`] || '')}" alt="${DOMPurify.sanitize(data[`imageAlt${suffix}`] || 'Sales Offer')}" class="mobile-full-width" style="${imgStyles}" border="0" />`;
                 if (data[`imageLink${suffix}`]) imgTag = `<a href="${DOMPurify.sanitize(data[`imageLink${suffix}`])}" target="_blank" style="text-decoration: none;">${imgTag}</a>`;
                 contentHtml += imgTag;
             }
@@ -2833,7 +2833,7 @@ function generateEmailHtml(): string {
                 const imageTd = `<td width="${imgColWidth}" class="mobile-stack mobile-padding-bottom" valign="top" style="width: ${imgColWidth}px; vertical-align: top;">${renderSalesOfferContent(d, '', imgColWidth, 'imageOnly')}</td>`;
                 const contentTdLeft = `<td class="mobile-stack" valign="top" style="vertical-align: top; padding-left: ${gutter}px;">${renderSalesOfferContent(d, '', undefined, 'contentOnly')}</td>`;
                 const contentTdRight = `<td class="mobile-stack" valign="top" style="vertical-align: top; padding-right: ${gutter}px;">${renderSalesOfferContent(d, '', undefined, 'contentOnly')}</td>`;
-                offerContentHtml = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="${salesSingleBorder}border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr>${isRightLayout ? contentTdRight + imageTd : imageTd + contentTdLeft}</tr></table></td></tr></table>`;
+                offerContentHtml = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="${salesSingleBorder}border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr class="mobile-block-row">${isRightLayout ? contentTdRight + imageTd : imageTd + contentTdLeft}</tr></table></td></tr></table>`;
             }
         }
 
@@ -2937,6 +2937,13 @@ function generateEmailHtml(): string {
             }
             .mobile-stack-spacer {
                 display: none !important;
+            }
+            .mobile-block-row {
+                display: block !important;
+            }
+            .mobile-full-width {
+                width: 100% !important;
+                max-width: 100% !important;
             }
         }
     </style>
