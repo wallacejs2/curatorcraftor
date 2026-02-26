@@ -1998,6 +1998,14 @@ const renderComponents = () => {
                 <span class="header-toggle-divider"></span>
             `;
         }
+        if (comp.type === 'video') {
+            offerHeaderControls += `
+                <div class="toggle-group header-toggle-group">
+                    <button type="button" class="toggle-btn border-toggle ${comp.data.showBorder === 'true' ? 'active' : ''}" data-key="showBorder" data-value="${comp.data.showBorder === 'true' ? 'false' : 'true'}" data-tooltip="Video Border"><span class="material-symbols-rounded">crop_square</span></button>
+                </div>
+                <span class="header-toggle-divider"></span>
+            `;
+        }
 
         item.innerHTML = `
             <div class="card-header">
@@ -2293,7 +2301,7 @@ const renderComponents = () => {
                             renderComponents();
                         }
 
-                        if ((comp.type === 'sales_offer' || comp.type === 'service_offer') && key === 'showBorder') {
+                        if ((comp.type === 'sales_offer' || comp.type === 'service_offer' || comp.type === 'video') && key === 'showBorder') {
                             // Flip button state in-place — no full re-render needed
                             const btn = target as HTMLButtonElement;
                             const isNowActive = value !== 'false';
@@ -2604,6 +2612,7 @@ function generateEmailHtml(): string {
         const borderRadius = d.borderRadius || '12';
         const marginStyle = d.align === 'center' ? '0 auto' : '0';
         const youtubeId = getYouTubeId(d.src || '');
+        const videoBorder = d.showBorder === 'true' ? `border: 1px solid #e2e8f0; border-radius: ${borderRadius}px; overflow: hidden; ` : '';
 
         let videoContent = '';
 
@@ -2682,7 +2691,7 @@ function generateEmailHtml(): string {
         sectionsHtml += `
             <tr>
                 <td align="${d.align || 'center'}" ${isTransparent ? '' : `bgcolor="${d.backgroundColor}"`} style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
-                    <div style="display: block; width: 100%; max-width: ${styleWidth}; margin: ${marginStyle};">
+                    <div style="${videoBorder}display: block; width: 100%; max-width: ${styleWidth}; margin: ${marginStyle};">
                         ${videoContent}
                     </div>
                 </td>
