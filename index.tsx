@@ -1648,7 +1648,7 @@ const COMPONENT_TYPE_ICONS: Record<string, string> = {
     header: 'format_h1',
     text_block: 'format_align_justify',
     image: 'image',
-    video: 'videocam',
+    video: 'smart_display',
     button: 'radio_button_checked',
     divider: 'horizontal_rule',
     spacer: 'expand_all',
