@@ -571,6 +571,17 @@ const truncate = (str: string, maxLength: number): string => {
     return str.length > maxLength ? str.substring(0, maxLength) + '...' : str;
 };
 
+const getYouTubeId = (url: string): string | null => {
+    const patterns = [
+        /(?:youtube\.com\/watch\?.*v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+    ];
+    for (const pattern of patterns) {
+        const match = url.match(pattern);
+        if (match) return match[1];
+    }
+    return null;
+};
+
 // Debounce helper for preview updates
 let previewTimer: number;
 const triggerPreviewUpdate = () => {
@@ -1761,7 +1772,7 @@ const renderComponents = () => {
                 <div class="img-fields-row">
                     <div class="img-field-group">
                         <div class="img-url-inner">
-                            <input type="text" class="form-control compact" data-key="src" data-stylable="true" data-component-id="${comp.id}" data-field-key="video" data-field-label="Video Source" value="${comp.data.src || ''}" placeholder="Video URL (mp4, webm...)">
+                            <input type="text" class="form-control compact" data-key="src" data-stylable="true" data-component-id="${comp.id}" data-field-key="video" data-field-label="Video Source" value="${comp.data.src || ''}" placeholder="Video or YouTube URL">
                             <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
                             <input type="file" class="hidden file-input" accept="video/mp4,video/webm,video/ogg">
                         </div>
@@ -2605,55 +2616,87 @@ function generateEmailHtml(): string {
         const altText = DOMPurify.sanitize(d.alt || 'Video');
         const borderRadius = d.borderRadius || '12';
         const marginStyle = d.align === 'center' ? '0 auto' : '0';
+        const youtubeId = getYouTubeId(d.src || '');
 
-        const autoplayAttr = d.autoplay === 'true' ? ' autoplay' : '';
-        const mutedAttr = d.muted === 'true' ? ' muted' : '';
-        const controlsAttr = d.controls === 'true' ? ' controls' : '';
-        const loopAttr = d.loop === 'true' ? ' loop' : '';
+        let videoContent = '';
 
-        const videoStyles = [
-            `display: block`,
-            `max-width: 100%`,
-            `width: ${styleWidth}`,
-            `height: auto`,
-            `border: 0`,
-            `margin: ${marginStyle}`,
-            `border-radius: ${borderRadius}px`,
-            `background: #000`
-        ].join(';');
+        if (youtubeId) {
+            // YouTube embed via iframe
+            const ytParams: string[] = [];
+            if (d.autoplay === 'true') ytParams.push('autoplay=1');
+            if (d.muted === 'true') ytParams.push('mute=1');
+            if (d.loop === 'true') ytParams.push(`loop=1&playlist=${youtubeId}`);
+            if (d.controls !== 'true') ytParams.push('controls=0');
+            ytParams.push('rel=0', 'modestbranding=1');
+            const ytQuery = ytParams.length ? `?${ytParams.join('&')}` : '';
+            const embedUrl = `https://www.youtube-nocookie.com/embed/${youtubeId}${ytQuery}`;
 
-        const posterImgStyles = [
-            `display: block`,
-            `max-width: 100%`,
-            `width: ${styleWidth}`,
-            `height: auto`,
-            `border: 0`,
-            `margin: ${marginStyle}`,
-            `border-radius: ${borderRadius}px`
-        ].join(';');
+            const iframeStyles = [
+                `position: absolute`, `top: 0`, `left: 0`,
+                `width: 100%`, `height: 100%`,
+                `border: 0`,
+                `border-radius: ${borderRadius}px`
+            ].join(';');
 
-        // Play button overlay styles
-        const playBtnOuter = `position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 68px; height: 68px; background: rgba(0,0,0,0.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50%; display: flex; align-items: center; justify-content: center;`;
-        const playTriangle = `width: 0; height: 0; border-style: solid; border-width: 11px 0 11px 20px; border-color: transparent transparent transparent #ffffff; margin-left: 4px;`;
+            const wrapperStyles = [
+                `position: relative`,
+                `width: ${styleWidth}`,
+                `max-width: 100%`,
+                `padding-bottom: ${(numericWidth * 56.25 / 100).toFixed(2)}%`,
+                `height: 0`,
+                `overflow: hidden`,
+                `margin: ${marginStyle}`,
+                `border-radius: ${borderRadius}px`,
+                `background: #000`
+            ].join(';');
 
-        // Poster fallback for email clients
-        let posterFallback = '';
-        if (posterSrc) {
-            posterFallback = `<img src="${posterSrc}" alt="${altText}" style="${posterImgStyles}" border="0" />`;
+            const iframeTag = `<div style="${wrapperStyles}"><iframe src="${embedUrl}" style="${iframeStyles}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen title="${altText}"></iframe></div>`;
+
+            // Poster fallback for email clients (link to YouTube)
+            const ytLink = `https://www.youtube.com/watch?v=${youtubeId}`;
+            const posterImgStyles = [`display: block`, `max-width: 100%`, `width: ${styleWidth}`, `height: auto`, `border: 0`, `margin: ${marginStyle}`, `border-radius: ${borderRadius}px`].join(';');
+            const playBtnOuter = `position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 68px; height: 68px; background: rgba(255,0,0,0.85); border-radius: 16px; display: flex; align-items: center; justify-content: center;`;
+            const playTriangle = `width: 0; height: 0; border-style: solid; border-width: 11px 0 11px 20px; border-color: transparent transparent transparent #ffffff; margin-left: 4px;`;
+
+            const thumbSrc = posterSrc || `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`;
+            const posterFallback = `<a href="${ytLink}" target="_blank" style="text-decoration: none; display: inline-block; position: relative;"><img src="${thumbSrc}" alt="${altText}" style="${posterImgStyles}" border="0" /><div style="${playBtnOuter}"><div style="${playTriangle}"></div></div></a>`;
+
+            videoContent = `<!--[if mso]>${posterFallback}<![endif]--><!--[if !mso]><!-->${iframeTag}<!--<![endif]-->`;
+        } else {
+            // Direct video file
+            const autoplayAttr = d.autoplay === 'true' ? ' autoplay' : '';
+            const mutedAttr = d.muted === 'true' ? ' muted' : '';
+            const controlsAttr = d.controls === 'true' ? ' controls' : '';
+            const loopAttr = d.loop === 'true' ? ' loop' : '';
+
+            const videoStyles = [
+                `display: block`, `max-width: 100%`, `width: ${styleWidth}`,
+                `height: auto`, `border: 0`, `margin: ${marginStyle}`,
+                `border-radius: ${borderRadius}px`, `background: #000`
+            ].join(';');
+
+            const videoTag = `<video style="${videoStyles}"${posterSrc ? ` poster="${posterSrc}"` : ''}${controlsAttr}${autoplayAttr}${mutedAttr}${loopAttr} playsinline preload="metadata"><source src="${videoSrc}" type="video/mp4">${altText}</video>`;
+
+            // Poster fallback for email clients
+            const posterImgStyles = [`display: block`, `max-width: 100%`, `width: ${styleWidth}`, `height: auto`, `border: 0`, `margin: ${marginStyle}`, `border-radius: ${borderRadius}px`].join(';');
+            const playBtnOuter = `position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 68px; height: 68px; background: rgba(0,0,0,0.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50%; display: flex; align-items: center; justify-content: center;`;
+            const playTriangle = `width: 0; height: 0; border-style: solid; border-width: 11px 0 11px 20px; border-color: transparent transparent transparent #ffffff; margin-left: 4px;`;
+
+            let posterFallback = '';
+            if (posterSrc) {
+                posterFallback = `<a href="${DOMPurify.sanitize(d.src || '')}" target="_blank" style="text-decoration: none; display: inline-block; position: relative;"><img src="${posterSrc}" alt="${altText}" style="${posterImgStyles}" border="0" /><div style="${playBtnOuter}"><div style="${playTriangle}"></div></div></a>`;
+            }
+
+            videoContent = posterFallback
+                ? `<!--[if mso]>${posterFallback}<![endif]--><!--[if !mso]><!-->${videoTag}<!--<![endif]-->`
+                : videoTag;
         }
-        const fallbackLink = DOMPurify.sanitize(d.src || '');
-        if (fallbackLink && posterSrc) {
-            posterFallback = `<a href="${fallbackLink}" target="_blank" style="text-decoration: none; display: inline-block; position: relative;">${posterFallback}<div style="${playBtnOuter}"><div style="${playTriangle}"></div></div></a>`;
-        }
-
-        // Video tag
-        const videoTag = `<video style="${videoStyles}"${posterSrc ? ` poster="${posterSrc}"` : ''}${controlsAttr}${autoplayAttr}${mutedAttr}${loopAttr} playsinline preload="metadata"><source src="${videoSrc}" type="video/mp4">${altText}</video>`;
 
         sectionsHtml += `
             <tr>
                 <td align="${d.align || 'center'}" ${isTransparent ? '' : `bgcolor="${d.backgroundColor}"`} style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
                     <div style="display: block; width: 100%; max-width: ${styleWidth}; margin: ${marginStyle};">
-                        ${posterFallback ? `<!--[if mso]>${posterFallback}<![endif]--><!--[if !mso]><!-->${videoTag}<!--<![endif]-->` : videoTag}
+                        ${videoContent}
                     </div>
                 </td>
             </tr>
