@@ -149,8 +149,32 @@ const CONTENT_KEYS: Record<string, string[]> = {
         'disclaimerText2', 'additionalOffers2', 'btnText2', 'btnLink2',
     ],
     footer: ['links'],
+    social_media: ['instagramUrl', 'facebookUrl', 'twitterUrl', 'tiktokUrl', 'youtubeUrl'],
 };
 const STRUCTURAL_KEYS = ['layout', 'textLayout'];
+
+const SOCIAL_MEDIA_PLATFORMS: {key: string; name: string; color: string; svg: string}[] = [
+    {
+        key: 'instagram', name: 'Instagram', color: '#E4405F',
+        svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>`
+    },
+    {
+        key: 'facebook', name: 'Facebook', color: '#1877F2',
+        svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>`
+    },
+    {
+        key: 'twitter', name: 'X (Twitter)', color: '#000000',
+        svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l6.5 8L4 20h2l5.5-6.8L16 20h4l-6.8-8.5L20 4h-2l-5.2 6.4L8 4H4z"/></svg>`
+    },
+    {
+        key: 'tiktok', name: 'TikTok', color: '#000000',
+        svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>`
+    },
+    {
+        key: 'youtube', name: 'YouTube', color: '#FF0000',
+        svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19.1c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.35z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="currentColor" stroke="none"/></svg>`
+    },
+];
 
 const MERGE_FIELDS: MergeFieldGroup[] = [
   {
@@ -1293,6 +1317,23 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 textLayout: 'center',
                 showBorder: 'true'
             };
+        case 'social_media':
+            return {
+                instagramUrl: '',
+                facebookUrl: '',
+                twitterUrl: '',
+                tiktokUrl: '',
+                youtubeUrl: '',
+                iconSize: '32',
+                iconSpacing: '12',
+                iconColor: 'brand',
+                customColor: '#1d1d1f',
+                align: 'center',
+                paddingTop: '15',
+                paddingBottom: '15',
+                paddingLeftRight: '15',
+                backgroundColor: 'transparent',
+            };
         case 'footer':
             return {
                 layout: 'inline',
@@ -1655,6 +1696,7 @@ const COMPONENT_TYPE_ICONS: Record<string, string> = {
     service_offer: 'handyman',
     sales_offer: 'sell',
     disclaimers: 'contract',
+    social_media: 'share',
     footer: 'link',
 };
 
@@ -1714,6 +1756,7 @@ const renderComponents = () => {
                 sourceFieldKey = 'text';
                 break;
             case 'footer':
+            case 'social_media':
                 sourceFieldKey = null;
                 break;
             case 'sales_offer':
@@ -1797,6 +1840,53 @@ const renderComponents = () => {
                         <input type="text" class="form-control compact" data-key="link" data-stylable="true" data-component-id="${comp.id}" data-field-key="button" data-field-label="Button Link" value="${comp.data.link || ''}" placeholder="Button Link">
                     </div>
                 </div>
+            `;
+        } else if (comp.type === 'social_media') {
+            const isBrandColor = comp.data.iconColor !== 'custom';
+            const customColor = comp.data.customColor || '#1d1d1f';
+
+            const platformsHtml = SOCIAL_MEDIA_PLATFORMS.map(p => {
+                const urlKey = p.key + 'Url';
+                const iconColor = isBrandColor ? p.color : customColor;
+                return `
+                    <div class="social-platform-item">
+                        <div class="social-platform-icon" style="color: ${iconColor};">${p.svg}</div>
+                        <div class="social-platform-fields">
+                            <input type="text" class="form-control compact" data-key="${urlKey}" value="${comp.data[urlKey] || ''}" placeholder="${p.name} URL">
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const colorSection = `
+                <div class="component-row" style="margin-bottom: 8px;">
+                    <div class="component-row-item" style="flex: 1;">
+                        <label class="form-label">Icon Color</label>
+                        <div class="social-color-toggle">
+                            <button type="button" class="social-color-btn ${isBrandColor ? 'active' : ''}" data-key="iconColor" data-value="brand">Brand Colors</button>
+                            <button type="button" class="social-color-btn ${!isBrandColor ? 'active' : ''}" data-key="iconColor" data-value="custom">Custom</button>
+                        </div>
+                        ${!isBrandColor ? `
+                            <div class="social-custom-color-row">
+                                <input type="color" class="form-control color-input" data-key="customColor" value="${customColor}">
+                                <input type="text" class="form-control compact color-hex-input" data-key="customColor" value="${customColor}" placeholder="#000000">
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+
+            const containerPreview = `
+                <div class="social-container-preview" data-stylable="true" data-component-id="${comp.id}" data-field-key="socialContainer" data-field-label="Container" tabindex="0">
+                    <span class="material-symbols-rounded" style="font-size: 14px; color: var(--label-tertiary);">settings</span>
+                    <span style="font-size: 11px; color: var(--label-secondary);">Container &amp; Alignment</span>
+                </div>
+            `;
+
+            componentFormHtml = `
+                ${colorSection}
+                <div class="social-platforms-list">${platformsHtml}</div>
+                ${containerPreview}
             `;
         } else if (comp.type === 'footer') {
             let footerLinks: {text: string; url: string}[] = [];
@@ -2229,6 +2319,42 @@ const renderComponents = () => {
                         if (swatch) swatch.style.background = target.value;
                     }
                     updateComponentData(comp.id, offersKey, JSON.stringify(current));
+                });
+            });
+        }
+
+        if (comp.type === 'social_media') {
+            // Color mode toggle
+            item.querySelectorAll('.social-color-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const value = (btn as HTMLElement).dataset.value || 'brand';
+                    updateComponentData(comp.id, 'iconColor', value);
+                    renderComponents();
+                });
+            });
+
+            // Sync color hex input with color picker
+            item.querySelectorAll('.color-hex-input').forEach(input => {
+                input.addEventListener('input', (e: any) => {
+                    const val = e.target.value;
+                    const key = e.target.getAttribute('data-key');
+                    if (!key) return;
+                    if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+                        const colorInput = item.querySelector(`input[type="color"][data-key="${key}"]`) as HTMLInputElement;
+                        if (colorInput) colorInput.value = val;
+                        updateComponentData(comp.id, key, val);
+                    }
+                });
+            });
+
+            item.querySelectorAll('input[type="color"]').forEach(input => {
+                input.addEventListener('input', (e: any) => {
+                    const val = e.target.value;
+                    const key = e.target.getAttribute('data-key');
+                    if (!key) return;
+                    const hexInput = item.querySelector(`.color-hex-input[data-key="${key}"]`) as HTMLInputElement;
+                    if (hexInput) hexInput.value = val;
+                    updateComponentData(comp.id, key, val);
                 });
             });
         }
@@ -2724,6 +2850,45 @@ function generateEmailHtml(): string {
                 </td>
             </tr>
         `;
+    } else if (comp.type === 'social_media') {
+        const iconSize = parseInt(d.iconSize || '32');
+        const iconSpacing = parseInt(d.iconSpacing || '12');
+        const align = d.align || 'center';
+        const bgColor = d.backgroundColor || 'transparent';
+        const isTransparentBg = bgColor === 'transparent';
+        const isBrand = d.iconColor !== 'custom';
+        const customClr = d.customColor || '#1d1d1f';
+
+        const activePlatforms = SOCIAL_MEDIA_PLATFORMS.filter(p => {
+            const url = d[p.key + 'Url'];
+            return url && url.trim() !== '';
+        });
+
+        if (activePlatforms.length > 0) {
+            const iconsHtml = activePlatforms.map((p, i) => {
+                const url = DOMPurify.sanitize(d[p.key + 'Url'] || '#');
+                const strokeColor = isBrand ? p.color : customClr;
+                const svgContent = p.svg
+                    .replace(/currentColor/g, strokeColor);
+                const dataUri = 'data:image/svg+xml,' + encodeURIComponent(svgContent);
+                const paddingLeft = i > 0 ? iconSpacing : 0;
+                return `<td style="padding-left: ${paddingLeft}px;">
+                    <a href="${url}" target="_blank" style="text-decoration: none; display: inline-block;">
+                        <img src="${dataUri}" alt="${p.name}" width="${iconSize}" height="${iconSize}" style="display: block; border: 0; outline: none;" />
+                    </a>
+                </td>`;
+            }).join('');
+
+            sectionsHtml += `
+                <tr>
+                    <td align="${align}" ${!isTransparentBg ? `bgcolor="${bgColor}"` : ''} style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
+                        <table border="0" cellspacing="0" cellpadding="0" style="margin: ${align === 'center' ? '0 auto' : align === 'right' ? '0 0 0 auto' : '0'};">
+                            <tr>${iconsHtml}</tr>
+                        </table>
+                    </td>
+                </tr>
+            `;
+        }
     } else if (comp.type === 'footer') {
         let footerLinks: {text: string; url: string}[] = [];
         try { footerLinks = JSON.parse(d.links || '[]'); } catch { footerLinks = []; }
@@ -4856,6 +5021,20 @@ const getDefaultFieldStyles = (compType: string, fieldKey: string, subOfferIndex
                 paddingTop: '9', paddingBottom: '9', paddingLeftRight: '15',
                 widthType: 'auto'
             };
+        case 'social_media': {
+            if (fieldKey === 'socialContainer') {
+                return {
+                    align: 'center', backgroundColor: 'transparent',
+                    iconSize: '32', iconSpacing: '12',
+                    paddingTop: '15', paddingBottom: '15', paddingLeftRight: '15',
+                };
+            }
+            return {
+                align: 'center', backgroundColor: 'transparent',
+                iconSize: '32', iconSpacing: '12',
+                paddingTop: '15', paddingBottom: '15', paddingLeftRight: '15',
+            };
+        }
         case 'footer': {
             if (fieldKey === 'footerLinks') {
                 return {
@@ -5220,6 +5399,39 @@ const renderStylingPanel = () => {
                 showButtonStyle: true
             }, baseUpdateFn);
             break;
+
+        case 'social_media': {
+            const socialFieldKey = activeField.fieldKey;
+            if (socialFieldKey === 'socialContainer') {
+                renderStandardStylingPanel(comp.data, {
+                    colors: [
+                        { key: 'backgroundColor', label: 'Background' },
+                    ],
+                    alignment: { align: 'align' },
+                    padding: [
+                        { key: 'paddingTop', label: 'Padding T' },
+                        { key: 'paddingBottom', label: 'Padding B' },
+                        { key: 'paddingLeftRight', label: 'Padding L/R' },
+                    ],
+                    customHtml: () => `
+                        <div class="styling-section">
+                            <h4 class="styling-section-title">Icon Settings</h4>
+                            <div class="grid grid-cols-2">
+                                <div class="form-group">
+                                    <label class="form-label">Size (px)</label>
+                                    <input type="number" class="form-control style-control" data-style-key="iconSize" value="${comp.data.iconSize || '32'}" min="16" max="64">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Spacing (px)</label>
+                                    <input type="number" class="form-control style-control" data-style-key="iconSpacing" value="${comp.data.iconSpacing || '12'}" min="0" max="48">
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                }, baseUpdateFn);
+            }
+            break;
+        }
 
         case 'footer': {
             const footerFieldKey = activeField.fieldKey;
