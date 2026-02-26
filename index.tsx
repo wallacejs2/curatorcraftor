@@ -1871,8 +1871,8 @@ const renderComponents = () => {
                     <div class="component-row-item" style="flex: 1;">
                         <label class="form-label">Icon Style</label>
                         <div class="social-color-toggle">
-                            <button type="button" class="social-style-btn ${!isFilled ? 'active' : ''}" data-key="iconStyle" data-value="outlined">Outlined</button>
-                            <button type="button" class="social-style-btn ${isFilled ? 'active' : ''}" data-key="iconStyle" data-value="filled">Filled</button>
+                            <button type="button" class="social-color-btn social-style-btn ${!isFilled ? 'active' : ''}" data-key="iconStyle" data-value="outlined">Outlined</button>
+                            <button type="button" class="social-color-btn social-style-btn ${isFilled ? 'active' : ''}" data-key="iconStyle" data-value="filled">Filled</button>
                         </div>
                     </div>
                 </div>
@@ -2355,7 +2355,7 @@ const renderComponents = () => {
             });
 
             // Color mode toggle
-            item.querySelectorAll('.social-color-btn').forEach(btn => {
+            item.querySelectorAll('.social-color-btn:not(.social-style-btn)').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const value = (btn as HTMLElement).dataset.value || 'brand';
                     updateComponentData(comp.id, 'iconColor', value);
