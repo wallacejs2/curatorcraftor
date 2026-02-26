@@ -2859,36 +2859,30 @@ function generateEmailHtml(): string {
         const isBrand = d.iconColor !== 'custom';
         const customClr = d.customColor || '#1d1d1f';
 
-        const activePlatforms = SOCIAL_MEDIA_PLATFORMS.filter(p => {
-            const url = d[p.key + 'Url'];
-            return url && url.trim() !== '';
-        });
+        const iconsHtml = SOCIAL_MEDIA_PLATFORMS.map((p, i) => {
+            const url = d[p.key + 'Url'] || '';
+            const strokeColor = isBrand ? p.color : customClr;
+            const svgContent = p.svg
+                .replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ')
+                .replace(/currentColor/g, strokeColor);
+            const dataUri = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgContent);
+            const paddingLeft = i > 0 ? iconSpacing : 0;
+            const imgTag = `<img src="${dataUri}" alt="${p.name}" width="${iconSize}" height="${iconSize}" style="display: block; border: 0; outline: none;" />`;
+            const content = url.trim()
+                ? `<a href="${DOMPurify.sanitize(url)}" target="_blank" style="text-decoration: none; display: inline-block;">${imgTag}</a>`
+                : imgTag;
+            return `<td style="padding-left: ${paddingLeft}px;">${content}</td>`;
+        }).join('');
 
-        if (activePlatforms.length > 0) {
-            const iconsHtml = activePlatforms.map((p, i) => {
-                const url = DOMPurify.sanitize(d[p.key + 'Url'] || '#');
-                const strokeColor = isBrand ? p.color : customClr;
-                const svgContent = p.svg
-                    .replace(/currentColor/g, strokeColor);
-                const dataUri = 'data:image/svg+xml,' + encodeURIComponent(svgContent);
-                const paddingLeft = i > 0 ? iconSpacing : 0;
-                return `<td style="padding-left: ${paddingLeft}px;">
-                    <a href="${url}" target="_blank" style="text-decoration: none; display: inline-block;">
-                        <img src="${dataUri}" alt="${p.name}" width="${iconSize}" height="${iconSize}" style="display: block; border: 0; outline: none;" />
-                    </a>
-                </td>`;
-            }).join('');
-
-            sectionsHtml += `
-                <tr>
-                    <td align="${align}" ${!isTransparentBg ? `bgcolor="${bgColor}"` : ''} style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
-                        <table border="0" cellspacing="0" cellpadding="0" style="margin: ${align === 'center' ? '0 auto' : align === 'right' ? '0 0 0 auto' : '0'};">
-                            <tr>${iconsHtml}</tr>
-                        </table>
-                    </td>
-                </tr>
-            `;
-        }
+        sectionsHtml += `
+            <tr>
+                <td align="${align}" ${!isTransparentBg ? `bgcolor="${bgColor}"` : ''} style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
+                    <table border="0" cellspacing="0" cellpadding="0" style="margin: ${align === 'center' ? '0 auto' : align === 'right' ? '0 0 0 auto' : '0'};">
+                        <tr>${iconsHtml}</tr>
+                    </table>
+                </td>
+            </tr>
+        `;
     } else if (comp.type === 'footer') {
         let footerLinks: {text: string; url: string}[] = [];
         try { footerLinks = JSON.parse(d.links || '[]'); } catch { footerLinks = []; }
