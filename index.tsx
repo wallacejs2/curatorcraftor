@@ -2776,7 +2776,7 @@ function generateEmailHtml(): string {
             // YouTube embed via iframe
             const ytParams: string[] = [];
             if (d.autoplay === 'true') ytParams.push('autoplay=1');
-            if (d.muted === 'true') ytParams.push('mute=1');
+            if (d.muted === 'true' || d.autoplay === 'true') ytParams.push('mute=1');
             if (d.loop === 'true') ytParams.push(`loop=1&playlist=${youtubeId}`);
             if (d.controls !== 'true') ytParams.push('controls=0');
             ytParams.push('rel=0', 'modestbranding=1');
@@ -2813,7 +2813,8 @@ function generateEmailHtml(): string {
             const thumbSrc = posterSrc || `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`;
             const posterFallback = `<a href="${ytLink}" target="_blank" style="text-decoration: none; display: inline-block; position: relative;"><img src="${thumbSrc}" alt="${altText}" style="${posterImgStyles}" border="0" /><div style="${playBtnOuter}"><div style="${playTriangle}"></div></div></a>`;
 
-            videoContent = `<!--[if mso]>${posterFallback}<![endif]--><!--[if !mso]><!-->${iframeTag}<!--<![endif]-->`;
+            const cssId = `yt-${comp.id}`;
+            videoContent = `<!--[if !mso]><!--><style>.${cssId}-poster{display:none!important}.${cssId}-frame{display:block!important}</style><!--<![endif]--><div class="${cssId}-poster">${posterFallback}</div><!--[if !mso]><!--><div class="${cssId}-frame" style="display:none;mso-hide:all;">${iframeTag}</div><!--<![endif]-->`;
         } else {
             // Direct video file
             const autoplayAttr = d.autoplay === 'true' ? ' autoplay' : '';
@@ -2900,14 +2901,18 @@ function generateEmailHtml(): string {
                 const url = DOMPurify.sanitize(d[p.key + 'Url'] || '#');
                 const iconColor = isBrand ? p.color : customClr;
                 const rawSvg = useFilled ? p.svgFilled : p.svg;
-                const svgContent = rawSvg
-                    .replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ')
+                const inlineSvg = rawSvg
+                    .replace('<svg ', `<svg xmlns="http://www.w3.org/2000/svg" width="${iconSize}" height="${iconSize}" style="display:block;vertical-align:middle;" `)
                     .replace(/currentColor/g, iconColor);
-                const dataUri = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgContent);
+                // Outlook desktop doesn't render SVG; show a small branded colored square instead
+                const msoFallback = `<table border="0" cellpadding="0" cellspacing="0"><tr><td width="${iconSize}" height="${iconSize}" bgcolor="${iconColor}" style="width:${iconSize}px;height:${iconSize}px;border-radius:3px;"></td></tr></table>`;
                 const paddingLeft = i > 0 ? iconSpacing : 0;
-                return `<td style="padding-left: ${paddingLeft}px;">
-                    <a href="${url}" target="_blank" style="text-decoration: none; display: inline-block;">
-                        <img src="${dataUri}" alt="${p.name}" width="${iconSize}" height="${iconSize}" style="display: block; border: 0; outline: none;" />
+                return `<td style="padding-left:${paddingLeft}px;vertical-align:middle;">
+                    <a href="${url}" target="_blank" style="text-decoration:none;display:inline-block;">
+                        <!--[if mso]>${msoFallback}<![endif]-->
+                        <!--[if !mso]><!-->
+                        ${inlineSvg}
+                        <!--<![endif]-->
                     </a>
                 </td>`;
             }).join('');
