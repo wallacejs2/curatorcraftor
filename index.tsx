@@ -1329,7 +1329,7 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 twitterUrl: '',
                 tiktokUrl: '',
                 youtubeUrl: '',
-                iconSize: '12',
+                iconSize: '24',
                 iconSpacing: '12',
                 iconStyle: 'outlined',
                 iconColor: 'brand',
@@ -2811,7 +2811,7 @@ function generateEmailHtml(): string {
             const playTriangle = `width: 0; height: 0; border-style: solid; border-width: 11px 0 11px 20px; border-color: transparent transparent transparent #ffffff; margin-left: 4px;`;
 
             const thumbSrc = posterSrc || `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`;
-            const posterFallback = `<a href="${ytLink}" target="_blank" style="text-decoration: none; display: inline-block; position: relative;"><img src="${thumbSrc}" alt="${altText}" style="${posterImgStyles}" border="0" /><div style="${playBtnOuter}"><div style="${playTriangle}"></div></div></a>`;
+            const posterFallback = `<a href="${ytLink}" target="_blank" style="text-decoration: none; display: block; position: relative; width: 100%;"><img src="${thumbSrc}" alt="${altText}" width="100%" style="${posterImgStyles}" border="0" /><div style="${playBtnOuter}"><div style="${playTriangle}"></div></div></a>`;
 
             const cssId = `yt-${comp.id}`;
             videoContent = `<!--[if !mso]><!--><style>.${cssId}-poster{display:none!important}.${cssId}-frame{display:block!important}</style><!--<![endif]--><div class="${cssId}-poster">${posterFallback}</div><!--[if !mso]><!--><div class="${cssId}-frame" style="display:none;mso-hide:all;">${iframeTag}</div><!--<![endif]-->`;
