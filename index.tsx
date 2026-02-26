@@ -1175,7 +1175,8 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 textAlign: 'center',
                 paddingTop: '15',
                 paddingBottom: '15',
-                paddingLeftRight: '15'
+                paddingLeftRight: '15',
+                mobileHide: 'false', mobileFontSize: '', mobileAlignment: '', mobilePadding: ''
             };
         case 'text_block':
             return {
@@ -1189,7 +1190,8 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 textAlign: 'left',
                 paddingTop: '8',
                 paddingBottom: '8',
-                paddingLeftRight: '15'
+                paddingLeftRight: '15',
+                mobileHide: 'false', mobileFontSize: '', mobileAlignment: '', mobilePadding: ''
             };
         case 'image':
             return {
@@ -1201,7 +1203,8 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 paddingTop: '0',
                 paddingBottom: '0',
                 paddingLeftRight: '0',
-                backgroundColor: 'transparent'
+                backgroundColor: 'transparent',
+                mobileHide: 'false', mobileFontSize: '', mobileAlignment: '', mobilePadding: ''
             };
         case 'button':
             return {
@@ -1214,7 +1217,8 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 paddingTop: '9',
                 paddingBottom: '9',
                 paddingLeftRight: '15',
-                widthType: 'auto'
+                widthType: 'auto',
+                mobileHide: 'false', mobileFontSize: '', mobileAlignment: '', mobilePadding: ''
             };
         case 'divider':
             return {
@@ -1224,13 +1228,15 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 alignment: 'center',
                 paddingTop: '12',
                 paddingBottom: '12',
-                paddingLeftRight: '0'
+                paddingLeftRight: '0',
+                mobileHide: 'false', mobileFontSize: '', mobileAlignment: '', mobilePadding: ''
             };
         case 'spacer':
             return {
                 height: '30',
                 backgroundColor: 'transparent',
                 matchEmailBackground: 'true',
+                mobileHide: 'false', mobileFontSize: '', mobileAlignment: '', mobilePadding: ''
             };
         case 'disclaimers':
             return {
@@ -1244,7 +1250,8 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 textAlign: 'center',
                 paddingTop: '12',
                 paddingBottom: '12',
-                paddingLeftRight: '15'
+                paddingLeftRight: '15',
+                mobileHide: 'false', mobileFontSize: '', mobileAlignment: '', mobilePadding: ''
             };
         case 'service_offer':
             return {
@@ -1273,7 +1280,8 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 disclaimerFontSize2: '9', disclaimerFontWeight2: 'normal', disclaimerFontStyle2: 'normal', disclaimerTextColor2: '#666666', disclaimerBgColor2: 'transparent', disclaimerAlignment2: 'center', disclaimerPaddingTop2: '6', disclaimerPaddingBottom2: '6', disclaimerPaddingLeftRight2: '0',
                 buttonFontSize2: '12', buttonFontWeight2: 'bold', buttonAlignment2: 'center', buttonBgColor2: '#0066FF', buttonTextColor2: '#FFFFFF', buttonPaddingTop2: '9', buttonPaddingBottom2: '9', buttonPaddingLeftRight2: '15', buttonWidth2: 'auto', buttonBorderRadius2: '8', buttonBorderColor2: '', buttonBorderWidth2: '0',
                 textLayout: 'center',
-                showBorder: 'true'
+                showBorder: 'true',
+                mobileHide: 'false', mobileFontSize: '', mobileAlignment: '', mobilePadding: ''
             };
         case 'sales_offer':
             return {
@@ -1308,7 +1316,8 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 btnFontSize2: '12', btnFontWeight2: 'bold', btnPaddingTop2: '9', btnPaddingBottom2: '9', btnPaddingLeftRight2: '15', btnColor2: '#007aff', btnTextColor2: '#ffffff', btnAlign2: 'center', btnWidthType2: 'full', btnBorderRadius2: '8', btnBorderColor2: '', btnBorderWidth2: '0',
                 paddingTop: '15', paddingBottom: '15', paddingLeftRight: '15', backgroundColor: '#ffffff',
                 textLayout: 'center',
-                showBorder: 'true'
+                showBorder: 'true',
+                mobileHide: 'false', mobileFontSize: '', mobileAlignment: '', mobilePadding: ''
             };
         case 'footer':
             return {
@@ -1327,6 +1336,7 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 paddingBottom: '15',
                 paddingLeftRight: '15',
                 linkSpacing: '12',
+                mobileHide: 'false', mobileFontSize: '', mobileAlignment: '', mobilePadding: ''
             };
         default:
             return {};
@@ -2489,10 +2499,24 @@ function initializeDragAndDrop() {
 
 function generateEmailHtml(): string {
   let sectionsHtml = '';
-  
+
+  // Pre-pass: build per-component mobile override CSS rules
+  let mobileOverrideCss = '';
+  activeComponents.forEach(comp => {
+      const d = comp.data || {};
+      const mobCls = `mc-${comp.id.replace(/-/g, '')}`;
+      const rules: string[] = [];
+      if (d.mobileFontSize) rules.push(`font-size: ${parseInt(d.mobileFontSize)}px !important; line-height: 1.4 !important;`);
+      if (d.mobilePadding) rules.push(`padding-left: ${parseInt(d.mobilePadding)}px !important; padding-right: ${parseInt(d.mobilePadding)}px !important;`);
+      if (d.mobileAlignment) rules.push(`text-align: ${d.mobileAlignment} !important;`);
+      if (rules.length) mobileOverrideCss += `            .${mobCls} { ${rules.join(' ')} }\n`;
+  });
+
   activeComponents.forEach(comp => {
     const d = comp.data || {};
     const isTransparent = d.backgroundColor === 'transparent';
+    const mobCls = `mc-${comp.id.replace(/-/g, '')}`;
+    const hideRowClass = d.mobileHide === 'true' ? 'hide-mobile' : '';
     
     if (comp.type === 'header' || comp.type === 'text_block' || comp.type === 'disclaimers') {
       const styles = [
@@ -2509,8 +2533,8 @@ function generateEmailHtml(): string {
       
       const txt = DOMPurify.sanitize(d.text || '');
       sectionsHtml += `
-        <tr>
-            <td align="${d.textAlign || 'left'}" ${isTransparent ? '' : `bgcolor="${d.backgroundColor}"`} style="${styles}">
+        <tr${hideRowClass ? ` class="${hideRowClass}"` : ''}>
+            <td align="${d.textAlign || 'left'}" ${isTransparent ? '' : `bgcolor="${d.backgroundColor}"`} class="${mobCls} mobile-pad" style="${styles}">
                 <div style="font-family: ${designSettings.fontFamily}; color: ${d.textColor || '#000'}; font-size: ${d.fontSize || 16}px;">
                     ${txt.replace(/\n/g, '<br>')}
                 </div>
@@ -2520,12 +2544,13 @@ function generateEmailHtml(): string {
     } else if (comp.type === 'image') {
         const numericWidth = parseFloat((d.width || '100%').replace(/%/g, '')) || 100;
         const styleWidth = `${numericWidth}%`;
+        const imgWidthAttr = Math.round((numericWidth / 100) * 600);
         const imgStyles = [`display: block`, `max-width: 100%`, `width: ${styleWidth}`, `height: auto`, `border: 0`, `margin: ${d.align === 'center' ? '0 auto' : '0'}`].join(';');
-        let imgTag = `<img src="${DOMPurify.sanitize(d.src || '')}" alt="${DOMPurify.sanitize(d.alt || 'Image')}" style="${imgStyles}" border="0" />`;
+        let imgTag = `<img src="${DOMPurify.sanitize(d.src || '')}" alt="${DOMPurify.sanitize(d.alt || 'Image')}" class="responsive-img" width="${imgWidthAttr}" style="${imgStyles}" border="0" />`;
         if (d.link) imgTag = `<a href="${DOMPurify.sanitize(d.link)}" target="_blank" style="text-decoration: none;">${imgTag}</a>`;
         sectionsHtml += `
-            <tr>
-                <td align="${d.align || 'center'}" ${isTransparent ? '' : `bgcolor="${d.backgroundColor}"`} style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
+            <tr${hideRowClass ? ` class="${hideRowClass}"` : ''}>
+                <td align="${d.align || 'center'}" ${isTransparent ? '' : `bgcolor="${d.backgroundColor}"`} class="${mobCls} mobile-pad" style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
                     <div style="display: block; width: 100%; max-width: ${styleWidth};">${imgTag}</div>
                 </td>
             </tr>
@@ -2554,8 +2579,8 @@ function generateEmailHtml(): string {
         const htmlBtn = `<!--[if !mso]><!--><a href="${sanitizedLink}" target="_blank" style="${btnStyles}">${sanitizedText}</a><!--<![endif]-->`;
 
         sectionsHtml += `
-            <tr>
-                <td align="${d.align || 'center'}" style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
+            <tr${hideRowClass ? ` class="${hideRowClass}"` : ''}>
+                <td align="${d.align || 'center'}" class="${mobCls}" style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
                     <table border="0" cellspacing="0" cellpadding="0" ${tableWidthAttr ? `width="${tableWidthAttr}"` : ""} style="margin: ${d.align === 'center' ? '0 auto' : '0'}; width: ${widthStyle}; max-width: 100%;">
                         <tr>
                             <td align="center" bgcolor="${isOutlined ? 'transparent' : bgColor}" style="border-radius: ${radius};">
@@ -2599,8 +2624,8 @@ function generateEmailHtml(): string {
             }).join('');
 
             sectionsHtml += `
-                <tr>
-                    <td align="${textAlign}" ${!isTransparentBg ? `bgcolor="${bgColor}"` : ''} style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
+                <tr${hideRowClass ? ` class="${hideRowClass}"` : ''}>
+                    <td align="${textAlign}" ${!isTransparentBg ? `bgcolor="${bgColor}"` : ''} class="${mobCls}" style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
                         <table border="0" cellspacing="0" cellpadding="0" style="margin: ${textAlign === 'center' ? '0 auto' : '0'};">
                             ${linksHtml}
                         </table>
@@ -2618,8 +2643,8 @@ function generateEmailHtml(): string {
             }).join('');
 
             sectionsHtml += `
-                <tr>
-                    <td align="${textAlign}" ${!isTransparentBg ? `bgcolor="${bgColor}"` : ''} style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
+                <tr${hideRowClass ? ` class="${hideRowClass}"` : ''}>
+                    <td align="${textAlign}" ${!isTransparentBg ? `bgcolor="${bgColor}"` : ''} class="${mobCls}" style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
                         <table border="0" cellspacing="0" cellpadding="0" style="margin: ${textAlign === 'center' ? '0 auto' : '0'};">
                             <tr>${linksHtml}</tr>
                         </table>
@@ -2632,8 +2657,8 @@ function generateEmailHtml(): string {
         const alignValue = alignment === 'left' ? 'left' : alignment === 'right' ? 'right' : 'center';
 
         sectionsHtml += `
-          <tr>
-            <td style="padding: ${paddingTop}px ${paddingLeftRight || '0'}px ${paddingBottom}px ${paddingLeftRight || '0'}px;">
+          <tr${hideRowClass ? ` class="${hideRowClass}"` : ''}>
+            <td class="${mobCls}" style="padding: ${paddingTop}px ${paddingLeftRight || '0'}px ${paddingBottom}px ${paddingLeftRight || '0'}px;">
               <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
                 <tr>
                   <td align="${alignValue}">
@@ -2654,8 +2679,8 @@ function generateEmailHtml(): string {
         const bgStyle = bgColor !== 'transparent' ? `background-color: ${bgColor};` : '';
         
         sectionsHtml += `
-            <tr>
-                <td height="${height}" style="height: ${height}px; line-height: ${height}px; font-size: 0; mso-line-height-rule: exactly; ${bgStyle}">
+            <tr${hideRowClass ? ` class="${hideRowClass}"` : ''}>
+                <td height="${height}" class="${mobCls}" style="height: ${height}px; line-height: ${height}px; font-size: 0; mso-line-height-rule: exactly; ${bgStyle}">
                     &nbsp;
                 </td>
             </tr>
@@ -2776,8 +2801,8 @@ function generateEmailHtml(): string {
         }
 
         sectionsHtml += `
-            <tr>
-                <td align="center" style="${containerPadding}">
+            <tr${hideRowClass ? ` class="${hideRowClass}"` : ''}>
+                <td align="center" class="${mobCls}" style="${containerPadding}">
                     ${serviceOfferContentHtml}
                 </td>
             </tr>
@@ -2915,8 +2940,8 @@ function generateEmailHtml(): string {
         }
 
         sectionsHtml += `
-            <tr>
-                <td bgcolor="${d.backgroundColor || 'transparent'}" style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
+            <tr${hideRowClass ? ` class="${hideRowClass}"` : ''}>
+                <td bgcolor="${d.backgroundColor || 'transparent'}" class="${mobCls}" style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
                     ${offerContentHtml}
                 </td>
             </tr>
@@ -2997,7 +3022,7 @@ function generateEmailHtml(): string {
         }
         
         /* Mobile responsive styles */
-        @media screen and (max-width: 600px) {
+        @media only screen and (max-width: 600px) {
             .email-container {
                 width: 100% !important;
                 margin: auto !important;
@@ -3020,6 +3045,35 @@ function generateEmailHtml(): string {
                 display: block !important;
                 box-sizing: border-box !important;
             }
+            /* Responsive images */
+            .responsive-img {
+                width: 100% !important;
+                max-width: 100% !important;
+                height: auto !important;
+            }
+            /* Mobile font size minimums (prevent tiny text) */
+            .mobile-text {
+                font-size: 16px !important;
+                line-height: 1.4 !important;
+            }
+            /* Mobile-friendly button sizing */
+            .mobile-btn {
+                display: block !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 14px 20px !important;
+                font-size: 18px !important;
+            }
+            /* Hide on mobile utility */
+            .hide-mobile { display: none !important; }
+            /* Show only on mobile utility */
+            .show-mobile { display: block !important; }
+            /* Mobile padding adjustments */
+            .mobile-pad { padding-left: 16px !important; padding-right: 16px !important; }
+            /* Mobile text alignment */
+            .mobile-center { text-align: center !important; }
+            /* Per-component mobile overrides */
+            ${mobileOverrideCss}
         }
     </style>
 </head>
@@ -4938,7 +4992,34 @@ const renderStandardStylingPanel = (
     if (config.showButtonStyle) {
         html += getButtonStyleSectionHtml();
     }
-    
+
+    if (config.showMobileOverrides) {
+        html += `
+            <div class="design-option-group" style="border-top: 1px solid var(--separator-secondary); margin-top: var(--spacing-lg); padding-top: var(--spacing-lg);">
+                <h4 style="margin: 0 0 4px; font-size: 12px; font-weight: 600;">Mobile Overrides</h4>
+                <p style="font-size: 11px; color: var(--label-tertiary); margin: 0 0 var(--spacing-sm);">Override styles at &le;600px screen width</p>
+                <div class="form-group" style="display: flex; align-items: center; gap: 6px;">
+                    <input type="checkbox" class="style-control" data-style-key="mobileHide" ${data.mobileHide === 'true' ? 'checked' : ''} style="width: auto; height: auto; cursor: pointer;">
+                    <label class="form-label" style="margin-bottom: 0; cursor: pointer;">Hide component on mobile</label>
+                </div>
+                <div class="grid grid-cols-2">
+                    <div class="form-group">
+                        <label class="form-label">Font Size (px)</label>
+                        <input type="number" class="form-control style-control" data-style-key="mobileFontSize" value="${data.mobileFontSize || ''}" placeholder="inherit" min="8" max="72">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Side Padding (px)</label>
+                        <input type="number" class="form-control style-control" data-style-key="mobilePadding" value="${data.mobilePadding || ''}" placeholder="inherit" min="0" max="60">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Alignment</label>
+                    ${alignmentControlHtml('mobileAlignment', data.mobileAlignment || '')}
+                </div>
+            </div>
+        `;
+    }
+
     dynamicStylingContainer.innerHTML = html;
 
     dynamicStylingContainer.querySelector('#close-styling-panel-btn')?.addEventListener('click', () => {
@@ -5065,7 +5146,8 @@ const renderStylingPanel = () => {
                     {key: 'paddingTop', label: 'Padding T'},
                     {key: 'paddingBottom', label: 'Padding B'},
                     {key: 'paddingLeftRight', label: 'Padding L/R'}
-                ]
+                ],
+                showMobileOverrides: true
             }, baseUpdateFn);
             break;
 
@@ -5083,7 +5165,8 @@ const renderStylingPanel = () => {
                     { key: 'paddingBottom', label: 'Padding B' },
                     { key: 'paddingLeftRight', label: 'Padding L/R' }
                 ],
-                showButtonStyle: true
+                showButtonStyle: true,
+                showMobileOverrides: true
             }, baseUpdateFn);
             break;
 
@@ -5106,6 +5189,7 @@ const renderStylingPanel = () => {
                             </div>
                         `;
                     },
+                    showMobileOverrides: true
                 }, baseUpdateFn);
             } else if (footerFieldKey === 'footerSeparator') {
                 renderStandardStylingPanel(comp.data, {
@@ -5183,6 +5267,8 @@ const renderStylingPanel = () => {
                         alignment: { align: `btnAlign${suffix}`},
                         sizing: { buttonWidth: `btnWidthType${suffix}` },
                         padding: [ { key: `btnPaddingTop${suffix}`, label: 'Padding T' }, { key: `btnPaddingBottom${suffix}`, label: 'Padding B' }, { key: `btnPaddingLeftRight${suffix}`, label: 'Padding L/R' } ],
+                        showButtonStyle: true,
+                        showMobileOverrides: true,
                         customHtml: (d: Record<string,string>) => {
                             const bgColor = d[`btnColor${suffix}`] || '#007aff';
                             const textColor = d[`btnTextColor${suffix}`] || '#ffffff';
@@ -5203,8 +5289,7 @@ const renderStylingPanel = () => {
                                     <div style="display:inline-block;padding:${d[`btnPaddingTop${suffix}`] || '9'}px ${d[`btnPaddingLeftRight${suffix}`] || '15'}px ${d[`btnPaddingBottom${suffix}`] || '9'}px;background-color:${bgColor};color:${textColor};border-radius:${bRadius}px;font-size:${d[`btnFontSize${suffix}`] || '12'}px;font-weight:${d[`btnFontWeight${suffix}`] || 'bold'};${borderStyle};font-family:Arial,sans-serif;">Button Preview</div>
                                 </div>
                             `;
-                        },
-                        showButtonStyle: true
+                        }
                     }, baseUpdateFn);
                 } else {
                     if (activeField.subOfferIndex !== undefined) {
@@ -5227,7 +5312,7 @@ const renderStylingPanel = () => {
         
         case 'service_offer':
              const serviceFieldKey = activeField.fieldKey;
-             let serviceConfig = {};
+             let serviceConfig: Record<string, any> = { showMobileOverrides: true };
              const suffix = serviceFieldKey.endsWith('2') ? '2' : '';
              const baseKey = serviceFieldKey.replace(/2$/, '');
              switch(baseKey) {
@@ -5311,7 +5396,8 @@ const renderStylingPanel = () => {
              renderStandardStylingPanel(comp.data, {
                 sizing: { width: 'width'},
                 alignment: { align: 'align' },
-                padding: [{key: 'paddingTop', label: 'Padding T'}, {key: 'paddingBottom', label: 'Padding B'}, {key: 'paddingLeftRight', label: 'Padding L/R'}]
+                padding: [{key: 'paddingTop', label: 'Padding T'}, {key: 'paddingBottom', label: 'Padding B'}, {key: 'paddingLeftRight', label: 'Padding L/R'}],
+                showMobileOverrides: true
             }, baseUpdateFn);
             break;
 
@@ -5323,7 +5409,8 @@ const renderStylingPanel = () => {
                 padding: [
                     {key: 'paddingTop', label: 'Padding T'}, {key: 'paddingBottom', label: 'Padding B'},
                     {key: 'paddingLeftRight', label: 'Padding L/R'}
-                ]
+                ],
+                showMobileOverrides: true
             };
             const updateFn = (key: string, value: string) => {
                 baseUpdateFn(key, value);
@@ -5357,7 +5444,8 @@ const renderStylingPanel = () => {
                         <input type="checkbox" id="match-bg-checkbox" class="style-control" data-style-key="matchEmailBackground" ${d.matchEmailBackground === 'true' ? 'checked' : ''} style="width: auto; height: auto;">
                         <label for="match-bg-checkbox" class="form-label" style="margin-bottom: 0;">Match Email Background</label>
                     </div>
-                `
+                `,
+                showMobileOverrides: true
             };
             const updateFn = (key: string, value: string) => {
                 baseUpdateFn(key, value);
