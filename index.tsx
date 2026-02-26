@@ -356,6 +356,8 @@ const floatingPanelBtn = document.getElementById('floating-panel-btn');
 // Design Settings Controls
 const fontSelect = document.getElementById('design-font-family') as HTMLSelectElement;
 const preheaderInput = document.getElementById('design-preheader-text') as HTMLInputElement;
+const preheaderCharCount = document.getElementById('preheader-char-count');
+const preheaderCharHint = document.getElementById('preheader-char-hint');
 
 // Saved Template Elements
 const saveTemplateBtn = document.getElementById('save-template-btn') as HTMLButtonElement;
@@ -618,8 +620,29 @@ fontSelect?.addEventListener('change', () => {
     showToast('Font updated', 'success');
 });
 
+const updatePreheaderCounter = () => {
+    const len = preheaderInput?.value.length ?? 0;
+    if (preheaderCharCount) preheaderCharCount.textContent = `${len} / 150`;
+    if (preheaderCharHint) {
+        if (len === 0) {
+            preheaderCharHint.textContent = '';
+            preheaderCharHint.style.color = '';
+        } else if (len < 35) {
+            preheaderCharHint.textContent = 'Too short';
+            preheaderCharHint.style.color = 'var(--system-orange, #ff9500)';
+        } else if (len <= 90) {
+            preheaderCharHint.textContent = 'Good length';
+            preheaderCharHint.style.color = 'var(--system-green, #34c759)';
+        } else {
+            preheaderCharHint.textContent = 'May be truncated';
+            preheaderCharHint.style.color = 'var(--system-orange, #ff9500)';
+        }
+    }
+};
+
 preheaderInput?.addEventListener('input', () => {
     designSettings.preheaderText = preheaderInput.value;
+    updatePreheaderCounter();
     saveDraft();
 });
 
@@ -2943,7 +2966,8 @@ function generateEmailHtml(): string {
 </head>
 <body style="margin: 0; padding: 0; width: 100%; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; background-color: #f5f5f7;">
     ${designSettings.preheaderText ? `<!-- Preheader text -->
-    <div style="display:none;font-size:1px;color:#fefefe;line-height:1px;font-family:Arial,sans-serif;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">${DOMPurify.sanitize(designSettings.preheaderText)}</div>` : ''}
+    <div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">${DOMPurify.sanitize(designSettings.preheaderText)}</div>
+    <div style="display:none;max-height:0px;overflow:hidden;">&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;</div>` : ''}
     <!-- 100% background wrapper -->
     <table border="0" cellpadding="0" cellspacing="0" width="100%" id="bodyTable" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; margin: 0; padding: 0; width: 100%; height: 100%; background-color: #f5f5f7;">
         <tr>
@@ -3155,7 +3179,7 @@ const setActiveDealership = (id: string | null) => {
                     ...(group.defaultButtonStyle ? { buttonStyle: group.defaultButtonStyle as DesignSettings['buttonStyle'] } : {}),
                 };
                 if (fontSelect) fontSelect.value = designSettings.fontFamily;
-                if (preheaderInput) preheaderInput.value = designSettings.preheaderText || '';
+                if (preheaderInput) { preheaderInput.value = designSettings.preheaderText || ''; updatePreheaderCounter(); }
                 syncGlobalTextStylesUI();
             }
         }
@@ -3813,7 +3837,7 @@ const startNewTemplate = () => {
         preheaderText: '',
     };
     if (fontSelect) fontSelect.value = designSettings.fontFamily;
-    if (preheaderInput) preheaderInput.value = '';
+    if (preheaderInput) { preheaderInput.value = ''; updatePreheaderCounter(); }
     syncGlobalTextStylesUI();
     saveCollapsedStates();
     saveToHistory();
@@ -3925,7 +3949,7 @@ const loadTemplate = (id: string) => {
         activeComponents.forEach(c => { collapsedStates[c.id] = true; });
         saveCollapsedStates();
         if (fontSelect) fontSelect.value = designSettings.fontFamily;
-        if (preheaderInput) preheaderInput.value = designSettings.preheaderText || '';
+        if (preheaderInput) { preheaderInput.value = designSettings.preheaderText || ''; updatePreheaderCounter(); }
         syncGlobalTextStylesUI();
         saveToHistory();
         renderComponents();
@@ -4423,7 +4447,7 @@ const loadDraft = (dealershipId?: string | null) => {
                 designSettings = { ...designSettings, ...draft.designSettings };
                 activeComponents = draft.activeComponents;
                 if (fontSelect) fontSelect.value = designSettings.fontFamily;
-                if (preheaderInput) preheaderInput.value = designSettings.preheaderText || '';
+                if (preheaderInput) { preheaderInput.value = designSettings.preheaderText || ''; updatePreheaderCounter(); }
                 renderComponents();
             }
         }
@@ -5301,7 +5325,7 @@ const executeUndo = () => {
         designSettings = structuredClone(commandHistory[commandHistoryIndex].designSettings);
         renderComponents();
         if (fontSelect) fontSelect.value = designSettings.fontFamily;
-        if (preheaderInput) preheaderInput.value = designSettings.preheaderText || '';
+        if (preheaderInput) { preheaderInput.value = designSettings.preheaderText || ''; updatePreheaderCounter(); }
         saveDraft();
         showToast('Undo', 'info');
     } else {
@@ -5316,7 +5340,7 @@ const executeRedo = () => {
         designSettings = structuredClone(commandHistory[commandHistoryIndex].designSettings);
         renderComponents();
         if (fontSelect) fontSelect.value = designSettings.fontFamily;
-        if (preheaderInput) preheaderInput.value = designSettings.preheaderText || '';
+        if (preheaderInput) { preheaderInput.value = designSettings.preheaderText || ''; updatePreheaderCounter(); }
         saveDraft();
         showToast('Redo', 'info');
     } else {

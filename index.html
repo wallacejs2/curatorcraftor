@@ -131,9 +131,13 @@
 
         <!-- Preheader Text -->
         <div class="design-option-group">
-          <h4>Preheader Text</h4>
-          <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0 0 8px;">Inbox preview text shown below the subject line.</p>
-          <input type="text" id="design-preheader-text" class="form-control" placeholder="Enter preheader text..." maxlength="150" />
+          <h4>Preview Text</h4>
+          <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0 0 8px;">Inbox preview text shown below the subject line. Supports {{merge fields}}.</p>
+          <input type="text" id="design-preheader-text" class="form-control" placeholder="Enter preview text... (e.g. Hi {{FirstName}})" maxlength="150" />
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+            <span id="preheader-char-hint" style="font-size:11px;"></span>
+            <span id="preheader-char-count" style="font-size:11px;color:var(--color-text-secondary);">0 / 150</span>
+          </div>
         </div>
 
         <!-- Dynamic Field Styling Container -->
