@@ -2848,102 +2848,95 @@ function generateEmailHtml(): string {
   });
 
   return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="x-apple-disable-message-reformatting">
-    <title>Email</title>
-    <!--[if mso]>
-    <style type="text/css">
-        body, table, td, a { font-family: Arial, sans-serif !important; }
-        table { border-collapse: collapse; }
-        .email-container { width: 600px !important; }
-    </style>
-    <noscript>
-        <xml>
-            <o:OfficeDocumentSettings>
-                <o:AllowPNG/>
-                <o:PixelsPerInch>96</o:PixelsPerInch>
-            </o:OfficeDocumentSettings>
-        </xml>
-    </noscript>
-    <![endif]-->
-    <style type="text/css">
-        /* Reset styles */
-        body, table, td, a { 
-            -webkit-text-size-adjust: 100%; 
-            -ms-text-size-adjust: 100%; 
-        }
-        table, td { 
-            mso-table-lspace: 0pt; 
-            mso-table-rspace: 0pt; 
-        }
-        img { 
-            -ms-interpolation-mode: bicubic; 
-            border: 0; 
-            height: auto; 
-            line-height: 100%; 
-            outline: none; 
-            text-decoration: none; 
-        }
-        
-        /* Body reset */
-        body { 
-            height: 100% !important; 
-            margin: 0 !important; 
-            padding: 0 !important; 
-            width: 100% !important; 
-            background-color: #f5f5f7;
-            font-family: Arial, sans-serif;
-        }
-        
-        /* Remove spaces around email on mobile */
-        body, #bodyTable {
-            height: 100% !important;
-            margin: 0;
-            padding: 0;
-            width: 100% !important;
-        }
-        
-        /* Force Outlook to provide a "view in browser" link */
-        #outlook a { padding: 0; }
-        
-        /* Prevent Webkit and Windows Mobile from changing font sizes */
-        body { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
-        
-        /* Force Hotmail to display normal line spacing */
-        .ExternalClass { width: 100%; }
-        .ExternalClass, .ExternalClass p, .ExternalClass span, .ExternalClass font, .ExternalClass td, .ExternalClass div {
-            line-height: 100%;
-        }
-        
-        /* Mobile responsive styles */
-        @media screen and (max-width: 600px) {
-            .email-container {
-                width: 100% !important;
-                margin: auto !important;
-            }
-            .mobile-stack {
-                display: block !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                padding-left: 0 !important;
-                padding-right: 0 !important;
-            }
-            .mobile-stack:not(:last-child) {
-                padding-bottom: 20px !important;
-            }
-            .mobile-stack-spacer {
-                display: none !important;
-            }
-        }
-    </style>
+<html lang="en" dir="auto" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office"><head>
+<title>Email</title>
+<!--[if !mso]><!-->
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!--<![endif]-->
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style type="text/css">
+
+#outlook a { padding:0; }
+body { margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%; }
+table, td { border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt; }
+img { border:0;height:auto;line-height:100%;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic; }
+p { display:block;margin:13px 0; }
+</style>
+<!--[if mso]>
+<noscript>
+<xml>
+<o:OfficeDocumentSettings>
+<o:AllowPNG/>
+<o:PixelsPerInch>96</o:PixelsPerInch>
+</o:OfficeDocumentSettings>
+</xml>
+</noscript>
+<![endif]-->
+<style type="text/css">
+
+body {
+-webkit-font-smoothing:antialiased;
+-moz-osx-font-smoothing:grayscale;
+}
+a[x-apple-data-detectors] {
+color: inherit !important;
+text-decoration: none !important;
+}
+[data-markjs] { color: inherit; padding: 0; background: none; }
+#MessageViewBody a {
+color: inherit !important;
+text-decoration: none!important;
+}
+[x-apple-data-detectors-type="calendar-event"] { color: inherit !important; -webkit-text-decoration-color: inherit !important; }
+u + .emailify a[href^="tel:"],
+u + .emailify a[href^="mailto:"],
+u + .emailify a[href*="maps.google"] {
+color: inherit !important;
+text-decoration: none !important;
+}
+.ExternalClass { width: 100%; }
+.ExternalClass, .ExternalClass p, .ExternalClass span, .ExternalClass font, .ExternalClass td, .ExternalClass div {
+line-height: 100%;
+}
+@media only screen and (max-width:599px) {
+.emailify { height:100% !important; margin:0 !important; padding:0 !important; width:100% !important; }
+.mq img { width: 100%!important; max-width: 100%!important; height: auto!important; }
+br.s { display: none!important; }
+img { background-color: transparent!important; }
+.email-container { width: 100% !important; margin: auto !important; }
+.mobile-stack { display: block !important; width: 100% !important; max-width: 100% !important; padding-left: 0 !important; padding-right: 0 !important; }
+.mobile-stack:not(:last-child) { padding-bottom: 20px !important; }
+.mobile-stack-spacer { display: none !important; }
+}
+</style>
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no, url=no">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<!--[if gte mso 9]>
+<style>
+a:link {
+mso-style-priority: 99;
+color: inherit;
+text-decoration: none;
+}
+a:visited {
+mso-style-priority: 99;
+color: inherit;
+text-decoration: none;
+}
+li { margin-left: -1em !important }
+table, td, p, div, span, ul, ol, li, a, h1, h2, h3, h4, h5, h6 {
+mso-hyphenate: none;
+}
+sup, sub { font-size: 100% !important; }
+img { background-color: transparent !important; }
+</style>
+<![endif]-->
 </head>
-<body style="margin: 0; padding: 0; width: 100%; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; background-color: #f5f5f7;">
-    ${designSettings.preheaderText ? `<!-- Preheader text -->
-    <div style="display:none;font-size:1px;color:#fefefe;line-height:1px;font-family:Arial,sans-serif;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">${DOMPurify.sanitize(designSettings.preheaderText)}</div>` : ''}
+<body lang="en" link="${designSettings.globalLinkColor || '#007aff'}" vlink="${designSettings.globalLinkColor || '#007aff'}" class="emailify" style="mso-line-height-rule: exactly; mso-hyphenate: none; word-wrap: normal; word-spacing: normal; background-color: #f5f5f7;">
+${designSettings.preheaderText ? `<div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">${DOMPurify.sanitize(designSettings.preheaderText)}</div>` : ''}
     <!-- 100% background wrapper -->
     <table border="0" cellpadding="0" cellspacing="0" width="100%" id="bodyTable" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; margin: 0; padding: 0; width: 100%; height: 100%; background-color: #f5f5f7;">
         <tr>
