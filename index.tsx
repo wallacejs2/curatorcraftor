@@ -127,6 +127,7 @@ const CONTENT_KEYS: Record<string, string[]> = {
     disclaimers:   ['text'],
     button:        ['text', 'link'],
     image:         ['src', 'alt', 'link'],
+    video:         ['src', 'poster', 'alt'],
     divider:       [],
     spacer:        [],
     service_offer: [
@@ -1157,6 +1158,23 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 paddingLeftRight: '0',
                 backgroundColor: 'transparent'
             };
+        case 'video':
+            return {
+                src: '',
+                poster: '',
+                alt: '',
+                width: '100%',
+                align: 'center',
+                paddingTop: '0',
+                paddingBottom: '0',
+                paddingLeftRight: '0',
+                backgroundColor: 'transparent',
+                autoplay: 'false',
+                muted: 'true',
+                controls: 'true',
+                loop: 'false',
+                borderRadius: '12'
+            };
         case 'button':
             return {
                 text: '',
@@ -1619,6 +1637,7 @@ const COMPONENT_TYPE_ICONS: Record<string, string> = {
     header: 'format_h1',
     text_block: 'format_align_justify',
     image: 'image',
+    video: 'videocam',
     button: 'radio_button_checked',
     divider: 'horizontal_rule',
     spacer: 'expand_all',
@@ -1677,6 +1696,7 @@ const renderComponents = () => {
                 sourceFieldKey = 'text';
                 break;
             case 'image':
+            case 'video':
                 sourceFieldKey = 'alt';
                 break;
             case 'button':
@@ -1734,6 +1754,39 @@ const renderComponents = () => {
                 </div>
                 <div class="img-thumbnail-preview" style="display: ${comp.data.src && comp.data.src !== 'https://via.placeholder.com/600x300' ? 'block' : 'none'}">
                     <img src="${comp.data.src || ''}" alt="" />
+                </div>
+            `;
+        } else if (comp.type === 'video') {
+            componentFormHtml = `
+                <div class="img-fields-row">
+                    <div class="img-field-group">
+                        <div class="img-url-inner">
+                            <input type="text" class="form-control compact" data-key="src" data-stylable="true" data-component-id="${comp.id}" data-field-key="video" data-field-label="Video Source" value="${comp.data.src || ''}" placeholder="Video URL (mp4, webm...)">
+                            <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
+                            <input type="file" class="hidden file-input" accept="video/mp4,video/webm,video/ogg">
+                        </div>
+                    </div>
+                    <div class="img-field-group">
+                        <input type="text" class="form-control compact" data-key="alt" data-component-id="${comp.id}" data-field-key="video" data-field-label="Video Title" value="${comp.data.alt || ''}" placeholder="Video Title / Alt Text">
+                    </div>
+                </div>
+                <div class="img-fields-row" style="margin-top: var(--spacing-sm);">
+                    <div class="img-field-group">
+                        <div class="img-url-inner">
+                            <input type="text" class="form-control compact" data-key="poster" data-stylable="true" data-component-id="${comp.id}" data-field-key="video" data-field-label="Poster Image" value="${comp.data.poster || ''}" placeholder="Poster Image URL">
+                            <button type="button" class="btn btn-secondary btn-sm poster-upload-btn">Upload</button>
+                            <input type="file" class="hidden poster-file-input" accept="image/jpeg,image/png,image/gif,image/webp">
+                        </div>
+                    </div>
+                </div>
+                <div class="vid-toggles-row">
+                    <label class="vid-toggle ${comp.data.controls === 'true' ? 'active' : ''}"><input type="checkbox" class="video-toggle" data-key="controls" ${comp.data.controls === 'true' ? 'checked' : ''}>Controls</label>
+                    <label class="vid-toggle ${comp.data.autoplay === 'true' ? 'active' : ''}"><input type="checkbox" class="video-toggle" data-key="autoplay" ${comp.data.autoplay === 'true' ? 'checked' : ''}>Autoplay</label>
+                    <label class="vid-toggle ${comp.data.muted === 'true' ? 'active' : ''}"><input type="checkbox" class="video-toggle" data-key="muted" ${comp.data.muted === 'true' ? 'checked' : ''}>Muted</label>
+                    <label class="vid-toggle ${comp.data.loop === 'true' ? 'active' : ''}"><input type="checkbox" class="video-toggle" data-key="loop" ${comp.data.loop === 'true' ? 'checked' : ''}>Loop</label>
+                </div>
+                <div class="img-thumbnail-preview" style="display: ${comp.data.poster ? 'block' : 'none'}">
+                    <img src="${comp.data.poster || ''}" alt="Video poster" />
                 </div>
             `;
         } else if (comp.type === 'button') {
@@ -2007,24 +2060,27 @@ const renderComponents = () => {
         }
 
 
-        if (comp.type === 'image' || comp.type === 'sales_offer' || comp.type === 'service_offer') {
+        if (comp.type === 'image' || comp.type === 'video' || comp.type === 'sales_offer' || comp.type === 'service_offer') {
             item.querySelectorAll('.upload-btn').forEach(uploadBtn => {
                 const fileInput = uploadBtn.nextElementSibling as HTMLInputElement;
                 const offerIndex = fileInput?.dataset.offerIndex || '1';
-                
+
                 uploadBtn.addEventListener('click', () => fileInput?.click());
 
                 fileInput?.addEventListener('change', (e) => {
                     const target = e.target as HTMLInputElement;
                     const file = target.files?.[0];
                     if (file) {
-                        const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                        const validTypes = comp.type === 'video'
+                            ? ['video/mp4', 'video/webm', 'video/ogg']
+                            : ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                        const maxSize = comp.type === 'video' ? 50 * 1024 * 1024 : 5 * 1024 * 1024;
                         if (!validTypes.includes(file.type)) {
-                            showToast('Invalid file type. Use JPG, PNG, GIF, or WEBP.', 'error');
+                            showToast(comp.type === 'video' ? 'Invalid file type. Use MP4, WebM, or OGG.' : 'Invalid file type. Use JPG, PNG, GIF, or WEBP.', 'error');
                             return;
                         }
-                        if (file.size > 5 * 1024 * 1024) { // 5MB limit
-                            showToast('File is too large. Max size is 5MB.', 'error');
+                        if (file.size > maxSize) {
+                            showToast(comp.type === 'video' ? 'File is too large. Max size is 50MB.' : 'File is too large. Max size is 5MB.', 'error');
                             return;
                         }
 
@@ -2039,10 +2095,10 @@ const renderComponents = () => {
                             let keyToUpdate = 'src';
                             if (comp.type === 'sales_offer') keyToUpdate = offerIndex === '2' ? 'imageSrc2' : 'imageSrc';
                             if (comp.type === 'service_offer') keyToUpdate = offerIndex === '2' ? 'imageUrl2' : 'imageUrl';
-                            
+
                             updateComponentData(comp.id, keyToUpdate, result);
                             (item.querySelector(`input[data-key="${keyToUpdate}"]`) as HTMLInputElement).value = result;
-                            // Update image thumbnail preview
+                            // Update thumbnail preview
                             const thumbContainer = uploadBtn.closest('.img-fields-row, .offer-img-row, .single-offer-settings');
                             const thumbPreview = thumbContainer?.querySelector('.img-thumbnail-preview') || thumbContainer?.parentElement?.querySelector('.img-thumbnail-preview');
                             if (thumbPreview) {
@@ -2050,7 +2106,7 @@ const renderComponents = () => {
                                 if (thumbImg) thumbImg.src = result;
                                 (thumbPreview as HTMLElement).style.display = 'block';
                             }
-                            showToast('Image uploaded.', 'success');
+                            showToast(comp.type === 'video' ? 'Video uploaded.' : 'Image uploaded.', 'success');
                             uploadBtn.innerHTML = originalBtnContent;
                             (uploadBtn as HTMLButtonElement).disabled = false;
                         };
@@ -2060,6 +2116,63 @@ const renderComponents = () => {
                             (uploadBtn as HTMLButtonElement).disabled = false;
                         };
                         reader.readAsDataURL(file);
+                    }
+                });
+            });
+        }
+
+        if (comp.type === 'video') {
+            // Poster image upload handler
+            item.querySelectorAll('.poster-upload-btn').forEach(uploadBtn => {
+                const fileInput = uploadBtn.nextElementSibling as HTMLInputElement;
+                uploadBtn.addEventListener('click', () => fileInput?.click());
+                fileInput?.addEventListener('change', (e) => {
+                    const target = e.target as HTMLInputElement;
+                    const file = target.files?.[0];
+                    if (file) {
+                        const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                        if (!validTypes.includes(file.type)) {
+                            showToast('Invalid file type. Use JPG, PNG, GIF, or WEBP.', 'error');
+                            return;
+                        }
+                        if (file.size > 5 * 1024 * 1024) {
+                            showToast('File is too large. Max size is 5MB.', 'error');
+                            return;
+                        }
+                        const originalBtnContent = uploadBtn.innerHTML;
+                        const reader = new FileReader();
+                        reader.onloadstart = () => { uploadBtn.innerHTML = '...'; (uploadBtn as HTMLButtonElement).disabled = true; };
+                        reader.onload = (event) => {
+                            const result = event.target?.result as string;
+                            updateComponentData(comp.id, 'poster', result);
+                            (item.querySelector('input[data-key="poster"]') as HTMLInputElement).value = result;
+                            const thumbPreview = item.querySelector('.img-thumbnail-preview');
+                            if (thumbPreview) {
+                                const thumbImg = thumbPreview.querySelector('img') as HTMLImageElement;
+                                if (thumbImg) thumbImg.src = result;
+                                (thumbPreview as HTMLElement).style.display = 'block';
+                            }
+                            showToast('Poster image uploaded.', 'success');
+                            uploadBtn.innerHTML = originalBtnContent;
+                            (uploadBtn as HTMLButtonElement).disabled = false;
+                        };
+                        reader.onerror = () => { showToast('Error reading file.', 'error'); uploadBtn.innerHTML = originalBtnContent; (uploadBtn as HTMLButtonElement).disabled = false; };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            });
+
+            // Video toggle checkbox handlers
+            item.querySelectorAll('.video-toggle').forEach(toggle => {
+                toggle.addEventListener('change', (e) => {
+                    const input = e.target as HTMLInputElement;
+                    const key = input.dataset.key;
+                    if (key) {
+                        updateComponentData(comp.id, key, input.checked.toString());
+                        const label = input.closest('.vid-toggle');
+                        if (label) {
+                            label.classList.toggle('active', input.checked);
+                        }
                     }
                 });
             });
@@ -2481,6 +2594,67 @@ function generateEmailHtml(): string {
             <tr>
                 <td align="${d.align || 'center'}" ${isTransparent ? '' : `bgcolor="${d.backgroundColor}"`} style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
                     <div style="display: block; width: 100%; max-width: ${styleWidth};">${imgTag}</div>
+                </td>
+            </tr>
+        `;
+    } else if (comp.type === 'video') {
+        const numericWidth = parseFloat((d.width || '100%').replace(/%/g, '')) || 100;
+        const styleWidth = `${numericWidth}%`;
+        const posterSrc = DOMPurify.sanitize(d.poster || '');
+        const videoSrc = DOMPurify.sanitize(d.src || '');
+        const altText = DOMPurify.sanitize(d.alt || 'Video');
+        const borderRadius = d.borderRadius || '12';
+        const marginStyle = d.align === 'center' ? '0 auto' : '0';
+
+        const autoplayAttr = d.autoplay === 'true' ? ' autoplay' : '';
+        const mutedAttr = d.muted === 'true' ? ' muted' : '';
+        const controlsAttr = d.controls === 'true' ? ' controls' : '';
+        const loopAttr = d.loop === 'true' ? ' loop' : '';
+
+        const videoStyles = [
+            `display: block`,
+            `max-width: 100%`,
+            `width: ${styleWidth}`,
+            `height: auto`,
+            `border: 0`,
+            `margin: ${marginStyle}`,
+            `border-radius: ${borderRadius}px`,
+            `background: #000`
+        ].join(';');
+
+        const posterImgStyles = [
+            `display: block`,
+            `max-width: 100%`,
+            `width: ${styleWidth}`,
+            `height: auto`,
+            `border: 0`,
+            `margin: ${marginStyle}`,
+            `border-radius: ${borderRadius}px`
+        ].join(';');
+
+        // Play button overlay styles
+        const playBtnOuter = `position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 68px; height: 68px; background: rgba(0,0,0,0.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50%; display: flex; align-items: center; justify-content: center;`;
+        const playTriangle = `width: 0; height: 0; border-style: solid; border-width: 11px 0 11px 20px; border-color: transparent transparent transparent #ffffff; margin-left: 4px;`;
+
+        // Poster fallback for email clients
+        let posterFallback = '';
+        if (posterSrc) {
+            posterFallback = `<img src="${posterSrc}" alt="${altText}" style="${posterImgStyles}" border="0" />`;
+        }
+        const fallbackLink = DOMPurify.sanitize(d.src || '');
+        if (fallbackLink && posterSrc) {
+            posterFallback = `<a href="${fallbackLink}" target="_blank" style="text-decoration: none; display: inline-block; position: relative;">${posterFallback}<div style="${playBtnOuter}"><div style="${playTriangle}"></div></div></a>`;
+        }
+
+        // Video tag
+        const videoTag = `<video style="${videoStyles}"${posterSrc ? ` poster="${posterSrc}"` : ''}${controlsAttr}${autoplayAttr}${mutedAttr}${loopAttr} playsinline preload="metadata"><source src="${videoSrc}" type="video/mp4">${altText}</video>`;
+
+        sectionsHtml += `
+            <tr>
+                <td align="${d.align || 'center'}" ${isTransparent ? '' : `bgcolor="${d.backgroundColor}"`} style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
+                    <div style="display: block; width: 100%; max-width: ${styleWidth}; margin: ${marginStyle};">
+                        ${posterFallback ? `<!--[if mso]>${posterFallback}<![endif]--><!--[if !mso]><!-->${videoTag}<!--<![endif]-->` : videoTag}
+                    </div>
                 </td>
             </tr>
         `;
@@ -4682,6 +4856,11 @@ const getDefaultFieldStyles = (compType: string, fieldKey: string, subOfferIndex
                 width: '100%', align: 'center',
                 paddingTop: '0', paddingBottom: '0', paddingLeftRight: '0'
             };
+        case 'video':
+            return {
+                width: '100%', align: 'center',
+                paddingTop: '0', paddingBottom: '0', paddingLeftRight: '0'
+            };
         case 'service_offer': {
             const suffix = fieldKey.endsWith('2') ? '2' : '';
             const baseKey = fieldKey.replace(/2$/, '');
@@ -5188,7 +5367,15 @@ const renderStylingPanel = () => {
                 padding: [{key: 'paddingTop', label: 'Padding T'}, {key: 'paddingBottom', label: 'Padding B'}, {key: 'paddingLeftRight', label: 'Padding L/R'}]
             }, baseUpdateFn);
             break;
-        
+
+        case 'video':
+            renderStandardStylingPanel(comp.data, {
+                sizing: { width: 'width' },
+                alignment: { align: 'align' },
+                padding: [{key: 'paddingTop', label: 'Padding T'}, {key: 'paddingBottom', label: 'Padding B'}, {key: 'paddingLeftRight', label: 'Padding L/R'}]
+            }, baseUpdateFn);
+            break;
+
         case 'divider': {
             const config = {
                 sizing: { width: 'width', thickness: 'thickness' },

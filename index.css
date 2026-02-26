@@ -625,6 +625,47 @@ textarea.form-control.compact {
   background: var(--background-secondary);
 }
 
+/* Video component toggle row */
+.vid-toggles-row {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: var(--spacing-sm);
+}
+
+.vid-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 980px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--label-secondary);
+  background: var(--background-secondary);
+  border: 1px solid var(--separator-secondary);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+  letter-spacing: -0.01em;
+}
+
+.vid-toggle:hover {
+  border-color: var(--system-blue);
+  color: var(--system-blue);
+}
+
+.vid-toggle.active {
+  background: var(--system-blue);
+  border-color: var(--system-blue);
+  color: #ffffff;
+}
+
+.vid-toggle input[type="checkbox"] {
+  display: none;
+}
+
 .inline-input-group {
   display: flex;
   align-items: center;
