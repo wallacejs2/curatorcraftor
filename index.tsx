@@ -14,6 +14,7 @@ interface DesignSettings {
   globalFontSize: string;
   colorScheme?: string;
   preheaderText?: string;
+  emailLang?: string;
 }
 
 const COLOR_SCHEMES = [
@@ -357,6 +358,7 @@ const floatingPanelBtn = document.getElementById('floating-panel-btn');
 // Design Settings Controls
 const fontSelect = document.getElementById('design-font-family') as HTMLSelectElement;
 const preheaderInput = document.getElementById('design-preheader-text') as HTMLInputElement;
+const emailLangSelect = document.getElementById('design-email-lang') as HTMLSelectElement | null;
 const preheaderCharCount = document.getElementById('preheader-char-count');
 const preheaderCharHint = document.getElementById('preheader-char-hint');
 
@@ -667,6 +669,12 @@ preheaderInput?.addEventListener('input', () => {
     designSettings.preheaderText = preheaderInput.value;
     updatePreheaderCounter();
     saveDraft();
+});
+
+emailLangSelect?.addEventListener('change', () => {
+    designSettings.emailLang = emailLangSelect.value;
+    saveDraft();
+    triggerPreviewUpdate();
 });
 
 // View Toggles
@@ -1529,6 +1537,9 @@ function generateServiceOfferFormHtml(comp: EmailComponent, suffix: string): str
                 <div class="img-field-group">
                     <input type="text" class="form-control compact" data-key="imageLink${suffix}" value="${d[`imageLink${suffix}`] || ''}" placeholder="Image Link">
                 </div>
+                <div class="img-field-group">
+                    <input type="text" class="form-control compact" data-key="imageAlt${suffix}" value="${d[`imageAlt${suffix}`] || ''}" placeholder="Image alt text">
+                </div>
             </div>
         </div>
         <div class="img-thumbnail-preview" style="display: ${imgUrl ? 'block' : 'none'}">
@@ -1619,6 +1630,9 @@ function generateSalesOfferFormHtml(comp: EmailComponent, suffix: string): strin
                     </div>
                     <div class="img-field-group">
                         <input type="text" class="form-control compact" data-key="imageLink${suffix}" value="${d[`imageLink${suffix}`] || ''}" placeholder="Image Link">
+                    </div>
+                    <div class="img-field-group">
+                        <input type="text" class="form-control compact" data-key="imageAlt${suffix}" value="${d[`imageAlt${suffix}`] || ''}" placeholder="Image alt text">
                     </div>
                 </div>
             </div>
@@ -1788,6 +1802,9 @@ const renderComponents = () => {
                     </div>
                     <div class="img-field-group">
                         <input type="text" class="form-control compact" data-key="link" data-stylable="true" data-component-id="${comp.id}" data-field-key="image" data-field-label="Image Link" value="${comp.data.link || ''}" placeholder="Image Link">
+                    </div>
+                    <div class="img-field-group">
+                        <input type="text" class="form-control compact" data-key="alt" value="${comp.data.alt || ''}" placeholder="Alt text (leave empty for decorative)">
                     </div>
                 </div>
                 <div class="img-thumbnail-preview" style="display: ${comp.data.src && comp.data.src !== 'https://via.placeholder.com/600x300' ? 'block' : 'none'}">
@@ -2554,12 +2571,14 @@ function generateEmailHtml(): string {
       ].join(';');
       
       const txt = DOMPurify.sanitize(d.text || '');
+      const innerTag = comp.type === 'header' ? 'h1' : 'div';
+      const headingReset = comp.type === 'header' ? ' margin: 0; padding: 0;' : '';
       sectionsHtml += `
         <tr${hideRowClass ? ` class="${hideRowClass}"` : ''}>
             <td align="${d.textAlign || 'left'}" ${isTransparent ? '' : `bgcolor="${d.backgroundColor}"`} class="${mobCls} mobile-pad" style="${styles}">
-                <div style="font-family: ${designSettings.fontFamily}; color: ${d.textColor || '#000'}; font-size: ${d.fontSize || 16}px;">
+                <${innerTag} style="font-family: ${designSettings.fontFamily}; color: ${d.textColor || '#000'}; font-size: ${d.fontSize || 16}px;${headingReset}">
                     ${txt.replace(/\n/g, '<br>')}
-                </div>
+                </${innerTag}>
             </td>
         </tr>
       `;
@@ -2598,12 +2617,12 @@ function generateEmailHtml(): string {
         const vmlArcSize = radius.includes('px') ? `${Math.min(50, (parseInt(radius) / (vmlHeight / 2)) * 100)}%` : '8%';
         const vmlWidthStyle = widthType !== 'auto' ? `width:${widthStyle};` : '';
         const vmlBtn = `<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${sanitizedLink}" style="height:${vmlHeight}px;v-text-anchor:middle;${vmlWidthStyle}" arcsize="${vmlArcSize}" strokecolor="${isOutlined ? bgColor : 'none'}" strokeweight="${isOutlined ? '2px' : '0'}" fillcolor="${isOutlined ? 'transparent' : bgColor}"><w:anchorlock/><center style="color:${isOutlined ? bgColor : txtColor};font-family:Arial,sans-serif;font-size:${d.fontSize || 16}px;font-weight:bold;">${sanitizedText}</center></v:roundrect><![endif]-->`;
-        const htmlBtn = `<!--[if !mso]><!--><a href="${sanitizedLink}" target="_blank" style="${btnStyles}">${sanitizedText}</a><!--<![endif]-->`;
+        const htmlBtn = `<!--[if !mso]><!--><a href="${sanitizedLink}" target="_blank" role="button" style="${btnStyles}">${sanitizedText}</a><!--<![endif]-->`;
 
         sectionsHtml += `
             <tr${hideRowClass ? ` class="${hideRowClass}"` : ''}>
                 <td align="${d.align || 'center'}" class="${mobCls}" style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
-                    <table border="0" cellspacing="0" cellpadding="0" ${tableWidthAttr ? `width="${tableWidthAttr}"` : ""} style="margin: ${d.align === 'center' ? '0 auto' : '0'}; width: ${widthStyle}; max-width: 100%;">
+                    <table role="presentation" border="0" cellspacing="0" cellpadding="0" ${tableWidthAttr ? `width="${tableWidthAttr}"` : ""} style="margin: ${d.align === 'center' ? '0 auto' : '0'}; width: ${widthStyle}; max-width: 100%;">
                         <tr>
                             <td align="center" bgcolor="${isOutlined ? 'transparent' : bgColor}" style="border-radius: ${radius};">
                                 ${vmlBtn}${htmlBtn}
@@ -2648,7 +2667,7 @@ function generateEmailHtml(): string {
             sectionsHtml += `
                 <tr${hideRowClass ? ` class="${hideRowClass}"` : ''}>
                     <td align="${textAlign}" ${!isTransparentBg ? `bgcolor="${bgColor}"` : ''} class="${mobCls}" style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
-                        <table border="0" cellspacing="0" cellpadding="0" style="margin: ${textAlign === 'center' ? '0 auto' : '0'};">
+                        <table role="presentation" border="0" cellspacing="0" cellpadding="0" style="margin: ${textAlign === 'center' ? '0 auto' : '0'};">
                             ${linksHtml}
                         </table>
                     </td>
@@ -2667,7 +2686,7 @@ function generateEmailHtml(): string {
             sectionsHtml += `
                 <tr${hideRowClass ? ` class="${hideRowClass}"` : ''}>
                     <td align="${textAlign}" ${!isTransparentBg ? `bgcolor="${bgColor}"` : ''} class="${mobCls}" style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
-                        <table border="0" cellspacing="0" cellpadding="0" style="margin: ${textAlign === 'center' ? '0 auto' : '0'};">
+                        <table role="presentation" border="0" cellspacing="0" cellpadding="0" style="margin: ${textAlign === 'center' ? '0 auto' : '0'};">
                             <tr>${linksHtml}</tr>
                         </table>
                     </td>
@@ -2713,27 +2732,27 @@ function generateEmailHtml(): string {
             // Image
             if (renderMode !== 'contentOnly' && data[`imageUrl${suffix}`]) {
                 const imgStyles = `display: block; width: ${imageMaxWidth ? '100%' : `${data[`imageWidth${suffix}`] || '100'}%`}; max-width: ${imageMaxWidth ? `${imageMaxWidth}px` : '100%'}; height: auto; border: 0; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;`;
-                let imgTag = `<img src="${DOMPurify.sanitize(data[`imageUrl${suffix}`])}" alt="${DOMPurify.sanitize(data[`imageAlt${suffix}`] || '')}" style="${imgStyles}" />`;
+                let imgTag = `<img src="${DOMPurify.sanitize(data[`imageUrl${suffix}`])}" alt="${DOMPurify.sanitize(data[`imageAlt${suffix}`] || 'Service image')}" style="${imgStyles}" />`;
                 if (data[`imageLink${suffix}`]) {
                     imgTag = `<a href="${DOMPurify.sanitize(data[`imageLink${suffix}`])}" target="_blank" style="text-decoration: none;">${imgTag}</a>`;
                 }
-                contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${data[`imageAlignment${suffix}`] || 'center'}" style="padding: ${data[`imagePaddingTop${suffix}`] || 10}px 0 ${data[`imagePaddingBottom${suffix}`] || 10}px 0;">${imgTag}</td></tr></table>`;
+                contentBlocks += `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${data[`imageAlignment${suffix}`] || 'center'}" style="padding: ${data[`imagePaddingTop${suffix}`] || 10}px 0 ${data[`imagePaddingBottom${suffix}`] || 10}px 0;">${imgTag}</td></tr></table>`;
             }
             if (renderMode === 'imageOnly') return contentBlocks;
             // Title
             if (data[`serviceTitle${suffix}`]) {
-                contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${data[`titleAlignment${suffix}`] || 'center'}" style="padding: ${data[`titlePaddingTop${suffix}`] || 10}px ${data[`titlePaddingLeftRight${suffix}`] || '0'}px ${data[`titlePaddingBottom${suffix}`] || 10}px ${data[`titlePaddingLeftRight${suffix}`] || '0'}px; font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${data[`titleFontSize${suffix}`]}px; font-weight: ${data[`titleFontWeight${suffix}`]}; font-style: ${data[`titleFontStyle${suffix}`] || 'normal'}; color: ${data[`titleTextColor${suffix}`]}; line-height: 1.2;">${DOMPurify.sanitize(data[`serviceTitle${suffix}`])}</td></tr></table>`;
+                contentBlocks += `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${data[`titleAlignment${suffix}`] || 'center'}" style="padding: ${data[`titlePaddingTop${suffix}`] || 10}px ${data[`titlePaddingLeftRight${suffix}`] || '0'}px ${data[`titlePaddingBottom${suffix}`] || 10}px ${data[`titlePaddingLeftRight${suffix}`] || '0'}px; font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${data[`titleFontSize${suffix}`]}px; font-weight: ${data[`titleFontWeight${suffix}`]}; font-style: ${data[`titleFontStyle${suffix}`] || 'normal'}; color: ${data[`titleTextColor${suffix}`]}; line-height: 1.2;"><h2 style="margin: 0; padding: 0; font-size: inherit; font-weight: inherit; line-height: inherit; color: inherit; font-family: inherit;">${DOMPurify.sanitize(data[`serviceTitle${suffix}`])}</h2></td></tr></table>`;
             }
             // Coupon
             if (data[`couponCode${suffix}`]) {
                 const couponBorderStyle = data[`couponShowBorder${suffix}`] === 'true' ? `border: 1px ${data[`couponBorderStyle${suffix}`]} ${data[`couponBorderColor${suffix}`]};` : '';
                 const couponPaddingLR = data[`couponPaddingLeftRight${suffix}`] || data[`couponPaddingLeft${suffix}`] || '16';
-                contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${data[`couponAlignment${suffix}`] || 'center'}" style="padding: 10px 0;"><table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;"><tr><td align="center" style="font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${data[`couponFontSize${suffix}`]}px; font-weight: ${data[`couponFontWeight${suffix}`]}; font-style: ${data[`couponFontStyle${suffix}`] || 'normal'}; color: ${data[`couponTextColor${suffix}`]}; background-color: ${data[`couponBgColor${suffix}`]}; padding: ${data[`couponPaddingTop${suffix}`]}px ${couponPaddingLR}px ${data[`couponPaddingBottom${suffix}`]}px ${couponPaddingLR}px; ${couponBorderStyle}; line-height: 1.2;">${DOMPurify.sanitize(data[`couponCode${suffix}`])}</td></tr></table></td></tr></table>`;
+                contentBlocks += `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${data[`couponAlignment${suffix}`] || 'center'}" style="padding: 10px 0;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;"><tr><td align="center" style="font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${data[`couponFontSize${suffix}`]}px; font-weight: ${data[`couponFontWeight${suffix}`]}; font-style: ${data[`couponFontStyle${suffix}`] || 'normal'}; color: ${data[`couponTextColor${suffix}`]}; background-color: ${data[`couponBgColor${suffix}`]}; padding: ${data[`couponPaddingTop${suffix}`]}px ${couponPaddingLR}px ${data[`couponPaddingBottom${suffix}`]}px ${couponPaddingLR}px; ${couponBorderStyle}; line-height: 1.2;">${DOMPurify.sanitize(data[`couponCode${suffix}`])}</td></tr></table></td></tr></table>`;
             }
             // Details
             if (data[`serviceDetails${suffix}`]) {
                 const sanitizedDetails = DOMPurify.sanitize(data[`serviceDetails${suffix}`]).replace(/\n/g, '<br>');
-                contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${data[`detailsAlignment${suffix}`] || 'center'}" style="padding: ${data[`detailsPaddingTop${suffix}`] || 12}px ${data[`detailsPaddingLeftRight${suffix}`] || '0'}px ${data[`detailsPaddingBottom${suffix}`] || 12}px ${data[`detailsPaddingLeftRight${suffix}`] || '0'}px; font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${data[`detailsFontSize${suffix}`]}px; font-weight: ${data[`detailsFontWeight${suffix}`] || 'normal'}; font-style: ${data[`detailsFontStyle${suffix}`] || 'normal'}; color: ${data[`detailsTextColor${suffix}`]}; line-height: ${data[`detailsLineHeight${suffix}`]};">${sanitizedDetails}</td></tr></table>`;
+                contentBlocks += `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${data[`detailsAlignment${suffix}`] || 'center'}" style="padding: ${data[`detailsPaddingTop${suffix}`] || 12}px ${data[`detailsPaddingLeftRight${suffix}`] || '0'}px ${data[`detailsPaddingBottom${suffix}`] || 12}px ${data[`detailsPaddingLeftRight${suffix}`] || '0'}px; font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${data[`detailsFontSize${suffix}`]}px; font-weight: ${data[`detailsFontWeight${suffix}`] || 'normal'}; font-style: ${data[`detailsFontStyle${suffix}`] || 'normal'}; color: ${data[`detailsTextColor${suffix}`]}; line-height: ${data[`detailsLineHeight${suffix}`]};">${sanitizedDetails}</td></tr></table>`;
             }
             // Button
             if (data[`buttonText${suffix}`]) {
@@ -2765,18 +2784,18 @@ function generateEmailHtml(): string {
                 const svcVmlStrokeWeight = btnBorderWidth > 0 ? `${btnBorderWidth}px` : (isOutlined ? '2px' : '0');
                 const vmlButton = `<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${sanitizedButtonLink}" style="height:${vmlHeight}px;v-text-anchor:middle;${vmlWidthStyle}" arcsize="${vmlArcSize}" strokecolor="${svcVmlStrokeColor}" strokeweight="${svcVmlStrokeWeight}" fillcolor="${isOutlined ? 'transparent' : buttonBgColor}"><w:anchorlock/><center style="color:${isOutlined ? buttonBgColor : buttonTextColor};font-family:Arial,sans-serif;font-size:${data[`buttonFontSize${suffix}`]}px;font-weight:${btnFontWeight};">${sanitizedButtonText}</center></v:roundrect><![endif]-->`;
                 const svcBtnClass = buttonWidth === '100%' ? ' class="btn-fluid"' : '';
-                const htmlButton = `<!--[if !mso]><!--><a href="${sanitizedButtonLink}" style="${aStyles}"${svcBtnClass} target="_blank">${sanitizedButtonText}</a><!--<![endif]-->`;
+                const htmlButton = `<!--[if !mso]><!--><a href="${sanitizedButtonLink}" style="${aStyles}"${svcBtnClass} target="_blank" role="button">${sanitizedButtonText}</a><!--<![endif]-->`;
                 let buttonContent = `${vmlButton}${htmlButton}`;
                 if (buttonWidth !== '100%') {
                     const tableWidth = buttonWidth === 'auto' ? 'auto' : buttonWidth;
-                    buttonContent = `<table cellpadding="0" cellspacing="0" border="0" style="width: ${tableWidth};"><tr><td align="center">${vmlButton}${htmlButton}</td></tr></table>`;
+                    buttonContent = `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: ${tableWidth};"><tr><td align="center">${vmlButton}${htmlButton}</td></tr></table>`;
                 }
-                contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${data[`buttonAlignment${suffix}`] || 'center'}" style="padding: 12px 0;">${buttonContent}</td></tr></table>`;
+                contentBlocks += `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${data[`buttonAlignment${suffix}`] || 'center'}" style="padding: 12px 0;">${buttonContent}</td></tr></table>`;
             }
             // Disclaimer
             if (data[`disclaimer${suffix}`]) {
                 const sanitizedDisclaimer = DOMPurify.sanitize(data[`disclaimer${suffix}`]).replace(/\n/g, '<br>');
-                contentBlocks += `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${data[`disclaimerAlignment${suffix}`] || 'center'}" style="padding: ${data[`disclaimerPaddingTop${suffix}`] || 8}px ${data[`disclaimerPaddingLeftRight${suffix}`] || '0'}px ${data[`disclaimerPaddingBottom${suffix}`] || 8}px ${data[`disclaimerPaddingLeftRight${suffix}`] || '0'}px; font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${data[`disclaimerFontSize${suffix}`]}px; font-weight: ${data[`disclaimerFontWeight${suffix}`] || 'normal'}; font-style: ${data[`disclaimerFontStyle${suffix}`] || 'normal'}; color: ${data[`disclaimerTextColor${suffix}`]}; line-height: 1.4;">${sanitizedDisclaimer}</td></tr></table>`;
+                contentBlocks += `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="${data[`disclaimerAlignment${suffix}`] || 'center'}" style="padding: ${data[`disclaimerPaddingTop${suffix}`] || 8}px ${data[`disclaimerPaddingLeftRight${suffix}`] || '0'}px ${data[`disclaimerPaddingBottom${suffix}`] || 8}px ${data[`disclaimerPaddingLeftRight${suffix}`] || '0'}px; font-family: ${designSettings.fontFamily}, Arial, sans-serif; font-size: ${data[`disclaimerFontSize${suffix}`]}px; font-weight: ${data[`disclaimerFontWeight${suffix}`] || 'normal'}; font-style: ${data[`disclaimerFontStyle${suffix}`] || 'normal'}; color: ${data[`disclaimerTextColor${suffix}`]}; line-height: 1.4;">${sanitizedDisclaimer}</td></tr></table>`;
             }
             if (renderMode === 'full') {
                 const svcCardBorder = data.showBorder !== 'false' ? 'border: 1px solid #e2e8f0; ' : '';
@@ -2860,10 +2879,11 @@ function generateEmailHtml(): string {
 
             const renderField = (options: any) => {
                 if (!options.text) return '';
-                const { text, fontSize, color, bgColor, fontWeight, fontStyle, textAlign, paddingTop, paddingBottom, paddingLeftRight } = options;
+                const { text, fontSize, color, bgColor, fontWeight, fontStyle, textAlign, paddingTop, paddingBottom, paddingLeftRight, tag = 'div' } = options;
                 const padding = `padding: ${paddingTop || 0}px ${paddingLeftRight || 0}px ${paddingBottom || 0}px ${paddingLeftRight || 0}px;`;
-                const style = [`font-family: ${designSettings.fontFamily}`,`color: ${color || '#000'}`,`font-size: ${fontSize || 14}px`,`background-color: ${bgColor === 'transparent' ? 'transparent' : bgColor}`,`font-weight: ${fontWeight || 'normal'}`,`font-style: ${fontStyle || 'normal'}`,`text-align: ${textAlign || 'center'}`,padding,`line-height: 1.2`].join(';');
-                return `<div style="${style}">${text.replace(/\n/g, '<br>')}</div>`;
+                const headingReset = tag !== 'div' ? ' margin: 0; padding: 0;' : '';
+                const style = [`font-family: ${designSettings.fontFamily}`,`color: ${color || '#000'}`,`font-size: ${fontSize || 14}px`,`background-color: ${bgColor === 'transparent' ? 'transparent' : bgColor}`,`font-weight: ${fontWeight || 'normal'}`,`font-style: ${fontStyle || 'normal'}`,`text-align: ${textAlign || 'center'}`,padding,`line-height: 1.2${headingReset}`].join(';');
+                return `<${tag} style="${style}">${text.replace(/\n/g, '<br>')}</${tag}>`;
             };
             
             if (renderMode !== 'contentOnly' && data[`imageSrc${suffix}`]) {
@@ -2874,7 +2894,7 @@ function generateEmailHtml(): string {
             }
 
             if (renderMode !== 'imageOnly') {
-            contentHtml += renderField({ text: DOMPurify.sanitize(data[`vehicleText${suffix}`]), fontSize: data[`vehicleFontSize${suffix}`], color: data[`vehicleColor${suffix}`], bgColor: data[`vehicleBgColor${suffix}`], fontWeight: 'bold', fontStyle: data[`vehicleFontStyle${suffix}`], textAlign: data[`vehicleTextAlign${suffix}`], paddingTop: data[`vehiclePaddingTop${suffix}`], paddingBottom: data[`vehiclePaddingBottom${suffix}`], paddingLeftRight: data[`vehiclePaddingLeftRight${suffix}`] });
+            contentHtml += renderField({ text: DOMPurify.sanitize(data[`vehicleText${suffix}`]), fontSize: data[`vehicleFontSize${suffix}`], color: data[`vehicleColor${suffix}`], bgColor: data[`vehicleBgColor${suffix}`], fontWeight: 'bold', fontStyle: data[`vehicleFontStyle${suffix}`], textAlign: data[`vehicleTextAlign${suffix}`], paddingTop: data[`vehiclePaddingTop${suffix}`], paddingBottom: data[`vehiclePaddingBottom${suffix}`], paddingLeftRight: data[`vehiclePaddingLeftRight${suffix}`], tag: 'h2' });
             contentHtml += renderField({ text: DOMPurify.sanitize(data[`mainOfferText${suffix}`]), fontSize: data[`mainOfferFontSize${suffix}`], color: data[`mainOfferColor${suffix}`], bgColor: data[`mainOfferBgColor${suffix}`], fontWeight: '800', fontStyle: data[`mainOfferFontStyle${suffix}`], textAlign: data[`mainOfferTextAlign${suffix}`], paddingTop: data[`mainOfferPaddingTop${suffix}`], paddingBottom: data[`mainOfferPaddingBottom${suffix}`], paddingLeftRight: data[`mainOfferPaddingLeftRight${suffix}`] });
             contentHtml += renderField({ text: DOMPurify.sanitize(data[`detailsText${suffix}`]), fontSize: data[`detailsFontSize${suffix}`], color: data[`detailsColor${suffix}`], bgColor: data[`detailsBgColor${suffix}`], fontWeight: data[`detailsFontWeight${suffix}`], fontStyle: data[`detailsFontStyle${suffix}`], textAlign: data[`detailsTextAlign${suffix}`], paddingTop: data[`detailsPaddingTop${suffix}`], paddingBottom: data[`detailsPaddingBottom${suffix}`], paddingLeftRight: data[`detailsPaddingLeftRight${suffix}`] });
 
@@ -2927,7 +2947,7 @@ function generateEmailHtml(): string {
             const salesVmlStrokeWeight = salesBorderWidth > 0 ? `${salesBorderWidth}px` : (isOutlined ? '2px' : '0');
             const salesVmlBtn = `<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${sanitizedBtnLink}" style="height:${salesVmlHeight}px;v-text-anchor:middle;${salesVmlWidthStyle}" arcsize="${salesVmlArcSize}" strokecolor="${salesVmlStrokeColor}" strokeweight="${salesVmlStrokeWeight}" fillcolor="${isOutlined ? 'transparent' : btnBgColor}"><w:anchorlock/><center style="color:${isOutlined ? btnBgColor : btnTextColor};font-family:Arial,sans-serif;font-size:${data[`btnFontSize${suffix}`] || 16}px;font-weight:${salesFontWeight};">${sanitizedBtnText}</center></v:roundrect><![endif]-->`;
             const salesBtnClass = btnWidthType === 'full' ? ' class="btn-fluid"' : '';
-            const salesHtmlBtn = `<!--[if !mso]><!--><a href="${sanitizedBtnLink}" target="_blank" style="${btnStyles}"${salesBtnClass}>${sanitizedBtnText}</a><!--<![endif]-->`;
+            const salesHtmlBtn = `<!--[if !mso]><!--><a href="${sanitizedBtnLink}" target="_blank" role="button" style="${btnStyles}"${salesBtnClass}>${sanitizedBtnText}</a><!--<![endif]-->`;
             contentHtml += renderField({ text: DOMPurify.sanitize(data[`disclaimerText${suffix}`]), fontSize: data[`disclaimerFontSize${suffix}`], color: data[`disclaimerColor${suffix}`], bgColor: data[`disclaimerBgColor${suffix}`], fontWeight: data[`disclaimerFontWeight${suffix}`], fontStyle: data[`disclaimerFontStyle${suffix}`], textAlign: data[`disclaimerTextAlign${suffix}`], paddingTop: data[`disclaimerPaddingTop${suffix}`], paddingBottom: data[`disclaimerPaddingBottom${suffix}`], paddingLeftRight: data[`disclaimerPaddingLeftRight${suffix}`] });
             contentHtml += `<table border="0" cellspacing="0" cellpadding="0" ${btnTableWidthAttr ? `width="${btnTableWidthAttr}"` : ""} style="margin: ${btnMargin}; width: ${salesBtnWidthStyle}; max-width: 100%;"><tr><td align="center" bgcolor="${isOutlined ? 'transparent' : btnBgColor}" style="border-radius: ${radius};">${salesVmlBtn}${salesHtmlBtn}</td></tr></table>`;
             } // end renderMode !== 'imageOnly'
@@ -3000,7 +3020,7 @@ function generateEmailHtml(): string {
   });
 
   return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<html lang="${designSettings.emailLang || 'en'}" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -3139,19 +3159,19 @@ function generateEmailHtml(): string {
     <div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">${DOMPurify.sanitize(designSettings.preheaderText)}</div>
     <div style="display:none;max-height:0px;overflow:hidden;">&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;</div>` : ''}
     <!-- 100% background wrapper -->
-    <table border="0" cellpadding="0" cellspacing="0" width="100%" id="bodyTable" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; margin: 0; padding: 0; width: 100%; height: 100%; background-color: #f5f5f7;">
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" id="bodyTable" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; margin: 0; padding: 0; width: 100%; height: 100%; background-color: #f5f5f7;">
         <tr>
             <td align="center" valign="top" style="margin: 0; padding: 15px 0; border-collapse: collapse;">
                 
                 <!-- Centering wrapper for Outlook -->
                 <!--[if (gte mso 9)|(IE)]>
-                <table align="center" border="0" cellspacing="0" cellpadding="0" width="600" style="width: 600px;">
+                <table role="presentation" align="center" border="0" cellspacing="0" cellpadding="0" width="600" style="width: 600px;">
                 <tr>
                 <td align="center" valign="top" width="600" style="width: 600px;">
                 <![endif]-->
                 
                 <!-- 600px container -->
-                <table border="0" cellpadding="0" cellspacing="0" width="100%" class="email-container" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 6px; overflow: hidden;">
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="email-container" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 6px; overflow: hidden;">
                     
                     ${sectionsHtml || '<tr><td style="padding: 30px; text-align: center; font-family: sans-serif;">No content added yet.</td></tr>'}
                     
@@ -3350,6 +3370,7 @@ const setActiveDealership = (id: string | null) => {
                 };
                 if (fontSelect) fontSelect.value = designSettings.fontFamily;
                 if (preheaderInput) { preheaderInput.value = designSettings.preheaderText || ''; updatePreheaderCounter(); }
+                if (emailLangSelect) emailLangSelect.value = designSettings.emailLang || 'en';
                 syncGlobalTextStylesUI();
             }
         }
@@ -4008,6 +4029,7 @@ const startNewTemplate = () => {
     };
     if (fontSelect) fontSelect.value = designSettings.fontFamily;
     if (preheaderInput) { preheaderInput.value = ''; updatePreheaderCounter(); }
+    if (emailLangSelect) emailLangSelect.value = 'en';
     syncGlobalTextStylesUI();
     saveCollapsedStates();
     saveToHistory();
@@ -4120,6 +4142,7 @@ const loadTemplate = (id: string) => {
         saveCollapsedStates();
         if (fontSelect) fontSelect.value = designSettings.fontFamily;
         if (preheaderInput) { preheaderInput.value = designSettings.preheaderText || ''; updatePreheaderCounter(); }
+        if (emailLangSelect) emailLangSelect.value = designSettings.emailLang || 'en';
         syncGlobalTextStylesUI();
         saveToHistory();
         renderComponents();
@@ -4618,6 +4641,7 @@ const loadDraft = (dealershipId?: string | null) => {
                 activeComponents = draft.activeComponents;
                 if (fontSelect) fontSelect.value = designSettings.fontFamily;
                 if (preheaderInput) { preheaderInput.value = designSettings.preheaderText || ''; updatePreheaderCounter(); }
+                if (emailLangSelect) emailLangSelect.value = designSettings.emailLang || 'en';
                 renderComponents();
             }
         }
@@ -4720,6 +4744,44 @@ const buttonWidthControlHtml = (currentValue: string, dataStyleKey: string): str
     `).join('');
 
     return `<div class="btn-width-group">${buttonsHtml}</div>`;
+};
+
+// WCAG AA contrast checking utilities
+const hexToRgb = (hex: string): [number, number, number] | null => {
+    const clean = hex.replace('#', '');
+    if (clean.length !== 6) return null;
+    return [parseInt(clean.slice(0, 2), 16), parseInt(clean.slice(2, 4), 16), parseInt(clean.slice(4, 6), 16)];
+};
+
+const relativeLuminance = (r: number, g: number, b: number): number => {
+    const [rs, gs, bs] = [r, g, b].map(c => {
+        const s = c / 255;
+        return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+};
+
+const getContrastRatio = (hex1: string, hex2: string): number | null => {
+    const rgb1 = hexToRgb(hex1);
+    const rgb2 = hexToRgb(hex2);
+    if (!rgb1 || !rgb2) return null;
+    const l1 = relativeLuminance(...rgb1);
+    const l2 = relativeLuminance(...rgb2);
+    const lighter = Math.max(l1, l2);
+    const darker = Math.min(l1, l2);
+    return (lighter + 0.05) / (darker + 0.05);
+};
+
+const contrastBadgeHtml = (ratio: number | null): string => {
+    if (ratio === null) return '';
+    const ratioStr = ratio.toFixed(1);
+    if (ratio >= 4.5) {
+        return `<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:#34c759;color:#fff;font-weight:600;" title="WCAG AA: passes for normal text (≥4.5:1)">AA ✓ ${ratioStr}:1</span>`;
+    } else if (ratio >= 3) {
+        return `<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:#ff9500;color:#fff;font-weight:600;" title="WCAG AA: passes for large text only (≥3:1). Needs 4.5:1 for normal text.">AA~ ${ratioStr}:1</span>`;
+    } else {
+        return `<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:#ff3b30;color:#fff;font-weight:600;" title="WCAG AA: fails (ratio ${ratioStr}:1, needs ≥4.5:1 for normal text)">AA ✗ ${ratioStr}:1</span>`;
+    }
 };
 
 // Moved colorPickerHtml to a higher scope to be accessible by colorControlsHtml.
@@ -5000,8 +5062,22 @@ const renderStandardStylingPanel = (
     // Colors
     if (config.colors) {
         html += colorControlsHtml(data, config.colors, disabledFields);
+        // Contrast badges
+        if (config.contrastPairs && config.contrastPairs.length > 0) {
+            let badgesHtml = '';
+            config.contrastPairs.forEach((pair: { textKey: string; bgKey: string; label?: string }) => {
+                const fg = data[pair.textKey];
+                const bg = data[pair.bgKey];
+                if (fg && bg && bg !== 'transparent') {
+                    const ratio = getContrastRatio(fg, bg);
+                    const badge = contrastBadgeHtml(ratio);
+                    if (badge) badgesHtml += `<div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--label-secondary);">${pair.label ? `<span>${pair.label}:</span>` : ''}${badge}</div>`;
+                }
+            });
+            if (badgesHtml) html += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;">${badgesHtml}</div>`;
+        }
     }
-    
+
     // Alignment
     if (config.alignment) {
         const configKey = Object.keys(config.alignment)[0];
@@ -5218,6 +5294,7 @@ const renderStylingPanel = () => {
                     {key: 'paddingBottom', label: 'Padding B'},
                     {key: 'paddingLeftRight', label: 'Padding L/R'}
                 ],
+                contrastPairs: [{ textKey: 'textColor', bgKey: 'backgroundColor', label: 'Text' }],
                 showMobileOverrides: true
             }, baseUpdateFn);
             break;
@@ -5236,6 +5313,7 @@ const renderStylingPanel = () => {
                     { key: 'paddingBottom', label: 'Padding B' },
                     { key: 'paddingLeftRight', label: 'Padding L/R' }
                 ],
+                contrastPairs: [{ textKey: 'textColor', bgKey: 'backgroundColor', label: 'Button' }],
                 showButtonStyle: true,
                 showMobileOverrides: true
             }, baseUpdateFn);
@@ -5590,6 +5668,7 @@ const executeUndo = () => {
         renderComponents();
         if (fontSelect) fontSelect.value = designSettings.fontFamily;
         if (preheaderInput) { preheaderInput.value = designSettings.preheaderText || ''; updatePreheaderCounter(); }
+        if (emailLangSelect) emailLangSelect.value = designSettings.emailLang || 'en';
         saveDraft();
         showToast('Undo', 'info');
     } else {
@@ -5605,6 +5684,7 @@ const executeRedo = () => {
         renderComponents();
         if (fontSelect) fontSelect.value = designSettings.fontFamily;
         if (preheaderInput) { preheaderInput.value = designSettings.preheaderText || ''; updatePreheaderCounter(); }
+        if (emailLangSelect) emailLangSelect.value = designSettings.emailLang || 'en';
         saveDraft();
         showToast('Redo', 'info');
     } else {
