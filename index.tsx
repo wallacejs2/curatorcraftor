@@ -1281,7 +1281,8 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 buttonFontSize2: '12', buttonFontWeight2: 'bold', buttonAlignment2: 'center', buttonBgColor2: '#0066FF', buttonTextColor2: '#FFFFFF', buttonPaddingTop2: '9', buttonPaddingBottom2: '9', buttonPaddingLeftRight2: '15', buttonWidth2: 'auto', buttonBorderRadius2: '8', buttonBorderColor2: '', buttonBorderWidth2: '0',
                 textLayout: 'center',
                 showBorder: 'true',
-                mobileHide: 'false', mobileFontSize: '', mobileAlignment: '', mobilePadding: ''
+                mobileHide: 'false', mobileFontSize: '', mobileAlignment: '', mobilePadding: '',
+                mobileReverse: 'false'
             };
         case 'sales_offer':
             return {
@@ -1317,7 +1318,8 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 paddingTop: '15', paddingBottom: '15', paddingLeftRight: '15', backgroundColor: '#ffffff',
                 textLayout: 'center',
                 showBorder: 'true',
-                mobileHide: 'false', mobileFontSize: '', mobileAlignment: '', mobilePadding: ''
+                mobileHide: 'false', mobileFontSize: '', mobileAlignment: '', mobilePadding: '',
+                mobileReverse: 'false'
             };
         case 'footer':
             return {
@@ -2002,6 +2004,15 @@ const renderComponents = () => {
                 </div>
                 <span class="header-toggle-divider"></span>
             `;
+            if (comp.data.layout === 'grid') {
+                const isReversed = comp.data.mobileReverse === 'true';
+                offerHeaderControls += `
+                    <div class="toggle-group header-toggle-group">
+                        <button type="button" class="toggle-btn mobile-reverse-toggle ${isReversed ? 'active' : ''}" data-key="mobileReverse" data-value="${isReversed ? 'false' : 'true'}" data-tooltip="${isReversed ? 'Mobile order: reversed (click to reset)' : 'Reverse column order on mobile'}"><span class="material-symbols-rounded">swap_vert</span></button>
+                    </div>
+                    <span class="header-toggle-divider"></span>
+                `;
+            }
         }
         item.innerHTML = `
             <div class="card-header">
@@ -2217,7 +2228,7 @@ const renderComponents = () => {
             });
         }
 
-        item.querySelectorAll('input, textarea, select, button.layout-toggle, button.text-layout-toggle, button.border-toggle').forEach(input => {
+        item.querySelectorAll('input, textarea, select, button.layout-toggle, button.text-layout-toggle, button.border-toggle, button.mobile-reverse-toggle').forEach(input => {
             if (!input.classList.contains('sub-offer-field') && !input.classList.contains('footer-link-field')) {
                 const eventType = (input.tagName === 'BUTTON' || (input as HTMLInputElement).type === 'checkbox') ? 'click' : 'input';
                 input.addEventListener(eventType, (e) => {
@@ -2245,6 +2256,17 @@ const renderComponents = () => {
                             btn.classList.toggle('active', isNowActive);
                             btn.dataset.value = isNowActive ? 'false' : 'true';
                             // Update preview immediately without debounce
+                            window.clearTimeout(previewTimer);
+                            if (previewPane) { const html = generateEmailHtml(); previewPane.srcdoc = html; updateHtmlSizeIndicator(html); }
+                        }
+
+                        if ((comp.type === 'sales_offer' || comp.type === 'service_offer') && key === 'mobileReverse') {
+                            // Flip button state in-place — no full re-render needed
+                            const btn = target as HTMLButtonElement;
+                            const isNowReversed = value === 'true';
+                            btn.classList.toggle('active', isNowReversed);
+                            btn.dataset.value = isNowReversed ? 'false' : 'true';
+                            btn.dataset.tooltip = isNowReversed ? 'Mobile order: reversed (click to reset)' : 'Reverse column order on mobile';
                             window.clearTimeout(previewTimer);
                             if (previewPane) { const html = generateEmailHtml(); previewPane.srcdoc = html; updateHtmlSizeIndicator(html); }
                         }
@@ -2770,18 +2792,35 @@ function generateEmailHtml(): string {
         if (serviceLayout === 'grid') {
             const offer1Html = generateOfferContent(d, '');
             const offer2Html = generateOfferContent(d, '2');
-            serviceOfferContentHtml = `
-                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
-                    <tr>
-                        <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-right: 8px; vertical-align: top;">
-                            ${offer1Html}
-                        </td>
-                        <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-left: 8px; vertical-align: top;">
-                            ${offer2Html}
-                        </td>
-                    </tr>
-                </table>
-            `;
+            if (d.mobileReverse === 'true') {
+                serviceOfferContentHtml = `
+                    <!--[if mso]>
+                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr>
+                    <td width="49%" valign="top" style="width:49%;padding-right:8px;vertical-align:top;">${offer1Html}</td>
+                    <td width="49%" valign="top" style="width:49%;padding-left:8px;vertical-align:top;">${offer2Html}</td>
+                    </tr></table>
+                    <![endif]-->
+                    <!--[if !mso]><!-->
+                    <div class="mobile-reverse" style="display:flex;width:100%;">
+                        <div style="width:50%;padding-right:8px;box-sizing:border-box;vertical-align:top;">${offer1Html}</div>
+                        <div style="width:50%;padding-left:8px;box-sizing:border-box;vertical-align:top;">${offer2Html}</div>
+                    </div>
+                    <!--<![endif]-->
+                `;
+            } else {
+                serviceOfferContentHtml = `
+                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                        <tr>
+                            <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-right: 8px; vertical-align: top;">
+                                ${offer1Html}
+                            </td>
+                            <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-left: 8px; vertical-align: top;">
+                                ${offer2Html}
+                            </td>
+                        </tr>
+                    </table>
+                `;
+            }
         } else if (serviceLayout === 'left' || serviceLayout === 'right') {
             const hasImage = !!d.imageUrl;
             if (!hasImage) {
@@ -2903,24 +2942,35 @@ function generateEmailHtml(): string {
             const offer1Content = renderSalesOfferContent(d, '', 250);
             const offer2Content = renderSalesOfferContent(d, '2', 250);
             const salesGridBorder = d.showBorder !== 'false' ? 'border: 1px solid #e2e8f0; ' : '';
-            offerContentHtml = `
-                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
-                    <tbody>
-                        <tr>
-                            <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-right: 8px; vertical-align: top;">
-                                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; ${salesGridBorder}border-radius: 8px;"><tr><td style="padding: 15px;">
-                                    ${offer1Content}
-                                </td></tr></table>
-                            </td>
-                            <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-left: 8px; vertical-align: top;">
-                                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; ${salesGridBorder}border-radius: 8px;"><tr><td style="padding: 15px;">
-                                    ${offer2Content}
-                                </td></tr></table>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            `;
+            const col1Inner = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; ${salesGridBorder}border-radius: 8px;"><tr><td style="padding: 15px;">${offer1Content}</td></tr></table>`;
+            const col2Inner = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; ${salesGridBorder}border-radius: 8px;"><tr><td style="padding: 15px;">${offer2Content}</td></tr></table>`;
+            if (d.mobileReverse === 'true') {
+                offerContentHtml = `
+                    <!--[if mso]>
+                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tbody><tr>
+                    <td width="49%" valign="top" style="width:49%;padding-right:8px;vertical-align:top;">${col1Inner}</td>
+                    <td width="49%" valign="top" style="width:49%;padding-left:8px;vertical-align:top;">${col2Inner}</td>
+                    </tr></tbody></table>
+                    <![endif]-->
+                    <!--[if !mso]><!-->
+                    <div class="mobile-reverse" style="display:flex;width:100%;">
+                        <div style="width:50%;padding-right:8px;box-sizing:border-box;vertical-align:top;">${col1Inner}</div>
+                        <div style="width:50%;padding-left:8px;box-sizing:border-box;vertical-align:top;">${col2Inner}</div>
+                    </div>
+                    <!--<![endif]-->
+                `;
+            } else {
+                offerContentHtml = `
+                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                        <tbody>
+                            <tr>
+                                <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-right: 8px; vertical-align: top;">${col1Inner}</td>
+                                <td class="mobile-stack" width="49%" valign="top" style="width: 49%; padding-left: 8px; vertical-align: top;">${col2Inner}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+            }
         } else { // Handle single column layouts
             const salesSingleBorder = d.showBorder !== 'false' ? 'border: 1px solid #e2e8f0; ' : '';
             const hasImage = !!d.imageSrc;
@@ -3021,6 +3071,10 @@ function generateEmailHtml(): string {
             line-height: 100%;
         }
         
+        /* Mobile column reverse: flex row on desktop, reversed column on mobile */
+        .mobile-reverse { display: flex; flex-direction: row; }
+        .mobile-reverse > div { box-sizing: border-box; }
+
         /* Mobile responsive styles */
         @media only screen and (max-width: 600px) {
             .email-container {
@@ -3072,6 +3126,9 @@ function generateEmailHtml(): string {
             .mobile-pad { padding-left: 16px !important; padding-right: 16px !important; }
             /* Mobile text alignment */
             .mobile-center { text-align: center !important; }
+            /* Reverse column order on mobile */
+            .mobile-reverse { flex-direction: column-reverse !important; }
+            .mobile-reverse > div { width: 100% !important; padding-left: 0 !important; padding-right: 0 !important; }
             /* Per-component mobile overrides */
             ${mobileOverrideCss}
         }
@@ -4993,6 +5050,20 @@ const renderStandardStylingPanel = (
         html += getButtonStyleSectionHtml();
     }
 
+    if (config.showGridReverse) {
+        const isReversed = data.mobileReverse === 'true';
+        html += `
+            <div class="design-option-group" style="border-top: 1px solid var(--separator-secondary); margin-top: var(--spacing-lg); padding-top: var(--spacing-lg);">
+                <h4 style="margin: 0 0 4px; font-size: 12px; font-weight: 600;">Mobile Column Order</h4>
+                <div class="form-group" style="display: flex; align-items: center; gap: 6px; margin-top: var(--spacing-sm);">
+                    <input type="checkbox" class="style-control" data-style-key="mobileReverse" ${isReversed ? 'checked' : ''} style="width: auto; height: auto; cursor: pointer;">
+                    <label class="form-label" style="margin-bottom: 0; cursor: pointer;">Reverse column order on mobile</label>
+                </div>
+                <p style="font-size: 11px; color: var(--label-tertiary); margin: 4px 0 0;">Right column will stack above left on screens &le;600px</p>
+            </div>
+        `;
+    }
+
     if (config.showMobileOverrides) {
         html += `
             <div class="design-option-group" style="border-top: 1px solid var(--separator-secondary); margin-top: var(--spacing-lg); padding-top: var(--spacing-lg);">
@@ -5269,6 +5340,7 @@ const renderStylingPanel = () => {
                         padding: [ { key: `btnPaddingTop${suffix}`, label: 'Padding T' }, { key: `btnPaddingBottom${suffix}`, label: 'Padding B' }, { key: `btnPaddingLeftRight${suffix}`, label: 'Padding L/R' } ],
                         showButtonStyle: true,
                         showMobileOverrides: true,
+                        showGridReverse: comp.data.layout === 'grid',
                         customHtml: (d: Record<string,string>) => {
                             const bgColor = d[`btnColor${suffix}`] || '#007aff';
                             const textColor = d[`btnTextColor${suffix}`] || '#ffffff';
@@ -5389,6 +5461,8 @@ const renderStylingPanel = () => {
                     dynamicStylingContainer.innerHTML = `<div class="design-option-group" style="padding: 10px; text-align: center; color: var(--label-secondary); font-size: 13px;">Select a specific field to see its styling options.</div>`;
                     return;
              }
+             serviceConfig.showMobileOverrides = true;
+             if (comp.data.layout === 'grid') serviceConfig.showGridReverse = true;
              renderStandardStylingPanel(comp.data, serviceConfig, baseUpdateFn);
              break;
         
