@@ -316,6 +316,7 @@ const previewPane = document.getElementById('preview-pane') as HTMLIFrameElement
 const copyBtn = document.getElementById('copy-btn') as HTMLButtonElement;
 const downloadBtn = document.getElementById('download-btn') as HTMLButtonElement;
 const downloadPdfBtn = document.getElementById('download-pdf-btn') as HTMLButtonElement;
+const htmlSizeIndicator = document.getElementById('html-size-indicator');
 const componentsContainer = document.getElementById('form-components-container') as HTMLElement;
 const addComponentBtn = document.getElementById('add-component-btn') as HTMLButtonElement;
 
@@ -572,6 +573,26 @@ const truncate = (str: string, maxLength: number): string => {
     return str.length > maxLength ? str.substring(0, maxLength) + '...' : str;
 };
 
+// HTML size indicator for Gmail clipping warning
+const updateHtmlSizeIndicator = (html: string) => {
+    if (!htmlSizeIndicator) return;
+    const bytes = new TextEncoder().encode(html).length;
+    const kb = bytes / 1024;
+    const display = `${Math.round(kb)}KB / 102KB`;
+    htmlSizeIndicator.textContent = display;
+    htmlSizeIndicator.className = 'html-size-indicator';
+    if (kb > 95) {
+        htmlSizeIndicator.classList.add('size-red');
+        htmlSizeIndicator.title = 'Your email may be clipped in Gmail. Consider reducing content or splitting into multiple emails.';
+    } else if (kb > 80) {
+        htmlSizeIndicator.classList.add('size-yellow');
+        htmlSizeIndicator.title = 'Approaching Gmail 102KB clipping limit';
+    } else {
+        htmlSizeIndicator.classList.add('size-green');
+        htmlSizeIndicator.title = 'Gmail clips emails larger than 102KB';
+    }
+};
+
 // Debounce helper for preview updates
 let previewTimer: number;
 const triggerPreviewUpdate = () => {
@@ -579,7 +600,9 @@ const triggerPreviewUpdate = () => {
     previewTimer = window.setTimeout(() => {
         if (previewPane) {
             try {
-                previewPane.srcdoc = generateEmailHtml();
+                const html = generateEmailHtml();
+                previewPane.srcdoc = html;
+                updateHtmlSizeIndicator(html);
             } catch (e) {
                 console.error("Preview generation failed:", e);
             }
@@ -2213,7 +2236,7 @@ const renderComponents = () => {
                             btn.dataset.value = isNowActive ? 'false' : 'true';
                             // Update preview immediately without debounce
                             window.clearTimeout(previewTimer);
-                            if (previewPane) previewPane.srcdoc = generateEmailHtml();
+                            if (previewPane) { const html = generateEmailHtml(); previewPane.srcdoc = html; updateHtmlSizeIndicator(html); }
                         }
 
                         if (comp.type === 'sales_offer' && key === 'layout' && value !== 'grid') {
@@ -2516,18 +2539,27 @@ function generateEmailHtml(): string {
         else if (widthType === 'small') tableWidthAttr = "160";
         else if (widthType === 'medium') tableWidthAttr = "280";
         else if (widthType === 'large') tableWidthAttr = "400";
-        
+
         const btnStyles = [`background-color: ${isOutlined ? 'transparent' : d.backgroundColor}`, `color: ${isOutlined ? d.backgroundColor : d.textColor}`, `padding: ${d.paddingTop || 12}px ${d.paddingLeftRight || '20'}px ${d.paddingBottom || 12}px`, `text-decoration: none`, `display: block`, `font-weight: bold`, `border-radius: ${radius}`, `font-size: ${d.fontSize}px`, `font-family: ${designSettings.fontFamily}`, `text-align: center`, isOutlined ? `border: 2px solid ${d.backgroundColor}` : 'border: 0'].join(';');
-        
+
         const widthStyle = widthType === 'full' ? '100%' : (tableWidthAttr ? `${tableWidthAttr}px` : 'auto');
+        const sanitizedLink = DOMPurify.sanitize(d.link || '#');
+        const sanitizedText = DOMPurify.sanitize(d.text || 'Button');
+        const bgColor = d.backgroundColor || '#007aff';
+        const txtColor = d.textColor || '#ffffff';
+        const vmlHeight = (parseInt(d.paddingTop || '12') + parseInt(d.paddingBottom || '12') + parseInt(d.fontSize || '16')) * 1.3;
+        const vmlArcSize = radius.includes('px') ? `${Math.min(50, (parseInt(radius) / (vmlHeight / 2)) * 100)}%` : '8%';
+        const vmlWidthStyle = widthType !== 'auto' ? `width:${widthStyle};` : '';
+        const vmlBtn = `<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${sanitizedLink}" style="height:${vmlHeight}px;v-text-anchor:middle;${vmlWidthStyle}" arcsize="${vmlArcSize}" strokecolor="${isOutlined ? bgColor : 'none'}" strokeweight="${isOutlined ? '2px' : '0'}" fillcolor="${isOutlined ? 'transparent' : bgColor}"><w:anchorlock/><center style="color:${isOutlined ? bgColor : txtColor};font-family:Arial,sans-serif;font-size:${d.fontSize || 16}px;font-weight:bold;">${sanitizedText}</center></v:roundrect><![endif]-->`;
+        const htmlBtn = `<!--[if !mso]><!--><a href="${sanitizedLink}" target="_blank" style="${btnStyles}">${sanitizedText}</a><!--<![endif]-->`;
 
         sectionsHtml += `
             <tr>
                 <td align="${d.align || 'center'}" style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
                     <table border="0" cellspacing="0" cellpadding="0" ${tableWidthAttr ? `width="${tableWidthAttr}"` : ""} style="margin: ${d.align === 'center' ? '0 auto' : '0'}; width: ${widthStyle}; max-width: 100%;">
                         <tr>
-                            <td align="center" bgcolor="${isOutlined ? 'transparent' : d.backgroundColor}" style="border-radius: ${radius};">
-                                <a href="${DOMPurify.sanitize(d.link || '#')}" target="_blank" style="${btnStyles}">${DOMPurify.sanitize(d.text || 'Button')}</a>
+                            <td align="center" bgcolor="${isOutlined ? 'transparent' : bgColor}" style="border-radius: ${radius};">
+                                ${vmlBtn}${htmlBtn}
                             </td>
                         </tr>
                     </table>
@@ -2810,8 +2842,16 @@ function generateEmailHtml(): string {
             if (btnAlign === 'center') btnMargin = '12px auto 0';
             else if (btnAlign === 'right') btnMargin = '12px 0 0 auto';
             const btnStyles = [`background-color: ${isOutlined ? 'transparent' : btnBgColor}`,`color: ${isOutlined ? btnBgColor : btnTextColor}`,`padding: ${data[`btnPaddingTop${suffix}`] || '12'}px ${data[`btnPaddingLeftRight${suffix}`] || '20'}px ${data[`btnPaddingBottom${suffix}`] || '12'}px`,`text-decoration: none`,`display: block`,`font-weight: bold`,`border-radius: ${radius}`,`font-size: ${data[`btnFontSize${suffix}`] || 16}px`,`font-family: ${designSettings.fontFamily}`,`text-align: center`,isOutlined ? `border: 2px solid ${btnBgColor}` : 'border: 0'].join('; ');
+            const sanitizedBtnLink = DOMPurify.sanitize(data[`btnLink${suffix}`] || '#');
+            const sanitizedBtnText = DOMPurify.sanitize(data[`btnText${suffix}`] || 'View');
+            const salesVmlHeight = (parseInt(data[`btnPaddingTop${suffix}`] || '12') + parseInt(data[`btnPaddingBottom${suffix}`] || '12') + parseInt(data[`btnFontSize${suffix}`] || '16')) * 1.3;
+            const salesBtnWidthStyle = btnWidthType === 'full' ? '100%' : (btnTableWidthAttr ? btnTableWidthAttr+'px' : 'auto');
+            const salesVmlWidthStyle = btnWidthType !== 'auto' ? `width:${salesBtnWidthStyle};` : '';
+            const salesVmlArcSize = radius.includes('px') ? `${Math.min(50, (parseInt(radius) / (salesVmlHeight / 2)) * 100)}%` : '8%';
+            const salesVmlBtn = `<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${sanitizedBtnLink}" style="height:${salesVmlHeight}px;v-text-anchor:middle;${salesVmlWidthStyle}" arcsize="${salesVmlArcSize}" strokecolor="${isOutlined ? btnBgColor : 'none'}" strokeweight="${isOutlined ? '2px' : '0'}" fillcolor="${isOutlined ? 'transparent' : btnBgColor}"><w:anchorlock/><center style="color:${isOutlined ? btnBgColor : btnTextColor};font-family:Arial,sans-serif;font-size:${data[`btnFontSize${suffix}`] || 16}px;font-weight:bold;">${sanitizedBtnText}</center></v:roundrect><![endif]-->`;
+            const salesHtmlBtn = `<!--[if !mso]><!--><a href="${sanitizedBtnLink}" target="_blank" style="${btnStyles}">${sanitizedBtnText}</a><!--<![endif]-->`;
             contentHtml += renderField({ text: DOMPurify.sanitize(data[`disclaimerText${suffix}`]), fontSize: data[`disclaimerFontSize${suffix}`], color: data[`disclaimerColor${suffix}`], bgColor: data[`disclaimerBgColor${suffix}`], fontWeight: data[`disclaimerFontWeight${suffix}`], fontStyle: data[`disclaimerFontStyle${suffix}`], textAlign: data[`disclaimerTextAlign${suffix}`], paddingTop: data[`disclaimerPaddingTop${suffix}`], paddingBottom: data[`disclaimerPaddingBottom${suffix}`], paddingLeftRight: data[`disclaimerPaddingLeftRight${suffix}`] });
-            contentHtml += `<table border="0" cellspacing="0" cellpadding="0" ${btnTableWidthAttr ? `width="${btnTableWidthAttr}"` : ""} style="margin: ${btnMargin}; width: ${btnWidthType === 'full' ? '100%' : (btnTableWidthAttr ? btnTableWidthAttr+'px' : 'auto')}; max-width: 100%;"><tr><td align="center" bgcolor="${isOutlined ? 'transparent' : btnBgColor}" style="border-radius: ${radius};"><a href="${DOMPurify.sanitize(data[`btnLink${suffix}`] || '#')}" target="_blank" style="${btnStyles}">${DOMPurify.sanitize(data[`btnText${suffix}`] || 'View')}</a></td></tr></table>`;
+            contentHtml += `<table border="0" cellspacing="0" cellpadding="0" ${btnTableWidthAttr ? `width="${btnTableWidthAttr}"` : ""} style="margin: ${btnMargin}; width: ${salesBtnWidthStyle}; max-width: 100%;"><tr><td align="center" bgcolor="${isOutlined ? 'transparent' : btnBgColor}" style="border-radius: ${radius};">${salesVmlBtn}${salesHtmlBtn}</td></tr></table>`;
             } // end renderMode !== 'imageOnly'
 
             return contentHtml;

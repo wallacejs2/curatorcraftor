@@ -872,6 +872,22 @@ textarea.form-control.compact {
   box-shadow: var(--shadow-sm);
 }
 
+.html-size-indicator {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 0 8px;
+  white-space: nowrap;
+  border-left: 1px solid var(--separator-secondary);
+  height: 24px;
+  line-height: 24px;
+}
+
+.html-size-indicator.size-green { color: var(--system-green, #34c759); }
+.html-size-indicator.size-yellow { color: var(--system-orange, #ff9500); }
+.html-size-indicator.size-red { color: #ff3b30; }
+
 .toggle-group .alignment-toggle {
     padding: 8px 10px; /* Tighter padding for icons */
 }
