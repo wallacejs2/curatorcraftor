@@ -1781,23 +1781,10 @@ const renderComponents = () => {
                         <input type="text" class="form-control compact" data-key="alt" data-component-id="${comp.id}" data-field-key="video" data-field-label="Video Title" value="${comp.data.alt || ''}" placeholder="Video Title / Alt Text">
                     </div>
                 </div>
-                <div class="img-fields-row" style="margin-top: var(--spacing-sm);">
-                    <div class="img-field-group">
-                        <div class="img-url-inner">
-                            <input type="text" class="form-control compact" data-key="poster" data-stylable="true" data-component-id="${comp.id}" data-field-key="video" data-field-label="Poster Image" value="${comp.data.poster || ''}" placeholder="Poster Image URL">
-                            <button type="button" class="btn btn-secondary btn-sm poster-upload-btn">Upload</button>
-                            <input type="file" class="hidden poster-file-input" accept="image/jpeg,image/png,image/gif,image/webp">
-                        </div>
-                    </div>
-                </div>
                 <div class="vid-toggles-row">
                     <label class="vid-toggle ${comp.data.controls === 'true' ? 'active' : ''}"><input type="checkbox" class="video-toggle" data-key="controls" ${comp.data.controls === 'true' ? 'checked' : ''}>Controls</label>
                     <label class="vid-toggle ${comp.data.autoplay === 'true' ? 'active' : ''}"><input type="checkbox" class="video-toggle" data-key="autoplay" ${comp.data.autoplay === 'true' ? 'checked' : ''}>Autoplay</label>
                     <label class="vid-toggle ${comp.data.muted === 'true' ? 'active' : ''}"><input type="checkbox" class="video-toggle" data-key="muted" ${comp.data.muted === 'true' ? 'checked' : ''}>Muted</label>
-                    <label class="vid-toggle ${comp.data.loop === 'true' ? 'active' : ''}"><input type="checkbox" class="video-toggle" data-key="loop" ${comp.data.loop === 'true' ? 'checked' : ''}>Loop</label>
-                </div>
-                <div class="img-thumbnail-preview" style="display: ${comp.data.poster ? 'block' : 'none'}">
-                    <img src="${comp.data.poster || ''}" alt="Video poster" />
                 </div>
             `;
         } else if (comp.type === 'button') {
