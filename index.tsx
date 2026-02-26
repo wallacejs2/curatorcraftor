@@ -2813,8 +2813,7 @@ function generateEmailHtml(): string {
             const thumbSrc = posterSrc || `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`;
             const posterFallback = `<a href="${ytLink}" target="_blank" style="text-decoration: none; display: block; position: relative; width: 100%;"><img src="${thumbSrc}" alt="${altText}" width="100%" style="${posterImgStyles}" border="0" /><div style="${playBtnOuter}"><div style="${playTriangle}"></div></div></a>`;
 
-            const cssId = `yt-${comp.id}`;
-            videoContent = `<!--[if !mso]><!--><style>.${cssId}-poster{display:none!important}.${cssId}-frame{display:block!important}</style><!--<![endif]--><div class="${cssId}-poster">${posterFallback}</div><!--[if !mso]><!--><div class="${cssId}-frame" style="display:none;mso-hide:all;">${iframeTag}</div><!--<![endif]-->`;
+            videoContent = posterFallback;
         } else {
             // Direct video file
             const autoplayAttr = d.autoplay === 'true' ? ' autoplay' : '';
