@@ -1265,13 +1265,13 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 couponFontSize: '15', couponFontWeight: 'bold', couponFontStyle: 'normal', couponTextColor: '#0066FF', couponBgColor: '#F0F7FF', couponAlignment: 'center', couponPaddingTop: '6', couponPaddingBottom: '6', couponPaddingLeftRight: '12', couponShowBorder: 'false', couponBorderStyle: 'dashed', couponBorderColor: '#0066FF',
                 detailsFontSize: '12', detailsFontWeight: 'normal', detailsFontStyle: 'normal', detailsTextColor: '#333333', detailsBgColor: 'transparent', detailsAlignment: 'center', detailsLineHeight: '1.5', detailsPaddingTop: '9', detailsPaddingBottom: '9', detailsPaddingLeftRight: '0',
                 disclaimerFontSize: '9', disclaimerFontWeight: 'normal', disclaimerFontStyle: 'normal', disclaimerTextColor: '#666666', disclaimerBgColor: 'transparent', disclaimerAlignment: 'center', disclaimerPaddingTop: '6', disclaimerPaddingBottom: '6', disclaimerPaddingLeftRight: '0',
-                buttonFontSize: '12', buttonAlignment: 'center', buttonBgColor: '#0066FF', buttonTextColor: '#FFFFFF', buttonPaddingTop: '9', buttonPaddingBottom: '9', buttonPaddingLeftRight: '15', buttonWidth: 'auto',
+                buttonFontSize: '12', buttonFontWeight: 'bold', buttonAlignment: 'center', buttonBgColor: '#0066FF', buttonTextColor: '#FFFFFF', buttonPaddingTop: '9', buttonPaddingBottom: '9', buttonPaddingLeftRight: '15', buttonWidth: 'auto', buttonBorderRadius: '8', buttonBorderColor: '', buttonBorderWidth: '0',
                 imageWidth2: '100', imageAlignment2: 'center', imagePaddingTop2: '8', imagePaddingBottom2: '8',
                 titleFontSize2: '18', titleFontWeight2: 'bold', titleFontStyle2: 'normal', titleTextColor2: '#000000', titleBgColor2: 'transparent', titleAlignment2: 'center', titlePaddingTop2: '8', titlePaddingBottom2: '8', titlePaddingLeftRight2: '0',
                 couponFontSize2: '15', couponFontWeight2: 'bold', couponFontStyle2: 'normal', couponTextColor2: '#0066FF', couponBgColor2: '#F0F7FF', couponAlignment2: 'center', couponPaddingTop2: '6', couponPaddingBottom2: '6', couponPaddingLeftRight2: '12', couponShowBorder2: 'false', couponBorderStyle2: 'dashed', couponBorderColor2: '#0066FF',
                 detailsFontSize2: '12', detailsFontWeight2: 'normal', detailsFontStyle2: 'normal', detailsTextColor2: '#333333', detailsBgColor2: 'transparent', detailsAlignment2: 'center', detailsLineHeight2: '1.5', detailsPaddingTop2: '9', detailsPaddingBottom2: '9', detailsPaddingLeftRight2: '0',
                 disclaimerFontSize2: '9', disclaimerFontWeight2: 'normal', disclaimerFontStyle2: 'normal', disclaimerTextColor2: '#666666', disclaimerBgColor2: 'transparent', disclaimerAlignment2: 'center', disclaimerPaddingTop2: '6', disclaimerPaddingBottom2: '6', disclaimerPaddingLeftRight2: '0',
-                buttonFontSize2: '12', buttonAlignment2: 'center', buttonBgColor2: '#0066FF', buttonTextColor2: '#FFFFFF', buttonPaddingTop2: '9', buttonPaddingBottom2: '9', buttonPaddingLeftRight2: '15', buttonWidth2: 'auto',
+                buttonFontSize2: '12', buttonFontWeight2: 'bold', buttonAlignment2: 'center', buttonBgColor2: '#0066FF', buttonTextColor2: '#FFFFFF', buttonPaddingTop2: '9', buttonPaddingBottom2: '9', buttonPaddingLeftRight2: '15', buttonWidth2: 'auto', buttonBorderRadius2: '8', buttonBorderColor2: '', buttonBorderWidth2: '0',
                 textLayout: 'center',
                 showBorder: 'true'
             };
@@ -1298,14 +1298,14 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 stockVinFontSize: '12', stockVinFontWeight: 'normal', stockVinFontStyle: 'normal', stockVinColor: '#86868b', stockVinBgColor: 'transparent', stockVinTextAlign: 'center', stockVinPaddingTop: '8', stockVinPaddingBottom: '0', stockVinPaddingLeftRight: '0',
                 mileageFontSize: '12', mileageFontWeight: 'normal', mileageFontStyle: 'normal', mileageColor: '#86868b', mileageBgColor: 'transparent', mileageTextAlign: 'center', mileagePaddingTop: '3', mileagePaddingBottom: '0', mileagePaddingLeftRight: '0',
                 disclaimerFontSize: '9', disclaimerFontWeight: 'normal', disclaimerFontStyle: 'normal', disclaimerColor: '#86868b', disclaimerBgColor: 'transparent', disclaimerTextAlign: 'center', disclaimerPaddingTop: '12', disclaimerPaddingBottom: '0', disclaimerPaddingLeftRight: '0',
-                btnFontSize: '12', btnPaddingTop: '9', btnPaddingBottom: '9', btnPaddingLeftRight: '15', btnColor: '#007aff', btnTextColor: '#ffffff', btnAlign: 'center', btnWidthType: 'full',
+                btnFontSize: '12', btnFontWeight: 'bold', btnPaddingTop: '9', btnPaddingBottom: '9', btnPaddingLeftRight: '15', btnColor: '#007aff', btnTextColor: '#ffffff', btnAlign: 'center', btnWidthType: 'full', btnBorderRadius: '8', btnBorderColor: '', btnBorderWidth: '0',
                 vehicleFontSize2: '18', vehicleFontWeight2: 'normal', vehicleFontStyle2: 'normal', vehicleColor2: '#1d1d1f', vehicleBgColor2: 'transparent', vehicleTextAlign2: 'center', vehiclePaddingTop2: '0', vehiclePaddingBottom2: '6', vehiclePaddingLeftRight2: '0',
                 mainOfferFontSize2: '21', mainOfferFontWeight2: 'normal', mainOfferFontStyle2: 'normal', mainOfferColor2: '#007aff', mainOfferBgColor2: 'transparent', mainOfferTextAlign2: 'center', mainOfferPaddingTop2: '0', mainOfferPaddingBottom2: '6', mainOfferPaddingLeftRight2: '0',
                 detailsFontSize2: '12', detailsFontWeight2: 'normal', detailsFontStyle2: 'normal', detailsColor2: '#6e6e73', detailsBgColor2: 'transparent', detailsTextAlign2: 'center', detailsPaddingTop2: '0', detailsPaddingBottom2: '9', detailsPaddingLeftRight2: '0',
                 stockVinFontSize2: '12', stockVinFontWeight2: 'normal', stockVinFontStyle2: 'normal', stockVinColor2: '#86868b', stockVinBgColor2: 'transparent', stockVinTextAlign2: 'center', stockVinPaddingTop2: '8', stockVinPaddingBottom2: '0', stockVinPaddingLeftRight2: '0',
                 mileageFontSize2: '12', mileageFontWeight2: 'normal', mileageFontStyle2: 'normal', mileageColor2: '#86868b', mileageBgColor2: 'transparent', mileageTextAlign2: 'center', mileagePaddingTop2: '3', mileagePaddingBottom2: '0', mileagePaddingLeftRight2: '0',
                 disclaimerFontSize2: '9', disclaimerFontWeight2: 'normal', disclaimerFontStyle2: 'normal', disclaimerColor2: '#86868b', disclaimerBgColor2: 'transparent', disclaimerTextAlign2: 'center', disclaimerPaddingTop2: '12', disclaimerPaddingBottom2: '0', disclaimerPaddingLeftRight2: '0',
-                btnFontSize2: '12', btnPaddingTop2: '9', btnPaddingBottom2: '9', btnPaddingLeftRight2: '15', btnColor2: '#007aff', btnTextColor2: '#ffffff', btnAlign2: 'center', btnWidthType2: 'full',
+                btnFontSize2: '12', btnFontWeight2: 'bold', btnPaddingTop2: '9', btnPaddingBottom2: '9', btnPaddingLeftRight2: '15', btnColor2: '#007aff', btnTextColor2: '#ffffff', btnAlign2: 'center', btnWidthType2: 'full', btnBorderRadius2: '8', btnBorderColor2: '', btnBorderWidth2: '0',
                 paddingTop: '15', paddingBottom: '15', paddingLeftRight: '15', backgroundColor: '#ffffff',
                 textLayout: 'center',
                 showBorder: 'true'
@@ -2697,21 +2697,28 @@ function generateEmailHtml(): string {
                     }
                 };
                 const buttonWidth = getButtonWidthForHtml(data[`buttonWidth${suffix}`]);
-                const btnRadius = designSettings.buttonStyle === 'pill' ? '9999px' : designSettings.buttonStyle === 'square' ? '0px' : '8px';
+                const btnRadius = `${data[`buttonBorderRadius${suffix}`] || '8'}px`;
                 const isOutlined = designSettings.buttonStyle === 'outlined';
+                const btnBorderColor = data[`buttonBorderColor${suffix}`] || '';
+                const btnBorderWidth = parseInt(data[`buttonBorderWidth${suffix}`] || '0');
+                const btnFontWeight = data[`buttonFontWeight${suffix}`] || 'bold';
                 const sanitizedButtonLink = DOMPurify.sanitize(data[`buttonLink${suffix}`] || '#');
                 const sanitizedButtonText = DOMPurify.sanitize(data[`buttonText${suffix}`]);
                 const buttonBgColor = data[`buttonBgColor${suffix}`] || '#0066FF';
                 const buttonTextColor = data[`buttonTextColor${suffix}`] || '#FFFFFF';
-                let aStylesList = [`background-color: ${isOutlined ? 'transparent' : buttonBgColor}`,`color: ${isOutlined ? buttonBgColor : buttonTextColor}`,`display: block`,`font-family: ${designSettings.fontFamily}, Arial, sans-serif`,`font-size: ${data[`buttonFontSize${suffix}`] || '16'}px`,`font-weight: bold`,`text-decoration: none`,`border-radius: ${btnRadius}`,isOutlined ? `border: 2px solid ${buttonBgColor}` : 'border: 0',`text-align: center`,`line-height: 1.2`,`box-sizing: border-box`,`-webkit-text-size-adjust: none`,];
+                const svcBorderCss = btnBorderWidth > 0 ? `border: ${btnBorderWidth}px solid ${btnBorderColor || buttonBgColor}` : (isOutlined ? `border: 2px solid ${buttonBgColor}` : 'border: 0');
+                let aStylesList = [`background-color: ${isOutlined ? 'transparent' : buttonBgColor}`,`color: ${isOutlined ? buttonBgColor : buttonTextColor}`,`display: block`,`font-family: ${designSettings.fontFamily}, Arial, sans-serif`,`font-size: ${data[`buttonFontSize${suffix}`] || '16'}px`,`font-weight: ${btnFontWeight}`,`text-decoration: none`,`border-radius: ${btnRadius}`,svcBorderCss,`text-align: center`,`line-height: 1.2`,`box-sizing: border-box`,`-webkit-text-size-adjust: none`,];
                 if (buttonWidth === 'auto') aStylesList.push(`padding: ${data[`buttonPaddingTop${suffix}`] || '12'}px ${data[`buttonPaddingLeftRight${suffix}`] || '24'}px ${data[`buttonPaddingBottom${suffix}`] || '12'}px`);
                 else aStylesList.push(`padding: ${data[`buttonPaddingTop${suffix}`] || '12'}px 0 ${data[`buttonPaddingBottom${suffix}`] || '12'}px 0`, `width: 100%`);
                 const aStyles = aStylesList.join('; ');
                 const vmlHeight = (parseInt(data[`buttonPaddingTop${suffix}`] || '12') + parseInt(data[`buttonPaddingBottom${suffix}`] || '12') + parseInt(data[`buttonFontSize${suffix}`] || '16')) * 1.3;
                 let vmlWidthStyle = buttonWidth !== 'auto' ? `width:${buttonWidth};` : '';
-                const vmlArcSize = btnRadius.includes('px') ? `${Math.min(50, (parseInt(btnRadius) / (vmlHeight/2)) * 100)}%` : '8%';
-                const vmlButton = `<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${sanitizedButtonLink}" style="height:${vmlHeight}px;v-text-anchor:middle;${vmlWidthStyle}" arcsize="${vmlArcSize}" strokecolor="${isOutlined ? buttonBgColor : 'none'}" strokeweight="${isOutlined ? '2px' : '0'}" fillcolor="${isOutlined ? 'transparent' : buttonBgColor}"><w:anchorlock/><center style="color:${isOutlined ? buttonBgColor : buttonTextColor};font-family:Arial,sans-serif;font-size:${data[`buttonFontSize${suffix}`]}px;font-weight:bold;">${sanitizedButtonText}</center></v:roundrect><![endif]-->`;
-                const htmlButton = `<!--[if !mso]><!--><a href="${sanitizedButtonLink}" style="${aStyles}" target="_blank">${sanitizedButtonText}</a><!--<![endif]-->`;
+                const vmlArcSize = `${Math.min(50, (parseInt(btnRadius) / (vmlHeight/2)) * 100)}%`;
+                const svcVmlStrokeColor = btnBorderWidth > 0 ? (btnBorderColor || buttonBgColor) : (isOutlined ? buttonBgColor : 'none');
+                const svcVmlStrokeWeight = btnBorderWidth > 0 ? `${btnBorderWidth}px` : (isOutlined ? '2px' : '0');
+                const vmlButton = `<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${sanitizedButtonLink}" style="height:${vmlHeight}px;v-text-anchor:middle;${vmlWidthStyle}" arcsize="${vmlArcSize}" strokecolor="${svcVmlStrokeColor}" strokeweight="${svcVmlStrokeWeight}" fillcolor="${isOutlined ? 'transparent' : buttonBgColor}"><w:anchorlock/><center style="color:${isOutlined ? buttonBgColor : buttonTextColor};font-family:Arial,sans-serif;font-size:${data[`buttonFontSize${suffix}`]}px;font-weight:${btnFontWeight};">${sanitizedButtonText}</center></v:roundrect><![endif]-->`;
+                const svcBtnClass = buttonWidth === '100%' ? ' class="btn-fluid"' : '';
+                const htmlButton = `<!--[if !mso]><!--><a href="${sanitizedButtonLink}" style="${aStyles}"${svcBtnClass} target="_blank">${sanitizedButtonText}</a><!--<![endif]-->`;
                 let buttonContent = `${vmlButton}${htmlButton}`;
                 if (buttonWidth !== '100%') {
                     const tableWidth = buttonWidth === 'auto' ? 'auto' : buttonWidth;
@@ -2827,8 +2834,11 @@ function generateEmailHtml(): string {
             if (sanitizedMileage.trim() !== '') { finalMileageText = `Mileage: ${sanitizedMileage.trim()}`; }
             contentHtml += renderField({ text: finalMileageText, fontSize: data[`mileageFontSize${suffix}`], color: data[`mileageColor${suffix}`], bgColor: data[`mileageBgColor${suffix}`], fontWeight: data[`mileageFontWeight${suffix}`], fontStyle: data[`mileageFontStyle${suffix}`], textAlign: data[`mileageTextAlign${suffix}`], paddingTop: data[`mileagePaddingTop${suffix}`], paddingBottom: data[`mileagePaddingBottom${suffix}`], paddingLeftRight: data[`mileagePaddingLeftRight${suffix}`] });
 
-            const radius = designSettings.buttonStyle === 'pill' ? '50px' : designSettings.buttonStyle === 'square' ? '0px' : '8px';
+            const radius = `${data[`btnBorderRadius${suffix}`] || '8'}px`;
             const isOutlined = designSettings.buttonStyle === 'outlined';
+            const salesBorderColor = data[`btnBorderColor${suffix}`] || '';
+            const salesBorderWidth = parseInt(data[`btnBorderWidth${suffix}`] || '0');
+            const salesFontWeight = data[`btnFontWeight${suffix}`] || 'bold';
             const btnBgColor = data[`btnColor${suffix}`] || '#007aff';
             const btnTextColor = data[`btnTextColor${suffix}`] || '#ffffff';
             const btnAlign = data[`btnAlign${suffix}`] || 'center';
@@ -2841,15 +2851,19 @@ function generateEmailHtml(): string {
             let btnMargin = '12px 0 0 0';
             if (btnAlign === 'center') btnMargin = '12px auto 0';
             else if (btnAlign === 'right') btnMargin = '12px 0 0 auto';
-            const btnStyles = [`background-color: ${isOutlined ? 'transparent' : btnBgColor}`,`color: ${isOutlined ? btnBgColor : btnTextColor}`,`padding: ${data[`btnPaddingTop${suffix}`] || '12'}px ${data[`btnPaddingLeftRight${suffix}`] || '20'}px ${data[`btnPaddingBottom${suffix}`] || '12'}px`,`text-decoration: none`,`display: block`,`font-weight: bold`,`border-radius: ${radius}`,`font-size: ${data[`btnFontSize${suffix}`] || 16}px`,`font-family: ${designSettings.fontFamily}`,`text-align: center`,isOutlined ? `border: 2px solid ${btnBgColor}` : 'border: 0'].join('; ');
+            const salesBorderCss = salesBorderWidth > 0 ? `border: ${salesBorderWidth}px solid ${salesBorderColor || btnBgColor}` : (isOutlined ? `border: 2px solid ${btnBgColor}` : 'border: 0');
+            const btnStyles = [`background-color: ${isOutlined ? 'transparent' : btnBgColor}`,`color: ${isOutlined ? btnBgColor : btnTextColor}`,`padding: ${data[`btnPaddingTop${suffix}`] || '12'}px ${data[`btnPaddingLeftRight${suffix}`] || '20'}px ${data[`btnPaddingBottom${suffix}`] || '12'}px`,`text-decoration: none`,`display: block`,`font-weight: ${salesFontWeight}`,`border-radius: ${radius}`,`font-size: ${data[`btnFontSize${suffix}`] || 16}px`,`font-family: ${designSettings.fontFamily}`,`text-align: center`,salesBorderCss].join('; ');
             const sanitizedBtnLink = DOMPurify.sanitize(data[`btnLink${suffix}`] || '#');
             const sanitizedBtnText = DOMPurify.sanitize(data[`btnText${suffix}`] || 'View');
             const salesVmlHeight = (parseInt(data[`btnPaddingTop${suffix}`] || '12') + parseInt(data[`btnPaddingBottom${suffix}`] || '12') + parseInt(data[`btnFontSize${suffix}`] || '16')) * 1.3;
             const salesBtnWidthStyle = btnWidthType === 'full' ? '100%' : (btnTableWidthAttr ? btnTableWidthAttr+'px' : 'auto');
             const salesVmlWidthStyle = btnWidthType !== 'auto' ? `width:${salesBtnWidthStyle};` : '';
-            const salesVmlArcSize = radius.includes('px') ? `${Math.min(50, (parseInt(radius) / (salesVmlHeight / 2)) * 100)}%` : '8%';
-            const salesVmlBtn = `<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${sanitizedBtnLink}" style="height:${salesVmlHeight}px;v-text-anchor:middle;${salesVmlWidthStyle}" arcsize="${salesVmlArcSize}" strokecolor="${isOutlined ? btnBgColor : 'none'}" strokeweight="${isOutlined ? '2px' : '0'}" fillcolor="${isOutlined ? 'transparent' : btnBgColor}"><w:anchorlock/><center style="color:${isOutlined ? btnBgColor : btnTextColor};font-family:Arial,sans-serif;font-size:${data[`btnFontSize${suffix}`] || 16}px;font-weight:bold;">${sanitizedBtnText}</center></v:roundrect><![endif]-->`;
-            const salesHtmlBtn = `<!--[if !mso]><!--><a href="${sanitizedBtnLink}" target="_blank" style="${btnStyles}">${sanitizedBtnText}</a><!--<![endif]-->`;
+            const salesVmlArcSize = `${Math.min(50, (parseInt(radius) / (salesVmlHeight / 2)) * 100)}%`;
+            const salesVmlStrokeColor = salesBorderWidth > 0 ? (salesBorderColor || btnBgColor) : (isOutlined ? btnBgColor : 'none');
+            const salesVmlStrokeWeight = salesBorderWidth > 0 ? `${salesBorderWidth}px` : (isOutlined ? '2px' : '0');
+            const salesVmlBtn = `<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${sanitizedBtnLink}" style="height:${salesVmlHeight}px;v-text-anchor:middle;${salesVmlWidthStyle}" arcsize="${salesVmlArcSize}" strokecolor="${salesVmlStrokeColor}" strokeweight="${salesVmlStrokeWeight}" fillcolor="${isOutlined ? 'transparent' : btnBgColor}"><w:anchorlock/><center style="color:${isOutlined ? btnBgColor : btnTextColor};font-family:Arial,sans-serif;font-size:${data[`btnFontSize${suffix}`] || 16}px;font-weight:${salesFontWeight};">${sanitizedBtnText}</center></v:roundrect><![endif]-->`;
+            const salesBtnClass = btnWidthType === 'full' ? ' class="btn-fluid"' : '';
+            const salesHtmlBtn = `<!--[if !mso]><!--><a href="${sanitizedBtnLink}" target="_blank" style="${btnStyles}"${salesBtnClass}>${sanitizedBtnText}</a><!--<![endif]-->`;
             contentHtml += renderField({ text: DOMPurify.sanitize(data[`disclaimerText${suffix}`]), fontSize: data[`disclaimerFontSize${suffix}`], color: data[`disclaimerColor${suffix}`], bgColor: data[`disclaimerBgColor${suffix}`], fontWeight: data[`disclaimerFontWeight${suffix}`], fontStyle: data[`disclaimerFontStyle${suffix}`], textAlign: data[`disclaimerTextAlign${suffix}`], paddingTop: data[`disclaimerPaddingTop${suffix}`], paddingBottom: data[`disclaimerPaddingBottom${suffix}`], paddingLeftRight: data[`disclaimerPaddingLeftRight${suffix}`] });
             contentHtml += `<table border="0" cellspacing="0" cellpadding="0" ${btnTableWidthAttr ? `width="${btnTableWidthAttr}"` : ""} style="margin: ${btnMargin}; width: ${salesBtnWidthStyle}; max-width: 100%;"><tr><td align="center" bgcolor="${isOutlined ? 'transparent' : btnBgColor}" style="border-radius: ${radius};">${salesVmlBtn}${salesHtmlBtn}</td></tr></table>`;
             } // end renderMode !== 'imageOnly'
@@ -3000,6 +3014,11 @@ function generateEmailHtml(): string {
             }
             .mobile-stack-spacer {
                 display: none !important;
+            }
+            .btn-fluid {
+                width: 100% !important;
+                display: block !important;
+                box-sizing: border-box !important;
             }
         }
     </style>
@@ -4784,10 +4803,10 @@ const getDefaultFieldStyles = (compType: string, fieldKey: string, subOfferIndex
                 }
                 case 'serviceOfferButton':
                     return {
-                        [`buttonFontSize${suffix}`]: '12', [`buttonAlignment${suffix}`]: 'center',
+                        [`buttonFontSize${suffix}`]: '12', [`buttonFontWeight${suffix}`]: 'bold', [`buttonAlignment${suffix}`]: 'center',
                         [`buttonBgColor${suffix}`]: '#0066FF', [`buttonTextColor${suffix}`]: '#FFFFFF',
                         [`buttonPaddingTop${suffix}`]: '9', [`buttonPaddingBottom${suffix}`]: '9', [`buttonPaddingLeftRight${suffix}`]: '15',
-                        [`buttonWidth${suffix}`]: 'auto'
+                        [`buttonWidth${suffix}`]: 'auto', [`buttonBorderRadius${suffix}`]: '8', [`buttonBorderColor${suffix}`]: '', [`buttonBorderWidth${suffix}`]: '0'
                     };
                 case 'serviceOfferImage':
                     return {
@@ -4803,8 +4822,9 @@ const getDefaultFieldStyles = (compType: string, fieldKey: string, subOfferIndex
 
             if (fieldKey.startsWith('salesOfferButton')) {
                 return {
-                    [`btnFontSize${suffix}`]: '12', [`btnPaddingTop${suffix}`]: '9', [`btnPaddingBottom${suffix}`]: '9', [`btnPaddingLeftRight${suffix}`]: '15',
-                    [`btnColor${suffix}`]: '#007aff', [`btnTextColor${suffix}`]: '#ffffff', [`btnAlign${suffix}`]: 'center', [`btnWidthType${suffix}`]: 'full'
+                    [`btnFontSize${suffix}`]: '12', [`btnFontWeight${suffix}`]: 'bold', [`btnPaddingTop${suffix}`]: '9', [`btnPaddingBottom${suffix}`]: '9', [`btnPaddingLeftRight${suffix}`]: '15',
+                    [`btnColor${suffix}`]: '#007aff', [`btnTextColor${suffix}`]: '#ffffff', [`btnAlign${suffix}`]: 'center', [`btnWidthType${suffix}`]: 'full',
+                    [`btnBorderRadius${suffix}`]: '8', [`btnBorderColor${suffix}`]: '', [`btnBorderWidth${suffix}`]: '0'
                 };
             }
 
@@ -5158,11 +5178,32 @@ const renderStylingPanel = () => {
 
                 if(fieldKey.startsWith('salesOfferButton')) {
                     renderStandardStylingPanel(comp.data, {
-                        typography: { fontSize: `btnFontSize${suffix}` },
+                        typography: { fontSize: `btnFontSize${suffix}`, fontWeight: `btnFontWeight${suffix}` },
                         colors: [ { key: `btnColor${suffix}`, label: 'Button Color' }, { key: `btnTextColor${suffix}`, label: 'Text Color' } ],
                         alignment: { align: `btnAlign${suffix}`},
                         sizing: { buttonWidth: `btnWidthType${suffix}` },
                         padding: [ { key: `btnPaddingTop${suffix}`, label: 'Padding T' }, { key: `btnPaddingBottom${suffix}`, label: 'Padding B' }, { key: `btnPaddingLeftRight${suffix}`, label: 'Padding L/R' } ],
+                        customHtml: (d: Record<string,string>) => {
+                            const bgColor = d[`btnColor${suffix}`] || '#007aff';
+                            const textColor = d[`btnTextColor${suffix}`] || '#ffffff';
+                            const bRadius = d[`btnBorderRadius${suffix}`] || '8';
+                            const bColor = d[`btnBorderColor${suffix}`] || '';
+                            const bWidth = d[`btnBorderWidth${suffix}`] || '0';
+                            const borderStyle = parseInt(bWidth) > 0 ? `border: ${bWidth}px solid ${bColor || bgColor}` : 'border: none';
+                            return `
+                                <div class="styling-section" style="margin-top: 8px;">
+                                    <label class="form-label">Border</label>
+                                    <div class="grid grid-cols-3" style="gap: 6px;">
+                                        <div class="form-group"><label class="form-label" style="font-size:10px;">Radius</label><input type="number" min="0" max="50" class="form-control style-control" data-style-key="btnBorderRadius${suffix}" value="${bRadius}"></div>
+                                        <div class="form-group"><label class="form-label" style="font-size:10px;">Width</label><input type="number" min="0" max="10" class="form-control style-control" data-style-key="btnBorderWidth${suffix}" value="${bWidth}"></div>
+                                        <div class="form-group"><label class="form-label" style="font-size:10px;">Color</label><input type="color" class="form-control style-control" data-style-key="btnBorderColor${suffix}" value="${bColor || bgColor}" style="height:27px;padding:2px;"></div>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 10px; padding: 12px; background: #f5f5f7; border-radius: 8px; text-align: center;">
+                                    <div style="display:inline-block;padding:${d[`btnPaddingTop${suffix}`] || '9'}px ${d[`btnPaddingLeftRight${suffix}`] || '15'}px ${d[`btnPaddingBottom${suffix}`] || '9'}px;background-color:${bgColor};color:${textColor};border-radius:${bRadius}px;font-size:${d[`btnFontSize${suffix}`] || '12'}px;font-weight:${d[`btnFontWeight${suffix}`] || 'bold'};${borderStyle};font-family:Arial,sans-serif;">Button Preview</div>
+                                </div>
+                            `;
+                        },
                         showButtonStyle: true
                     }, baseUpdateFn);
                 } else {
@@ -5220,7 +5261,7 @@ const renderStylingPanel = () => {
                 }
                 case 'serviceOfferButton':
                     serviceConfig = {
-                         typography: { fontSize: `buttonFontSize${suffix}` },
+                         typography: { fontSize: `buttonFontSize${suffix}`, fontWeight: `buttonFontWeight${suffix}` },
                          colors: [{key: `buttonBgColor${suffix}`, label: 'Button Color'}, {key: `buttonTextColor${suffix}`, label: 'Text Color'}],
                          alignment: { align: `buttonAlignment${suffix}`},
                          sizing: { buttonWidth: `buttonWidth${suffix}` },
@@ -5228,6 +5269,27 @@ const renderStylingPanel = () => {
                             {key: `buttonPaddingTop${suffix}`, label: 'Padding T'}, {key: `buttonPaddingBottom${suffix}`, label: 'Padding B'},
                             {key: `buttonPaddingLeftRight${suffix}`, label: 'Padding L/R'}
                         ],
+                        customHtml: (d: Record<string,string>) => {
+                            const bgColor = d[`buttonBgColor${suffix}`] || '#0066FF';
+                            const textColor = d[`buttonTextColor${suffix}`] || '#FFFFFF';
+                            const bRadius = d[`buttonBorderRadius${suffix}`] || '8';
+                            const bColor = d[`buttonBorderColor${suffix}`] || '';
+                            const bWidth = d[`buttonBorderWidth${suffix}`] || '0';
+                            const borderStyle = parseInt(bWidth) > 0 ? `border: ${bWidth}px solid ${bColor || bgColor}` : 'border: none';
+                            return `
+                                <div class="styling-section" style="margin-top: 8px;">
+                                    <label class="form-label">Border</label>
+                                    <div class="grid grid-cols-3" style="gap: 6px;">
+                                        <div class="form-group"><label class="form-label" style="font-size:10px;">Radius</label><input type="number" min="0" max="50" class="form-control style-control" data-style-key="buttonBorderRadius${suffix}" value="${bRadius}"></div>
+                                        <div class="form-group"><label class="form-label" style="font-size:10px;">Width</label><input type="number" min="0" max="10" class="form-control style-control" data-style-key="buttonBorderWidth${suffix}" value="${bWidth}"></div>
+                                        <div class="form-group"><label class="form-label" style="font-size:10px;">Color</label><input type="color" class="form-control style-control" data-style-key="buttonBorderColor${suffix}" value="${bColor || bgColor}" style="height:27px;padding:2px;"></div>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 10px; padding: 12px; background: #f5f5f7; border-radius: 8px; text-align: center;">
+                                    <div style="display:inline-block;padding:${d[`buttonPaddingTop${suffix}`] || '9'}px ${d[`buttonPaddingLeftRight${suffix}`] || '15'}px ${d[`buttonPaddingBottom${suffix}`] || '9'}px;background-color:${bgColor};color:${textColor};border-radius:${bRadius}px;font-size:${d[`buttonFontSize${suffix}`] || '12'}px;font-weight:${d[`buttonFontWeight${suffix}`] || 'bold'};${borderStyle};font-family:Arial,sans-serif;">Button Preview</div>
+                                </div>
+                            `;
+                        },
                          showButtonStyle: true
                     };
                     break;
