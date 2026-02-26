@@ -127,7 +127,6 @@ const CONTENT_KEYS: Record<string, string[]> = {
     disclaimers:   ['text'],
     button:        ['text', 'link'],
     image:         ['src', 'alt', 'link'],
-    video:         ['src', 'poster', 'alt'],
     divider:       [],
     spacer:        [],
     service_offer: [
@@ -149,37 +148,8 @@ const CONTENT_KEYS: Record<string, string[]> = {
         'disclaimerText2', 'additionalOffers2', 'btnText2', 'btnLink2',
     ],
     footer: ['links'],
-    social_media: ['instagramUrl', 'facebookUrl', 'twitterUrl', 'tiktokUrl', 'youtubeUrl'],
 };
 const STRUCTURAL_KEYS = ['layout', 'textLayout'];
-
-const SOCIAL_MEDIA_PLATFORMS: {key: string; name: string; color: string; svg: string; svgFilled: string}[] = [
-    {
-        key: 'instagram', name: 'Instagram', color: '#E4405F',
-        svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>`,
-        svgFilled: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>`
-    },
-    {
-        key: 'facebook', name: 'Facebook', color: '#1877F2',
-        svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>`,
-        svgFilled: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>`
-    },
-    {
-        key: 'twitter', name: 'X (Twitter)', color: '#000000',
-        svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l6.5 8L4 20h2l5.5-6.8L16 20h4l-6.8-8.5L20 4h-2l-5.2 6.4L8 4H4z"/></svg>`,
-        svgFilled: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932zM17.61 20.644h2.039L6.486 3.24H4.298z"/></svg>`
-    },
-    {
-        key: 'tiktok', name: 'TikTok', color: '#000000',
-        svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>`,
-        svgFilled: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>`
-    },
-    {
-        key: 'youtube', name: 'YouTube', color: '#FF0000',
-        svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19.1c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.35z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="currentColor" stroke="none"/></svg>`,
-        svgFilled: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`
-    },
-];
 
 const MERGE_FIELDS: MergeFieldGroup[] = [
   {
@@ -598,17 +568,6 @@ const toggleComponent = (id: string) => {
 const truncate = (str: string, maxLength: number): string => {
     if (!str) return '';
     return str.length > maxLength ? str.substring(0, maxLength) + '...' : str;
-};
-
-const getYouTubeId = (url: string): string | null => {
-    const patterns = [
-        /(?:youtube\.com\/watch\?.*v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
-    ];
-    for (const pattern of patterns) {
-        const match = url.match(pattern);
-        if (match) return match[1];
-    }
-    return null;
 };
 
 // Debounce helper for preview updates
@@ -1198,23 +1157,6 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 paddingLeftRight: '0',
                 backgroundColor: 'transparent'
             };
-        case 'video':
-            return {
-                src: '',
-                poster: '',
-                alt: '',
-                width: '100%',
-                align: 'center',
-                paddingTop: '0',
-                paddingBottom: '0',
-                paddingLeftRight: '0',
-                backgroundColor: 'transparent',
-                autoplay: 'false',
-                muted: 'true',
-                controls: 'true',
-                loop: 'false',
-                borderRadius: '12'
-            };
         case 'button':
             return {
                 text: '',
@@ -1321,24 +1263,6 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 paddingTop: '15', paddingBottom: '15', paddingLeftRight: '15', backgroundColor: '#ffffff',
                 textLayout: 'center',
                 showBorder: 'true'
-            };
-        case 'social_media':
-            return {
-                instagramUrl: '',
-                facebookUrl: '',
-                twitterUrl: '',
-                tiktokUrl: '',
-                youtubeUrl: '',
-                iconSize: '12',
-                iconSpacing: '12',
-                iconStyle: 'outlined',
-                iconColor: 'brand',
-                customColor: '#1d1d1f',
-                align: 'center',
-                paddingTop: '15',
-                paddingBottom: '15',
-                paddingLeftRight: '15',
-                backgroundColor: 'transparent',
             };
         case 'footer':
             return {
@@ -1695,14 +1619,12 @@ const COMPONENT_TYPE_ICONS: Record<string, string> = {
     header: 'format_h1',
     text_block: 'format_align_justify',
     image: 'image',
-    video: 'smart_display',
     button: 'radio_button_checked',
     divider: 'horizontal_rule',
     spacer: 'expand_all',
     service_offer: 'handyman',
     sales_offer: 'sell',
     disclaimers: 'contract',
-    social_media: 'share',
     footer: 'link',
 };
 
@@ -1755,14 +1677,12 @@ const renderComponents = () => {
                 sourceFieldKey = 'text';
                 break;
             case 'image':
-            case 'video':
                 sourceFieldKey = 'alt';
                 break;
             case 'button':
                 sourceFieldKey = 'text';
                 break;
             case 'footer':
-            case 'social_media':
                 sourceFieldKey = null;
                 break;
             case 'sales_offer':
@@ -1816,26 +1736,6 @@ const renderComponents = () => {
                     <img src="${comp.data.src || ''}" alt="" />
                 </div>
             `;
-        } else if (comp.type === 'video') {
-            componentFormHtml = `
-                <div class="img-fields-row">
-                    <div class="img-field-group">
-                        <div class="img-url-inner">
-                            <input type="text" class="form-control compact" data-key="src" data-stylable="true" data-component-id="${comp.id}" data-field-key="video" data-field-label="Video Source" value="${comp.data.src || ''}" placeholder="Video or YouTube URL">
-                            <button type="button" class="btn btn-secondary btn-sm upload-btn">Upload</button>
-                            <input type="file" class="hidden file-input" accept="video/mp4,video/webm,video/ogg">
-                        </div>
-                    </div>
-                    <div class="img-field-group">
-                        <input type="text" class="form-control compact" data-key="alt" data-component-id="${comp.id}" data-field-key="video" data-field-label="Video Title" value="${comp.data.alt || ''}" placeholder="Video Title / Alt Text">
-                    </div>
-                </div>
-                <div class="vid-toggles-row">
-                    <label class="vid-toggle ${comp.data.controls === 'true' ? 'active' : ''}"><input type="checkbox" class="video-toggle" data-key="controls" ${comp.data.controls === 'true' ? 'checked' : ''}>Controls</label>
-                    <label class="vid-toggle ${comp.data.autoplay === 'true' ? 'active' : ''}"><input type="checkbox" class="video-toggle" data-key="autoplay" ${comp.data.autoplay === 'true' ? 'checked' : ''}>Autoplay</label>
-                    <label class="vid-toggle ${comp.data.muted === 'true' ? 'active' : ''}"><input type="checkbox" class="video-toggle" data-key="muted" ${comp.data.muted === 'true' ? 'checked' : ''}>Muted</label>
-                </div>
-            `;
         } else if (comp.type === 'button') {
             componentFormHtml = `
                 <div class="component-row component-row--keep-inline">
@@ -1846,68 +1746,6 @@ const renderComponents = () => {
                         <input type="text" class="form-control compact" data-key="link" data-stylable="true" data-component-id="${comp.id}" data-field-key="button" data-field-label="Button Link" value="${comp.data.link || ''}" placeholder="Button Link">
                     </div>
                 </div>
-            `;
-        } else if (comp.type === 'social_media') {
-            const isBrandColor = comp.data.iconColor !== 'custom';
-            const customColor = comp.data.customColor || '#1d1d1f';
-            const isFilled = comp.data.iconStyle === 'filled';
-
-            const platformsHtml = SOCIAL_MEDIA_PLATFORMS.map(p => {
-                const urlKey = p.key + 'Url';
-                const iconColor = isBrandColor ? p.color : customColor;
-                const iconSvg = isFilled ? p.svgFilled : p.svg;
-                return `
-                    <div class="social-platform-item">
-                        <div class="social-platform-icon" style="color: ${iconColor};">${iconSvg}</div>
-                        <div class="social-platform-fields">
-                            <input type="text" class="form-control compact" data-key="${urlKey}" value="${comp.data[urlKey] || ''}" placeholder="${p.name} URL">
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            const styleSection = `
-                <div class="component-row" style="margin-bottom: 8px;">
-                    <div class="component-row-item" style="flex: 1;">
-                        <label class="form-label">Icon Style</label>
-                        <div class="social-color-toggle">
-                            <button type="button" class="social-color-btn social-style-btn ${!isFilled ? 'active' : ''}" data-key="iconStyle" data-value="outlined">Outlined</button>
-                            <button type="button" class="social-color-btn social-style-btn ${isFilled ? 'active' : ''}" data-key="iconStyle" data-value="filled">Filled</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            const colorSection = `
-                <div class="component-row" style="margin-bottom: 8px;">
-                    <div class="component-row-item" style="flex: 1;">
-                        <label class="form-label">Icon Color</label>
-                        <div class="social-color-toggle">
-                            <button type="button" class="social-color-btn ${isBrandColor ? 'active' : ''}" data-key="iconColor" data-value="brand">Brand Colors</button>
-                            <button type="button" class="social-color-btn ${!isBrandColor ? 'active' : ''}" data-key="iconColor" data-value="custom">Custom</button>
-                        </div>
-                        ${!isBrandColor ? `
-                            <div class="social-custom-color-row">
-                                <input type="color" class="form-control color-input" data-key="customColor" value="${customColor}">
-                                <input type="text" class="form-control compact color-hex-input" data-key="customColor" value="${customColor}" placeholder="#000000">
-                            </div>
-                        ` : ''}
-                    </div>
-                </div>
-            `;
-
-            const containerPreview = `
-                <div class="social-container-preview" data-stylable="true" data-component-id="${comp.id}" data-field-key="socialContainer" data-field-label="Container" tabindex="0">
-                    <span class="material-symbols-rounded" style="font-size: 14px; color: var(--label-tertiary);">settings</span>
-                    <span style="font-size: 11px; color: var(--label-secondary);">Container &amp; Alignment</span>
-                </div>
-            `;
-
-            componentFormHtml = `
-                ${styleSection}
-                ${colorSection}
-                <div class="social-platforms-list">${platformsHtml}</div>
-                ${containerPreview}
             `;
         } else if (comp.type === 'footer') {
             let footerLinks: {text: string; url: string}[] = [];
@@ -2109,15 +1947,6 @@ const renderComponents = () => {
                 <span class="header-toggle-divider"></span>
             `;
         }
-        if (comp.type === 'video') {
-            offerHeaderControls += `
-                <div class="toggle-group header-toggle-group">
-                    <button type="button" class="toggle-btn border-toggle ${comp.data.showBorder === 'true' ? 'active' : ''}" data-key="showBorder" data-value="${comp.data.showBorder === 'true' ? 'false' : 'true'}" data-tooltip="Video Border"><span class="material-symbols-rounded">crop_square</span></button>
-                </div>
-                <span class="header-toggle-divider"></span>
-            `;
-        }
-
         item.innerHTML = `
             <div class="card-header">
                 <span class="drag-handle" data-tooltip="Drag to reorder">
@@ -2177,7 +2006,7 @@ const renderComponents = () => {
         }
 
 
-        if (comp.type === 'image' || comp.type === 'video' || comp.type === 'sales_offer' || comp.type === 'service_offer') {
+        if (comp.type === 'image' || comp.type === 'sales_offer' || comp.type === 'service_offer') {
             item.querySelectorAll('.upload-btn').forEach(uploadBtn => {
                 const fileInput = uploadBtn.nextElementSibling as HTMLInputElement;
                 const offerIndex = fileInput?.dataset.offerIndex || '1';
@@ -2188,16 +2017,14 @@ const renderComponents = () => {
                     const target = e.target as HTMLInputElement;
                     const file = target.files?.[0];
                     if (file) {
-                        const validTypes = comp.type === 'video'
-                            ? ['video/mp4', 'video/webm', 'video/ogg']
-                            : ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-                        const maxSize = comp.type === 'video' ? 50 * 1024 * 1024 : 5 * 1024 * 1024;
+                        const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                        const maxSize = 5 * 1024 * 1024;
                         if (!validTypes.includes(file.type)) {
-                            showToast(comp.type === 'video' ? 'Invalid file type. Use MP4, WebM, or OGG.' : 'Invalid file type. Use JPG, PNG, GIF, or WEBP.', 'error');
+                            showToast('Invalid file type. Use JPG, PNG, GIF, or WEBP.', 'error');
                             return;
                         }
                         if (file.size > maxSize) {
-                            showToast(comp.type === 'video' ? 'File is too large. Max size is 50MB.' : 'File is too large. Max size is 5MB.', 'error');
+                            showToast('File is too large. Max size is 5MB.', 'error');
                             return;
                         }
 
@@ -2223,7 +2050,7 @@ const renderComponents = () => {
                                 if (thumbImg) thumbImg.src = result;
                                 (thumbPreview as HTMLElement).style.display = 'block';
                             }
-                            showToast(comp.type === 'video' ? 'Video uploaded.' : 'Image uploaded.', 'success');
+                            showToast('Image uploaded.', 'success');
                             uploadBtn.innerHTML = originalBtnContent;
                             (uploadBtn as HTMLButtonElement).disabled = false;
                         };
@@ -2238,63 +2065,6 @@ const renderComponents = () => {
             });
         }
 
-        if (comp.type === 'video') {
-            // Poster image upload handler
-            item.querySelectorAll('.poster-upload-btn').forEach(uploadBtn => {
-                const fileInput = uploadBtn.nextElementSibling as HTMLInputElement;
-                uploadBtn.addEventListener('click', () => fileInput?.click());
-                fileInput?.addEventListener('change', (e) => {
-                    const target = e.target as HTMLInputElement;
-                    const file = target.files?.[0];
-                    if (file) {
-                        const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-                        if (!validTypes.includes(file.type)) {
-                            showToast('Invalid file type. Use JPG, PNG, GIF, or WEBP.', 'error');
-                            return;
-                        }
-                        if (file.size > 5 * 1024 * 1024) {
-                            showToast('File is too large. Max size is 5MB.', 'error');
-                            return;
-                        }
-                        const originalBtnContent = uploadBtn.innerHTML;
-                        const reader = new FileReader();
-                        reader.onloadstart = () => { uploadBtn.innerHTML = '...'; (uploadBtn as HTMLButtonElement).disabled = true; };
-                        reader.onload = (event) => {
-                            const result = event.target?.result as string;
-                            updateComponentData(comp.id, 'poster', result);
-                            (item.querySelector('input[data-key="poster"]') as HTMLInputElement).value = result;
-                            const thumbPreview = item.querySelector('.img-thumbnail-preview');
-                            if (thumbPreview) {
-                                const thumbImg = thumbPreview.querySelector('img') as HTMLImageElement;
-                                if (thumbImg) thumbImg.src = result;
-                                (thumbPreview as HTMLElement).style.display = 'block';
-                            }
-                            showToast('Poster image uploaded.', 'success');
-                            uploadBtn.innerHTML = originalBtnContent;
-                            (uploadBtn as HTMLButtonElement).disabled = false;
-                        };
-                        reader.onerror = () => { showToast('Error reading file.', 'error'); uploadBtn.innerHTML = originalBtnContent; (uploadBtn as HTMLButtonElement).disabled = false; };
-                        reader.readAsDataURL(file);
-                    }
-                });
-            });
-
-            // Video toggle checkbox handlers
-            item.querySelectorAll('.video-toggle').forEach(toggle => {
-                toggle.addEventListener('change', (e) => {
-                    const input = e.target as HTMLInputElement;
-                    const key = input.dataset.key;
-                    if (key) {
-                        updateComponentData(comp.id, key, input.checked.toString());
-                        const label = input.closest('.vid-toggle');
-                        if (label) {
-                            label.classList.toggle('active', input.checked);
-                        }
-                    }
-                });
-            });
-        }
-        
         if (comp.type === 'sales_offer') {
             item.querySelectorAll('.add-sub-offer-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -2340,51 +2110,6 @@ const renderComponents = () => {
                         if (swatch) swatch.style.background = target.value;
                     }
                     updateComponentData(comp.id, offersKey, JSON.stringify(current));
-                });
-            });
-        }
-
-        if (comp.type === 'social_media') {
-            // Icon style toggle
-            item.querySelectorAll('.social-style-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const value = (btn as HTMLElement).dataset.value || 'outlined';
-                    updateComponentData(comp.id, 'iconStyle', value);
-                    renderComponents();
-                });
-            });
-
-            // Color mode toggle
-            item.querySelectorAll('.social-color-btn:not(.social-style-btn)').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const value = (btn as HTMLElement).dataset.value || 'brand';
-                    updateComponentData(comp.id, 'iconColor', value);
-                    renderComponents();
-                });
-            });
-
-            // Sync color hex input with color picker
-            item.querySelectorAll('.color-hex-input').forEach(input => {
-                input.addEventListener('input', (e: any) => {
-                    const val = e.target.value;
-                    const key = e.target.getAttribute('data-key');
-                    if (!key) return;
-                    if (/^#[0-9a-fA-F]{6}$/.test(val)) {
-                        const colorInput = item.querySelector(`input[type="color"][data-key="${key}"]`) as HTMLInputElement;
-                        if (colorInput) colorInput.value = val;
-                        updateComponentData(comp.id, key, val);
-                    }
-                });
-            });
-
-            item.querySelectorAll('input[type="color"]').forEach(input => {
-                input.addEventListener('input', (e: any) => {
-                    const val = e.target.value;
-                    const key = e.target.getAttribute('data-key');
-                    if (!key) return;
-                    const hexInput = item.querySelector(`.color-hex-input[data-key="${key}"]`) as HTMLInputElement;
-                    if (hexInput) hexInput.value = val;
-                    updateComponentData(comp.id, key, val);
                 });
             });
         }
@@ -2457,7 +2182,7 @@ const renderComponents = () => {
                             renderComponents();
                         }
 
-                        if ((comp.type === 'sales_offer' || comp.type === 'service_offer' || comp.type === 'video') && key === 'showBorder') {
+                        if ((comp.type === 'sales_offer' || comp.type === 'service_offer') && key === 'showBorder') {
                             // Flip button state in-place — no full re-render needed
                             const btn = target as HTMLButtonElement;
                             const isNowActive = value !== 'false';
@@ -2759,100 +2484,6 @@ function generateEmailHtml(): string {
                 </td>
             </tr>
         `;
-    } else if (comp.type === 'video') {
-        const numericWidth = parseFloat((d.width || '100%').replace(/%/g, '')) || 100;
-        const styleWidth = `${numericWidth}%`;
-        const posterSrc = DOMPurify.sanitize(d.poster || '');
-        const videoSrc = DOMPurify.sanitize(d.src || '');
-        const altText = DOMPurify.sanitize(d.alt || 'Video');
-        const borderRadius = d.borderRadius || '12';
-        const marginStyle = d.align === 'center' ? '0 auto' : '0';
-        const youtubeId = getYouTubeId(d.src || '');
-        const videoBorder = d.showBorder === 'true' ? `border: 1px solid #e2e8f0; border-radius: ${borderRadius}px; overflow: hidden; ` : '';
-
-        let videoContent = '';
-
-        if (youtubeId) {
-            // YouTube embed via iframe
-            const ytParams: string[] = [];
-            if (d.autoplay === 'true') ytParams.push('autoplay=1');
-            if (d.muted === 'true') ytParams.push('mute=1');
-            if (d.loop === 'true') ytParams.push(`loop=1&playlist=${youtubeId}`);
-            if (d.controls !== 'true') ytParams.push('controls=0');
-            ytParams.push('rel=0', 'modestbranding=1');
-            const ytQuery = ytParams.length ? `?${ytParams.join('&')}` : '';
-            const embedUrl = `https://www.youtube-nocookie.com/embed/${youtubeId}${ytQuery}`;
-
-            const iframeStyles = [
-                `position: absolute`, `top: 0`, `left: 0`,
-                `width: 100%`, `height: 100%`,
-                `border: 0`,
-                `border-radius: ${borderRadius}px`
-            ].join(';');
-
-            const wrapperStyles = [
-                `position: relative`,
-                `width: ${styleWidth}`,
-                `max-width: 100%`,
-                `padding-bottom: ${(numericWidth * 56.25 / 100).toFixed(2)}%`,
-                `height: 0`,
-                `overflow: hidden`,
-                `margin: ${marginStyle}`,
-                `border-radius: ${borderRadius}px`,
-                `background: #000`
-            ].join(';');
-
-            const iframeTag = `<div style="${wrapperStyles}"><iframe src="${embedUrl}" style="${iframeStyles}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen title="${altText}"></iframe></div>`;
-
-            // Poster fallback for email clients (link to YouTube)
-            const ytLink = `https://www.youtube.com/watch?v=${youtubeId}`;
-            const posterImgStyles = [`display: block`, `max-width: 100%`, `width: ${styleWidth}`, `height: auto`, `border: 0`, `margin: ${marginStyle}`, `border-radius: ${borderRadius}px`].join(';');
-            const playBtnOuter = `position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 68px; height: 68px; background: rgba(255,0,0,0.85); border-radius: 16px; display: flex; align-items: center; justify-content: center;`;
-            const playTriangle = `width: 0; height: 0; border-style: solid; border-width: 11px 0 11px 20px; border-color: transparent transparent transparent #ffffff; margin-left: 4px;`;
-
-            const thumbSrc = posterSrc || `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`;
-            const posterFallback = `<a href="${ytLink}" target="_blank" style="text-decoration: none; display: inline-block; position: relative;"><img src="${thumbSrc}" alt="${altText}" style="${posterImgStyles}" border="0" /><div style="${playBtnOuter}"><div style="${playTriangle}"></div></div></a>`;
-
-            videoContent = `<!--[if mso]>${posterFallback}<![endif]--><!--[if !mso]><!-->${iframeTag}<!--<![endif]-->`;
-        } else {
-            // Direct video file
-            const autoplayAttr = d.autoplay === 'true' ? ' autoplay' : '';
-            const mutedAttr = d.muted === 'true' ? ' muted' : '';
-            const controlsAttr = d.controls === 'true' ? ' controls' : '';
-            const loopAttr = d.loop === 'true' ? ' loop' : '';
-
-            const videoStyles = [
-                `display: block`, `max-width: 100%`, `width: ${styleWidth}`,
-                `height: auto`, `border: 0`, `margin: ${marginStyle}`,
-                `border-radius: ${borderRadius}px`, `background: #000`
-            ].join(';');
-
-            const videoTag = `<video style="${videoStyles}"${posterSrc ? ` poster="${posterSrc}"` : ''}${controlsAttr}${autoplayAttr}${mutedAttr}${loopAttr} playsinline preload="metadata"><source src="${videoSrc}" type="video/mp4">${altText}</video>`;
-
-            // Poster fallback for email clients
-            const posterImgStyles = [`display: block`, `max-width: 100%`, `width: ${styleWidth}`, `height: auto`, `border: 0`, `margin: ${marginStyle}`, `border-radius: ${borderRadius}px`].join(';');
-            const playBtnOuter = `position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 68px; height: 68px; background: rgba(0,0,0,0.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50%; display: flex; align-items: center; justify-content: center;`;
-            const playTriangle = `width: 0; height: 0; border-style: solid; border-width: 11px 0 11px 20px; border-color: transparent transparent transparent #ffffff; margin-left: 4px;`;
-
-            let posterFallback = '';
-            if (posterSrc) {
-                posterFallback = `<a href="${DOMPurify.sanitize(d.src || '')}" target="_blank" style="text-decoration: none; display: inline-block; position: relative;"><img src="${posterSrc}" alt="${altText}" style="${posterImgStyles}" border="0" /><div style="${playBtnOuter}"><div style="${playTriangle}"></div></div></a>`;
-            }
-
-            videoContent = posterFallback
-                ? `<!--[if mso]>${posterFallback}<![endif]--><!--[if !mso]><!-->${videoTag}<!--<![endif]-->`
-                : videoTag;
-        }
-
-        sectionsHtml += `
-            <tr>
-                <td align="${d.align || 'center'}" ${isTransparent ? '' : `bgcolor="${d.backgroundColor}"`} style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
-                    <div style="${videoBorder}display: block; width: 100%; max-width: ${styleWidth}; margin: ${marginStyle};">
-                        ${videoContent}
-                    </div>
-                </td>
-            </tr>
-        `;
     } else if (comp.type === 'button') {
         const radius = designSettings.buttonStyle === 'pill' ? '50px' : designSettings.buttonStyle === 'square' ? '0px' : '8px';
         const isOutlined = designSettings.buttonStyle === 'outlined';
@@ -2880,48 +2511,6 @@ function generateEmailHtml(): string {
                 </td>
             </tr>
         `;
-    } else if (comp.type === 'social_media') {
-        const iconSize = parseInt(d.iconSize || '12');
-        const iconSpacing = parseInt(d.iconSpacing || '12');
-        const align = d.align || 'center';
-        const bgColor = d.backgroundColor || 'transparent';
-        const isTransparentBg = bgColor === 'transparent';
-        const isBrand = d.iconColor !== 'custom';
-        const customClr = d.customColor || '#1d1d1f';
-        const useFilled = d.iconStyle === 'filled';
-
-        const activePlatforms = SOCIAL_MEDIA_PLATFORMS.filter(p => {
-            const url = d[p.key + 'Url'];
-            return url && url.trim() !== '';
-        });
-
-        if (activePlatforms.length > 0) {
-            const iconsHtml = activePlatforms.map((p, i) => {
-                const url = DOMPurify.sanitize(d[p.key + 'Url'] || '#');
-                const iconColor = isBrand ? p.color : customClr;
-                const rawSvg = useFilled ? p.svgFilled : p.svg;
-                const svgContent = rawSvg
-                    .replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ')
-                    .replace(/currentColor/g, iconColor);
-                const dataUri = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgContent);
-                const paddingLeft = i > 0 ? iconSpacing : 0;
-                return `<td style="padding-left: ${paddingLeft}px;">
-                    <a href="${url}" target="_blank" style="text-decoration: none; display: inline-block;">
-                        <img src="${dataUri}" alt="${p.name}" width="${iconSize}" height="${iconSize}" style="display: block; border: 0; outline: none;" />
-                    </a>
-                </td>`;
-            }).join('');
-
-            sectionsHtml += `
-                <tr>
-                    <td align="${align}" ${!isTransparentBg ? `bgcolor="${bgColor}"` : ''} style="padding: ${d.paddingTop || 0}px ${d.paddingLeftRight || 0}px ${d.paddingBottom || 0}px ${d.paddingLeftRight || 0}px;">
-                        <table border="0" cellspacing="0" cellpadding="0" style="margin: ${align === 'center' ? '0 auto' : align === 'right' ? '0 0 0 auto' : '0'};">
-                            <tr>${iconsHtml}</tr>
-                        </table>
-                    </td>
-                </tr>
-            `;
-        }
     } else if (comp.type === 'footer') {
         let footerLinks: {text: string; url: string}[] = [];
         try { footerLinks = JSON.parse(d.links || '[]'); } catch { footerLinks = []; }
@@ -5054,20 +4643,6 @@ const getDefaultFieldStyles = (compType: string, fieldKey: string, subOfferIndex
                 paddingTop: '9', paddingBottom: '9', paddingLeftRight: '15',
                 widthType: 'auto'
             };
-        case 'social_media': {
-            if (fieldKey === 'socialContainer') {
-                return {
-                    align: 'center', backgroundColor: 'transparent',
-                    iconSize: '12', iconSpacing: '12',
-                    paddingTop: '15', paddingBottom: '15', paddingLeftRight: '15',
-                };
-            }
-            return {
-                align: 'center', backgroundColor: 'transparent',
-                iconSize: '12', iconSpacing: '12',
-                paddingTop: '15', paddingBottom: '15', paddingLeftRight: '15',
-            };
-        }
         case 'footer': {
             if (fieldKey === 'footerLinks') {
                 return {
@@ -5103,11 +4678,6 @@ const getDefaultFieldStyles = (compType: string, fieldKey: string, subOfferIndex
                 height: '30', backgroundColor: 'transparent', matchEmailBackground: 'true'
             };
         case 'image':
-            return {
-                width: '100%', align: 'center',
-                paddingTop: '0', paddingBottom: '0', paddingLeftRight: '0'
-            };
-        case 'video':
             return {
                 width: '100%', align: 'center',
                 paddingTop: '0', paddingBottom: '0', paddingLeftRight: '0'
@@ -5433,39 +5003,6 @@ const renderStylingPanel = () => {
             }, baseUpdateFn);
             break;
 
-        case 'social_media': {
-            const socialFieldKey = activeField.fieldKey;
-            if (socialFieldKey === 'socialContainer') {
-                renderStandardStylingPanel(comp.data, {
-                    colors: [
-                        { key: 'backgroundColor', label: 'Background' },
-                    ],
-                    alignment: { align: 'align' },
-                    padding: [
-                        { key: 'paddingTop', label: 'Padding T' },
-                        { key: 'paddingBottom', label: 'Padding B' },
-                        { key: 'paddingLeftRight', label: 'Padding L/R' },
-                    ],
-                    customHtml: () => `
-                        <div class="styling-section">
-                            <h4 class="styling-section-title">Icon Settings</h4>
-                            <div class="grid grid-cols-2">
-                                <div class="form-group">
-                                    <label class="form-label">Size (px)</label>
-                                    <input type="number" class="form-control style-control" data-style-key="iconSize" value="${comp.data.iconSize || '12'}" min="8" max="64">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Spacing (px)</label>
-                                    <input type="number" class="form-control style-control" data-style-key="iconSpacing" value="${comp.data.iconSpacing || '12'}" min="0" max="48">
-                                </div>
-                            </div>
-                        </div>
-                    `,
-                }, baseUpdateFn);
-            }
-            break;
-        }
-
         case 'footer': {
             const footerFieldKey = activeField.fieldKey;
             if (footerFieldKey === 'footerLinks') {
@@ -5647,14 +5184,6 @@ const renderStylingPanel = () => {
         case 'image':
              renderStandardStylingPanel(comp.data, {
                 sizing: { width: 'width'},
-                alignment: { align: 'align' },
-                padding: [{key: 'paddingTop', label: 'Padding T'}, {key: 'paddingBottom', label: 'Padding B'}, {key: 'paddingLeftRight', label: 'Padding L/R'}]
-            }, baseUpdateFn);
-            break;
-
-        case 'video':
-            renderStandardStylingPanel(comp.data, {
-                sizing: { width: 'width' },
                 alignment: { align: 'align' },
                 padding: [{key: 'paddingTop', label: 'Padding T'}, {key: 'paddingBottom', label: 'Padding B'}, {key: 'paddingLeftRight', label: 'Padding L/R'}]
             }, baseUpdateFn);
