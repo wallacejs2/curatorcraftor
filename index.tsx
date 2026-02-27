@@ -1226,6 +1226,7 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 detailsFontSize2: '12', detailsFontWeight2: 'normal', detailsFontStyle2: 'normal', detailsTextColor2: '#333333', detailsBgColor2: 'transparent', detailsAlignment2: 'center', detailsLineHeight2: '1.5', detailsPaddingTop2: '9', detailsPaddingBottom2: '9', detailsPaddingLeftRight2: '0',
                 disclaimerFontSize2: '9', disclaimerFontWeight2: 'normal', disclaimerFontStyle2: 'normal', disclaimerTextColor2: '#666666', disclaimerBgColor2: 'transparent', disclaimerAlignment2: 'center', disclaimerPaddingTop2: '6', disclaimerPaddingBottom2: '6', disclaimerPaddingLeftRight2: '0',
                 buttonFontSize2: '12', buttonAlignment2: 'center', buttonBgColor2: '#0066FF', buttonTextColor2: '#FFFFFF', buttonPaddingTop2: '9', buttonPaddingBottom2: '9', buttonPaddingLeftRight2: '15', buttonWidth2: 'auto',
+                imageColWidth: '50',
                 textLayout: 'center',
                 showBorder: 'true'
             };
@@ -1261,6 +1262,7 @@ const getDefaultComponentData = (type: string): Record<string, string> => {
                 disclaimerFontSize2: '9', disclaimerFontWeight2: 'normal', disclaimerFontStyle2: 'normal', disclaimerColor2: '#86868b', disclaimerBgColor2: 'transparent', disclaimerTextAlign2: 'center', disclaimerPaddingTop2: '12', disclaimerPaddingBottom2: '0', disclaimerPaddingLeftRight2: '0',
                 btnFontSize2: '12', btnPaddingTop2: '9', btnPaddingBottom2: '9', btnPaddingLeftRight2: '15', btnColor2: '#007aff', btnTextColor2: '#ffffff', btnAlign2: 'center', btnWidthType2: 'full',
                 paddingTop: '15', paddingBottom: '15', paddingLeftRight: '15', backgroundColor: '#ffffff',
+                imageColWidth: '50',
                 textLayout: 'center',
                 showBorder: 'true'
             };
@@ -1829,7 +1831,22 @@ const renderComponents = () => {
             `;
         } else if (comp.type === 'service_offer') {
             const isGrid = comp.data.layout === 'grid';
+            const isSvcSplit = comp.data.layout === 'left' || comp.data.layout === 'right';
+            const svcImgColPct = parseInt(comp.data.imageColWidth || '50');
             componentFormHtml = `
+                ${isSvcSplit ? `
+                <div class="compact-separator"><span>Column Width</span></div>
+                <div class="grid grid-cols-2">
+                    <div class="form-group">
+                        <label class="form-label">Image (%)</label>
+                        <input type="number" class="form-control compact" data-key="imageColWidth" min="20" max="80" step="1" value="${svcImgColPct}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Content (%)</label>
+                        <input type="number" class="form-control compact" value="${100 - svcImgColPct}" readonly style="background: var(--surface-secondary); opacity: 0.6; cursor: default;">
+                    </div>
+                </div>
+                ` : ''}
                 <div class="offer-columns-container" data-layout="${comp.data.layout || 'center'}">
                     <div class="offer-column">
                         ${isGrid ? '<h4 class="offer-column-title">Offer 1</h4>' : ''}
@@ -1884,6 +1901,20 @@ const renderComponents = () => {
                   <div class="img-thumbnail-preview" style="display: ${comp.data.imageSrc ? 'block' : 'none'}">
                       <img src="${comp.data.imageSrc || ''}" alt="" />
                   </div>
+                </div>
+                ` : ''}
+
+                ${(!isGrid && (comp.data.layout === 'left' || comp.data.layout === 'right')) ? `
+                <div class="compact-separator"><span>Column Width</span></div>
+                <div class="grid grid-cols-2">
+                    <div class="form-group">
+                        <label class="form-label">Image (%)</label>
+                        <input type="number" class="form-control compact" data-key="imageColWidth" min="20" max="80" step="1" value="${parseInt(comp.data.imageColWidth || '50')}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Content (%)</label>
+                        <input type="number" class="form-control compact" value="${100 - parseInt(comp.data.imageColWidth || '50')}" readonly style="background: var(--surface-secondary); opacity: 0.6; cursor: default;">
+                    </div>
                 </div>
                 ` : ''}
 
@@ -2701,10 +2732,12 @@ function generateEmailHtml(): string {
                 serviceOfferContentHtml = generateOfferContent(d, '');
             } else {
                 const isRightLayout = serviceLayout === 'right';
+                const svcImgPct = Math.min(80, Math.max(20, parseInt(d.imageColWidth || '50')));
+                const svcContentPct = 100 - svcImgPct;
                 const gutter = 8;
-                const imageTd = `<td width="50%" class="mobile-half" valign="top" style="width: 50%; vertical-align: top;">${generateOfferContent(d, '', undefined, 'imageOnly')}</td>`;
-                const contentTdLeft = `<td width="50%" class="mobile-half" valign="top" style="width: 50%; vertical-align: top; padding-left: ${gutter}px;">${generateOfferContent(d, '', undefined, 'contentOnly')}</td>`;
-                const contentTdRight = `<td width="50%" class="mobile-half" valign="top" style="width: 50%; vertical-align: top; padding-right: ${gutter}px;">${generateOfferContent(d, '', undefined, 'contentOnly')}</td>`;
+                const imageTd = `<td width="${svcImgPct}%" class="mobile-half" valign="top" style="width: ${svcImgPct}%; vertical-align: top;">${generateOfferContent(d, '', undefined, 'imageOnly')}</td>`;
+                const contentTdLeft = `<td width="${svcContentPct}%" class="mobile-half" valign="top" style="width: ${svcContentPct}%; vertical-align: top; padding-left: ${gutter}px;">${generateOfferContent(d, '', undefined, 'contentOnly')}</td>`;
+                const contentTdRight = `<td width="${svcContentPct}%" class="mobile-half" valign="top" style="width: ${svcContentPct}%; vertical-align: top; padding-right: ${gutter}px;">${generateOfferContent(d, '', undefined, 'contentOnly')}</td>`;
                 const svcLRBorder = d.showBorder !== 'false' ? 'border: 1px solid #e2e8f0; ' : '';
                 serviceOfferContentHtml = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="${svcLRBorder}border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr>${isRightLayout ? contentTdRight + imageTd : imageTd + contentTdLeft}</tr></table></td></tr></table>`;
             }
@@ -2827,10 +2860,12 @@ function generateEmailHtml(): string {
                 offerContentHtml = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="${salesSingleBorder}border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;">${renderSalesOfferContent(d, '')}</td></tr></table>`;
             } else {
                 const isRightLayout = layout === 'right';
+                const salesImgPct = Math.min(80, Math.max(20, parseInt(d.imageColWidth || '50')));
+                const salesContentPct = 100 - salesImgPct;
                 const gutter = 8;
-                const imageTd = `<td width="50%" class="mobile-half" valign="top" style="width: 50%; vertical-align: top;">${renderSalesOfferContent(d, '', undefined, 'imageOnly')}</td>`;
-                const contentTdLeft = `<td width="50%" class="mobile-half" valign="top" style="width: 50%; vertical-align: top; padding-left: ${gutter}px;">${renderSalesOfferContent(d, '', undefined, 'contentOnly')}</td>`;
-                const contentTdRight = `<td width="50%" class="mobile-half" valign="top" style="width: 50%; vertical-align: top; padding-right: ${gutter}px;">${renderSalesOfferContent(d, '', undefined, 'contentOnly')}</td>`;
+                const imageTd = `<td width="${salesImgPct}%" class="mobile-half" valign="top" style="width: ${salesImgPct}%; vertical-align: top;">${renderSalesOfferContent(d, '', undefined, 'imageOnly')}</td>`;
+                const contentTdLeft = `<td width="${salesContentPct}%" class="mobile-half" valign="top" style="width: ${salesContentPct}%; vertical-align: top; padding-left: ${gutter}px;">${renderSalesOfferContent(d, '', undefined, 'contentOnly')}</td>`;
+                const contentTdRight = `<td width="${salesContentPct}%" class="mobile-half" valign="top" style="width: ${salesContentPct}%; vertical-align: top; padding-right: ${gutter}px;">${renderSalesOfferContent(d, '', undefined, 'contentOnly')}</td>`;
                 offerContentHtml = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="${salesSingleBorder}border-radius: 8px; background-color: #ffffff;"><tr><td style="padding: 15px;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr>${isRightLayout ? contentTdRight + imageTd : imageTd + contentTdLeft}</tr></table></td></tr></table>`;
             }
         }
@@ -2937,8 +2972,6 @@ function generateEmailHtml(): string {
                 display: none !important;
             }
             .mobile-half {
-                width: 50% !important;
-                max-width: 50% !important;
                 padding-left: 4px !important;
                 padding-right: 4px !important;
             }
